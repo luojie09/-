@@ -1,0 +1,104 @@
+{
+  "couple": {
+    "leftName": "小羊",
+    "rightName": "小耶",
+    "currentUserId": "sheep",
+    "relationshipLabel": "我们已经一起走过的日子",
+    "relationshipStartDate": "2026-05-06"
+  },
+  "topActions": {
+    "message": "待接入消息 / 留言页",
+    "settings": "待接入设置页"
+  },
+  "quickRecord": {
+    "placeholder": "今天想说点什么……",
+    "entryMessage": "待接入快捷发布页",
+    "galleryMessage": "待接入从相册选择图片",
+    "cameraMessage": "待接入拍照",
+    "calendarMessage": "待接入日期 / 纪念记录"
+  },
+  "users": [
+    {
+      "id": "sheep",
+      "name": "小羊",
+      "defaultMood": "开心",
+      "editable": true
+    },
+    {
+      "id": "chick",
+      "name": "小耶",
+      "defaultMood": "平静",
+      "editable": false
+    }
+  ],
+  "stats": {
+    "albumCount": 128,
+    "wishCompleted": 3,
+    "wishTotal": 8,
+    "messageUnread": 9,
+    "diaryStreak": 12,
+    "activeTasks": 2
+  },
+  "features": [
+    {
+      "id": "anniversary",
+      "title": "纪念日",
+      "iconSlot": "anniversaryFeature",
+      "clickMessage": "待接入纪念日列表"
+    },
+    {
+      "id": "album",
+      "title": "甜蜜相册",
+      "iconSlot": "albumFeature",
+      "clickMessage": "待接入甜蜜相册页"
+    },
+    {
+      "id": "wishlist",
+      "title": "愿望清单",
+      "iconSlot": "wishlistFeature",
+      "clickMessage": "待接入愿望清单页"
+    },
+    {
+      "id": "messageWall",
+      "title": "留言墙",
+      "iconSlot": "messageWallFeature",
+      "clickMessage": "待接入留言墙页"
+    },
+    {
+      "id": "diary",
+      "title": "心情日记",
+      "iconSlot": "diaryFeature",
+      "clickMessage": "待接入心情日记页"
+    },
+    {
+      "id": "tasks",
+      "title": "情侣任务",
+      "iconSlot": "taskFeature",
+      "clickMessage": "待接入情侣任务页"
+    }
+  ],
+  "recentActivityListMessage": "待接入完整动态列表",
+  "recentActivityEmptyText": "还没有新的记录，去留下属于我们的回忆吧",
+  "recentActivities": [
+    {
+      "id": "seed-photo",
+      "title": "小耶上传了 3 张新照",
+      "iconSlot": "activityPhoto",
+      "timestamp": "2026-06-22T07:41:00",
+      "clickMessage": "待接入相册详情页"
+    },
+    {
+      "id": "seed-wish",
+      "title": "完成了愿望清单中的「看海」",
+      "iconSlot": "activityChecklist",
+      "timestamp": "2026-06-21T10:00:00",
+      "clickMessage": "待接入愿望详情页"
+    }
+  ],
+  "bottomNavMessages": {
+    "anniversary": "待接入纪念日页",
+    "album": "待接入相册页",
+    "profile": "待接入我的页"
+  }
+}
+

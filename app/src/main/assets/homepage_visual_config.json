@@ -1,0 +1,34 @@
+{
+  "heroImageRes": "home_couple_hero",
+  "heroGradientStart": "#FFEEF3",
+  "heroGradientMiddle": "#FFF7F8",
+  "heroGradientEnd": "#FFFBFA",
+  "heroHeightDp": 250,
+  "heroBottomFadeHeightDp": 72,
+  "relationshipCardOverlapDp": 24,
+  "backgroundOverlay": "",
+  "avatarSlots": {
+    "sheep": "avatar_sheep",
+    "chick": "avatar_chick"
+  },
+  "iconSlots": {
+    "message": "ic_message_bubble",
+    "settings": "ic_settings_gear",
+    "quickGallery": "ic_gallery_stack",
+    "quickCamera": "ic_camera",
+    "quickCalendar": "ic_calendar_outline_pink",
+    "anniversaryFeature": "ic_anniversary_card",
+    "albumFeature": "ic_album_card",
+    "wishlistFeature": "ic_wishlist_card",
+    "messageWallFeature": "ic_message_wall_card",
+    "diaryFeature": "ic_diary_card",
+    "taskFeature": "ic_task_card",
+    "navHome": "ic_home_nav_active",
+    "navAnniversary": "ic_calendar_nav",
+    "navAlbum": "ic_album_nav",
+    "navProfile": "ic_profile_nav",
+    "activityPhoto": "ic_activity_photo",
+    "activityChecklist": "ic_activity_checklist",
+    "activityNote": "ic_message_bubble"
+  }
+}
