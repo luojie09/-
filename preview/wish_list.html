@@ -1,0 +1,1296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>愿望清单预览</title>
+  <style>
+    :root{
+      --bg:#fffaf9;
+      --bg-top:#fff1f5;
+      --surface:rgba(255,255,255,.98);
+      --line:#f6dce5;
+      --line-strong:#f4c7d7;
+      --ink:#202128;
+      --muted:#8d8896;
+      --pink:#ff6f95;
+      --pink-strong:#ff5a8b;
+      --pink-soft:#ffdbe7;
+      --blue-pill:#eef6ff;
+      --shadow:0 18px 44px rgba(116,61,78,.12);
+      --radius-xl:30px;
+      --radius-lg:24px;
+      --radius-md:20px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;background:#f3eef1;color:var(--ink);font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif}
+    body{min-height:100vh;padding:24px 12px;display:flex;justify-content:center}
+
+    .phone{
+      width:min(100%,430px);
+      min-height:calc(100vh - 48px);
+      background:linear-gradient(180deg,var(--bg-top),var(--bg));
+      border-radius:38px;
+      border:1px solid rgba(255,255,255,.88);
+      box-shadow:0 28px 72px rgba(49,34,41,.16);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .screen{
+      min-height:100%;
+      padding:calc(14px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .topbar{
+      display:grid;
+      grid-template-columns:44px 1fr 44px;
+      align-items:center;
+      margin-bottom:14px;
+    }
+
+    .title{
+      margin:0;
+      text-align:center;
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:.03em;
+    }
+
+    .circle-btn{
+      width:44px;
+      height:44px;
+      border:none;
+      border-radius:50%;
+      background:rgba(255,255,255,.96);
+      border:1px solid rgba(246,220,229,.9);
+      box-shadow:0 10px 20px rgba(116,61,78,.08);
+      display:grid;
+      place-items:center;
+      color:var(--ink);
+      cursor:pointer;
+    }
+
+    .circle-btn svg{width:21px;height:21px;display:block}
+    .circle-btn.add{color:var(--pink)}
+
+    .hero,
+    .wish-card,
+    .detail-card,
+    .celebrate-card,
+    .empty-card{
+      background:var(--surface);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+
+    .hero{
+      border-radius:30px;
+      padding:18px 16px 14px;
+      margin-bottom:14px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .hero-copy{
+      text-align:center;
+      position:relative;
+      z-index:1;
+    }
+
+    .hero-copy .eyebrow{
+      margin:0;
+      color:var(--pink-strong);
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .hero-copy h2{
+      margin:4px 0 10px;
+      font-size:22px;
+      line-height:1.35;
+    }
+
+    .hero-ill{
+      height:138px;
+      border-radius:24px;
+      background:linear-gradient(180deg,#fff6fa,#fffdfd);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      margin-bottom:14px;
+    }
+
+    .hero-ill img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .stat-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      border-radius:20px;
+      overflow:hidden;
+      border:1px solid rgba(245,220,229,.9);
+      background:#fffdfd;
+    }
+
+    .stat{
+      padding:14px 8px;
+      text-align:center;
+    }
+
+    .stat + .stat{border-left:1px solid rgba(245,220,229,.9)}
+    .stat-label{font-size:13px;color:var(--muted);font-weight:700}
+    .stat-num{margin-top:4px;font-size:34px;font-weight:800}
+
+    .tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .tab{
+      border:none;
+      border-radius:999px;
+      padding:12px 14px;
+      background:#fff;
+      color:var(--muted);
+      font-size:15px;
+      font-weight:700;
+      border:1px solid rgba(245,220,229,.85);
+      cursor:pointer;
+    }
+
+    .tab.active{
+      background:linear-gradient(135deg,#ff88aa,#ff5f8d);
+      color:#fff;
+      box-shadow:0 14px 24px rgba(255,111,149,.24);
+      border-color:transparent;
+    }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .wish-card{
+      border-radius:26px;
+      padding:12px;
+      display:grid;
+      grid-template-columns:92px 1fr auto;
+      gap:12px;
+      align-items:start;
+      cursor:pointer;
+    }
+
+    .wish-thumb{
+      height:92px;
+      border-radius:20px;
+      overflow:hidden;
+      border:1px solid rgba(245,220,229,.9);
+      background:#fff8fb;
+      position:relative;
+    }
+
+    .wish-thumb .mock,
+    .gallery .mock,
+    .cover-preview .mock{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:flex-end;
+      justify-content:flex-start;
+      padding:12px;
+      font-size:12px;
+      font-weight:700;
+      color:rgba(255,255,255,.95);
+      letter-spacing:.08em;
+    }
+
+    .mock.paris{background:linear-gradient(135deg,#7cc7f7,#ffc7d7)}
+    .mock.photo{background:linear-gradient(135deg,#d8a7b8,#ffe0c8)}
+    .mock.game{background:linear-gradient(135deg,#98cc8b,#cee6a7)}
+    .mock.sunrise{background:linear-gradient(135deg,#87a7ea,#ffc6a2)}
+    .mock.cake{background:linear-gradient(135deg,#ffd7e7,#ffe9b7)}
+    .mock.movie{background:linear-gradient(135deg,#5e536f,#d39a74)}
+    .mock.default{background:linear-gradient(135deg,#f1c7d6,#fde7c9)}
+
+    .wish-thumb img,
+    .gallery img,
+    .cover-preview img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .wish-main{min-width:0}
+    .wish-title{
+      margin:2px 0 6px;
+      font-size:18px;
+      font-weight:800;
+      line-height:1.35;
+    }
+
+    .wish-desc{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+
+    .wish-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      padding:6px 10px;
+      background:#fff5f8;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .pill.blue{
+      background:var(--blue-pill);
+      color:#5c7794;
+    }
+
+    .wish-side{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+    }
+
+    .menu-wrap{position:relative}
+    .text-icon{
+      border:none;
+      background:none;
+      color:var(--muted);
+      font-size:22px;
+      line-height:1;
+      cursor:pointer;
+      padding:4px 2px;
+    }
+
+    .menu{
+      position:absolute;
+      right:0;
+      top:32px;
+      width:118px;
+      border-radius:18px;
+      border:1px solid rgba(245,220,229,.9);
+      background:#fff;
+      box-shadow:0 18px 40px rgba(52,30,39,.14);
+      padding:8px;
+      display:none;
+      z-index:10;
+    }
+
+    .menu.show{display:block}
+    .menu button{
+      width:100%;
+      border:none;
+      background:none;
+      text-align:left;
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      color:var(--ink);
+      font:600 14px/1.2 inherit;
+    }
+
+    .menu button:hover{background:#fff4f8}
+    .menu button.danger{color:var(--pink)}
+
+    .tiny-btn,
+    .primary-btn,
+    .secondary-btn{
+      border:none;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:800;
+      font-family:inherit;
+    }
+
+    .tiny-btn{
+      padding:9px 14px;
+      background:#fff5f8;
+      color:var(--pink);
+      font-size:13px;
+    }
+
+    .primary-btn{
+      padding:14px 24px;
+      background:linear-gradient(135deg,#ff89aa,#ff5c89);
+      color:#fff;
+      font-size:16px;
+      box-shadow:0 14px 24px rgba(255,111,149,.24);
+    }
+
+    .primary-btn:disabled{
+      background:#f4baca;
+      box-shadow:none;
+      cursor:not-allowed;
+    }
+
+    .secondary-btn{
+      padding:14px 22px;
+      background:#fff;
+      border:1px solid rgba(245,220,229,.95);
+      color:var(--ink);
+      font-size:16px;
+    }
+
+    .detail-card,
+    .celebrate-card{
+      border-radius:28px;
+      padding:16px;
+      margin-bottom:16px;
+    }
+
+    .cover-preview{
+      height:196px;
+      border-radius:24px;
+      overflow:hidden;
+      border:1px solid rgba(245,220,229,.9);
+      background:#fff7fb;
+      margin-bottom:14px;
+      position:relative;
+    }
+
+    .detail-card h2{
+      margin:0 0 10px;
+      font-size:25px;
+      line-height:1.35;
+    }
+
+    .detail-card p{
+      margin:0 0 14px;
+      font-size:15px;
+      line-height:1.75;
+    }
+
+    .info-row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:11px 0;
+      border-top:1px solid rgba(245,220,229,.8);
+      font-size:14px;
+    }
+
+    .info-row:first-of-type{border-top:none}
+    .info-label{color:var(--muted);font-weight:700}
+    .info-value{text-align:right;font-weight:700}
+
+    .action-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .celebrate-card{
+      text-align:center;
+    }
+
+    .celebrate-card .hero-ill{
+      margin-bottom:10px;
+      height:148px;
+    }
+
+    .celebrate-card h3{
+      margin:0 0 6px;
+      font-size:26px;
+    }
+
+    .celebrate-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .field{
+      margin-bottom:14px;
+    }
+
+    .field-label{
+      margin-bottom:8px;
+      font-size:14px;
+      font-weight:800;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    textarea{
+      width:100%;
+      border:none;
+      outline:none;
+      border-radius:22px;
+      background:#fffafc;
+      border:1px solid rgba(245,220,229,.95);
+      padding:14px 16px;
+      font:600 15px/1.6 "PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--ink);
+    }
+
+    textarea{
+      resize:none;
+      min-height:140px;
+    }
+
+    .counter{
+      margin-top:6px;
+      text-align:right;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .picker-card{
+      border-radius:22px;
+      border:1px dashed rgba(244,199,215,.95);
+      background:#fffdfd;
+      min-height:126px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:8px;
+      color:var(--muted);
+      cursor:pointer;
+      text-align:center;
+    }
+
+    .picker-card svg{width:24px;height:24px}
+
+    .gallery{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+
+    .gallery-item{
+      aspect-ratio:1;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(245,220,229,.9);
+      background:#fff7fb;
+      position:relative;
+    }
+
+    .gallery-item button{
+      position:absolute;
+      top:6px;
+      right:6px;
+      width:22px;
+      height:22px;
+      border:none;
+      border-radius:50%;
+      background:rgba(255,255,255,.92);
+      color:var(--pink);
+      cursor:pointer;
+    }
+
+    .empty-card{
+      border-radius:28px;
+      padding:24px 20px;
+      text-align:center;
+    }
+
+    .empty-card h3{margin:10px 0 6px;font-size:22px}
+    .empty-card p{margin:0 0 16px;color:var(--muted);line-height:1.7}
+
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(21,18,24,.62);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      padding:20px 10px;
+      z-index:99;
+    }
+
+    .overlay.show{display:flex}
+
+    .sheet{
+      width:min(100%,430px);
+      border-radius:30px 30px 0 0;
+      background:#fff;
+      box-shadow:0 30px 72px rgba(33,20,28,.3);
+      padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+      max-height:88vh;
+      overflow:auto;
+    }
+
+    .sheet h3{
+      margin:0 0 16px;
+      font-size:22px;
+    }
+
+    .sheet-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .confirm{
+      width:min(100%,380px);
+      border-radius:28px;
+      background:#fff;
+      box-shadow:0 30px 80px rgba(33,20,28,.3);
+      padding:22px 20px;
+      margin:auto;
+    }
+
+    .confirm h3{margin:0 0 10px;font-size:22px}
+    .confirm p{margin:0;color:var(--muted);line-height:1.7}
+    .confirm .sheet-actions{margin-top:18px}
+
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen" id="screen"></div>
+  </div>
+
+  <input class="hidden" id="coverPicker" type="file" accept="image/*" />
+  <input class="hidden" id="completionPicker" type="file" accept="image/*" multiple />
+
+  <div class="overlay" id="editorOverlay">
+    <div class="sheet">
+      <h3 id="editorTitle"></h3>
+      <div class="field">
+        <div class="field-label">愿望标题 *</div>
+        <input id="wishTitleInput" type="text" maxlength="50" placeholder="请输入愿望标题（最多50字）" />
+        <div class="counter"><span id="wishTitleCount">0</span>/50</div>
+      </div>
+      <div class="field">
+        <div class="field-label">想法说明（可选）</div>
+        <textarea id="wishDescInput" maxlength="500" placeholder="写下你的想法吧……（最多500字）"></textarea>
+        <div class="counter"><span id="wishDescCount">0</span>/500</div>
+      </div>
+      <div class="field">
+        <div class="field-label">计划日期（可选）</div>
+        <input id="wishDateInput" type="date" />
+      </div>
+      <div class="field">
+        <div class="field-label">封面图片（可选）</div>
+        <div id="coverField"></div>
+      </div>
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="editorCancel" type="button">取消</button>
+        <button class="primary-btn" id="editorSave" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="confirmOverlay">
+    <div class="confirm">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmText"></p>
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="confirmCancel" type="button">取消</button>
+        <button class="primary-btn" id="confirmOk" type="button">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "secretbase-preview-wishes-v1";
+    const screenEl = document.getElementById("screen");
+    const editorOverlayEl = document.getElementById("editorOverlay");
+    const confirmOverlayEl = document.getElementById("confirmOverlay");
+    const coverPickerEl = document.getElementById("coverPicker");
+    const completionPickerEl = document.getElementById("completionPicker");
+    const titleInputEl = document.getElementById("wishTitleInput");
+    const descInputEl = document.getElementById("wishDescInput");
+    const dateInputEl = document.getElementById("wishDateInput");
+    const coverFieldEl = document.getElementById("coverField");
+    const titleCountEl = document.getElementById("wishTitleCount");
+    const descCountEl = document.getElementById("wishDescCount");
+
+    const heroImage = "../app/src/main/res/drawable-nodpi/home_couple_hero.webp";
+    const fixedNow = new Date("2026-06-27T12:00:00+08:00").getTime();
+
+    const mockLabelMap = {
+      "mock://wish-paris": ["paris", "旅程"],
+      "mock://wish-photo": ["photo", "写真"],
+      "mock://wish-game": ["game", "冒险"],
+      "mock://wish-sunrise": ["sunrise", "日出"],
+      "mock://wish-sunrise-1": ["sunrise", "日出"],
+      "mock://wish-sunrise-2": ["sunrise", "日出"],
+      "mock://wish-sunrise-3": ["sunrise", "日出"],
+      "mock://wish-cake": ["cake", "蛋糕"],
+      "mock://wish-cake-1": ["cake", "蛋糕"],
+      "mock://wish-movie": ["movie", "电影"],
+      "mock://wish-movie-1": ["movie", "电影"],
+      "mock://wish-movie-2": ["movie", "电影"]
+    };
+
+    const appState = {
+      screen: "list",
+      selectedStatus: "UNREALIZED",
+      activeWishId: null,
+      editorOpen: false,
+      editor: emptyEditor(),
+      completionDraft: emptyCompletion(),
+      menuWishId: null
+    };
+
+    let wishes = loadWishes();
+    let confirmHandler = null;
+
+    function emptyEditor() {
+      return {
+        id: null,
+        title: "",
+        description: "",
+        plannedDate: "",
+        coverImagePath: ""
+      };
+    }
+
+    function emptyCompletion() {
+      return {
+        text: "",
+        imagePaths: [],
+        completedAt: toDateInput(fixedNow)
+      };
+    }
+
+    function seedWishes() {
+      return [
+        {
+          id: "wish-paris",
+          title: "一起去旅行",
+          description: "去看海，去看日出日落，去我们从未去过的城市。",
+          coverImagePath: "mock://wish-paris",
+          plannedDate: "2026-12-31",
+          createdAt: "2026-05-20",
+          status: "UNREALIZED",
+          completion: null
+        },
+        {
+          id: "wish-photo",
+          title: "拍一组情侣写真",
+          description: "记录下最好看的我们，把镜头里的笑也好好珍藏。",
+          coverImagePath: "mock://wish-photo",
+          plannedDate: "2026-08-31",
+          createdAt: "2026-06-05",
+          status: "UNREALIZED",
+          completion: null
+        },
+        {
+          id: "wish-game",
+          title: "一起玩一次密室逃脱",
+          description: "谁先被吓到就请晚饭吧。",
+          coverImagePath: "mock://wish-game",
+          plannedDate: "2026-07-20",
+          createdAt: "2026-06-12",
+          status: "UNREALIZED",
+          completion: null
+        },
+        {
+          id: "wish-sunrise",
+          title: "一起去看日出",
+          description: "去海边，看一场属于我们的清晨。",
+          coverImagePath: "mock://wish-sunrise",
+          plannedDate: "2026-04-30",
+          createdAt: "2026-03-10",
+          status: "REALIZED",
+          completion: {
+            text: "我们在天还没亮的时候出发，看到第一缕光落在海面上，真的好幸福。",
+            imagePaths: ["mock://wish-sunrise-1", "mock://wish-sunrise-2", "mock://wish-sunrise-3"],
+            completedAt: "2026-06-01"
+          }
+        },
+        {
+          id: "wish-cake",
+          title: "一起做小蛋糕",
+          description: "想试一次把奶油抹得歪歪扭扭也很开心的下午。",
+          coverImagePath: "mock://wish-cake",
+          plannedDate: "2026-05-20",
+          createdAt: "2026-04-02",
+          status: "REALIZED",
+          completion: {
+            text: "奶油裱花翻车了，但笑到停不下来，最后还是很好吃。",
+            imagePaths: ["mock://wish-cake-1"],
+            completedAt: "2026-06-10"
+          }
+        },
+        {
+          id: "wish-movie",
+          title: "一起看一场露天电影",
+          description: "带上小毯子和汽水，找一个晚风舒服的夜晚。",
+          coverImagePath: "mock://wish-movie",
+          plannedDate: "2026-06-05",
+          createdAt: "2026-04-25",
+          status: "REALIZED",
+          completion: {
+            text: "电影内容都快忘了，但肩膀靠在一起的那一刻记得特别清楚。",
+            imagePaths: ["mock://wish-movie-1", "mock://wish-movie-2"],
+            completedAt: "2026-06-18"
+          }
+        }
+      ];
+    }
+
+    function loadWishes() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        const seed = seedWishes();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+        return seed;
+      }
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        const seed = seedWishes();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+        return seed;
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(wishes));
+    }
+
+    function formatDate(value) {
+      if (!value) return "尚未设定";
+      return value.replaceAll("-", ".");
+    }
+
+    function truncate(text, maxLength) {
+      if (!text) return "";
+      return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
+    }
+
+    function toDateInput(timestamp) {
+      const date = new Date(timestamp);
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${date.getFullYear()}-${month}-${day}`;
+    }
+
+    function getWish(id) {
+      return wishes.find(item => item.id === id) || null;
+    }
+
+    function visibleWishes() {
+      return wishes.filter(item => item.status === appState.selectedStatus);
+    }
+
+    function counts() {
+      return {
+        unrealized: wishes.filter(item => item.status === "UNREALIZED").length,
+        realized: wishes.filter(item => item.status === "REALIZED").length
+      };
+    }
+
+    function renderMedia(path) {
+      if (!path) {
+        return `<div class="mock default">回忆</div>`;
+      }
+      if (path.startsWith("mock://")) {
+        const [theme, label] = mockLabelMap[path] || ["default", "回忆"];
+        return `<div class="mock ${theme}">${label}</div>`;
+      }
+      return `<img src="${path}" alt="图片" />`;
+    }
+
+    function renderTopbar(title, leftAction = "back", rightAction = "") {
+      const left = leftAction === "none"
+        ? `<div></div>`
+        : `<button class="circle-btn" type="button" data-action="${leftAction}" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L7.5 12L14.5 19"/></svg>
+          </button>`;
+      const right = rightAction === "add"
+        ? `<button class="circle-btn add" type="button" data-action="open-editor" aria-label="新增">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5V19"/><path d="M5 12H19"/></svg>
+          </button>`
+        : `<div></div>`;
+      return `<div class="topbar">${left}<h1 class="title">${title}</h1>${right}</div>`;
+    }
+
+    function renderWishCard(wish) {
+      const isRealized = wish.status === "REALIZED";
+      const metaDate = isRealized ? wish.completion?.completedAt : wish.plannedDate;
+      const metaLabel = isRealized ? "完成日期" : "计划日期";
+      return `
+        <article class="wish-card" data-open-wish="${wish.id}">
+          <div class="wish-thumb">${renderMedia(wish.coverImagePath)}</div>
+          <div class="wish-main">
+            <div class="wish-title">${escapeHtml(wish.title)}</div>
+            <p class="wish-desc">${escapeHtml(isRealized ? (wish.completion?.text || wish.description) : wish.description || "慢慢来，想做的事情都会实现。")}</p>
+            <div class="wish-meta">
+              <span class="pill">${metaLabel} ${formatDate(metaDate)}</span>
+              ${isRealized ? `<span class="pill blue">已实现</span>` : `<span class="pill blue">未实现</span>`}
+            </div>
+          </div>
+          <div class="wish-side">
+            <div class="menu-wrap">
+              <button class="text-icon" type="button" data-action="toggle-menu" data-id="${wish.id}">…</button>
+              <div class="menu ${appState.menuWishId === wish.id ? "show" : ""}">
+                <button type="button" data-action="edit-wish" data-id="${wish.id}">编辑</button>
+                <button class="danger" type="button" data-action="delete-wish" data-id="${wish.id}">删除</button>
+              </div>
+            </div>
+            ${isRealized ? `<button class="tiny-btn" type="button" data-action="open-completion-detail" data-id="${wish.id}">看记录</button>` : `<button class="tiny-btn" type="button" data-action="open-detail" data-id="${wish.id}">完成愿望</button>`}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderListScreen() {
+      const { unrealized, realized } = counts();
+      const items = visibleWishes();
+      return `
+        ${renderTopbar("愿望清单", "back-home", "add")}
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">有你在身边</p>
+            <h2>愿望都会慢慢实现</h2>
+          </div>
+          <div class="hero-ill"><img src="${heroImage}" alt="插画"></div>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-label">未实现</div>
+              <div class="stat-num">${unrealized}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">已实现</div>
+              <div class="stat-num">${realized}</div>
+            </div>
+          </div>
+        </section>
+        <div class="tabs">
+          <button class="tab ${appState.selectedStatus === "UNREALIZED" ? "active" : ""}" type="button" data-action="tab" data-status="UNREALIZED">未实现</button>
+          <button class="tab ${appState.selectedStatus === "REALIZED" ? "active" : ""}" type="button" data-action="tab" data-status="REALIZED">已实现</button>
+        </div>
+        ${items.length ? `<section class="list">${items.map(renderWishCard).join("")}</section>` : `
+          <section class="empty-card">
+            <div class="hero-ill"><img src="${heroImage}" alt="插画"></div>
+            <h3>${appState.selectedStatus === "REALIZED" ? "还没有完成记录" : "先写下第一个愿望吧"}</h3>
+            <p>${appState.selectedStatus === "REALIZED" ? "完成后会在这里留下闪闪发亮的回忆。" : "现在想到的每一件小事，都是以后会实现的幸福。"} </p>
+            <button class="primary-btn" type="button" data-action="open-editor">新增愿望</button>
+          </section>
+        `}
+      `;
+    }
+
+    function renderDetailScreen(wish) {
+      return `
+        ${renderTopbar("愿望详情")}
+        <section class="detail-card">
+          <div class="cover-preview">${renderMedia(wish.coverImagePath)}</div>
+          <h2>${escapeHtml(wish.title)}</h2>
+          <p>${escapeHtml(wish.description || "这条愿望还没有写下更多说明，但已经很值得期待。")}</p>
+          <div class="info-row"><span class="info-label">计划日期</span><span class="info-value">${formatDate(wish.plannedDate)}</span></div>
+          <div class="info-row"><span class="info-label">创建时间</span><span class="info-value">${formatDate(wish.createdAt)}</span></div>
+        </section>
+        <div class="action-row">
+          <button class="secondary-btn" type="button" data-action="edit-current">编辑</button>
+          <button class="primary-btn" type="button" data-action="open-completion">完成愿望</button>
+        </div>
+      `;
+    }
+
+    function renderCompletionScreen(wish) {
+      const draft = appState.completionDraft;
+      return `
+        ${renderTopbar("完成记录")}
+        <section class="celebrate-card">
+          <div class="hero-ill"><img src="${heroImage}" alt="庆祝插画"></div>
+          <h3>太棒了！</h3>
+          <p>把这次愿望成真的时刻，好好记下来吧。</p>
+          <div class="pill blue" style="margin:12px auto 0;width:max-content">${escapeHtml(wish.title)}</div>
+        </section>
+        <div class="field">
+          <div class="field-label">完成感想</div>
+          <textarea id="completionText" maxlength="500" placeholder="写下完成这个愿望时的感受吧……">${escapeHtml(draft.text)}</textarea>
+          <div class="counter">${draft.text.length}/500</div>
+        </div>
+        <div class="field">
+          <div class="field-label">完成照片（最多9张）</div>
+          ${draft.imagePaths.length ? `<div class="gallery">${draft.imagePaths.map((path, index) => `
+            <div class="gallery-item">
+              ${renderMedia(path)}
+              <button type="button" data-action="remove-completion-image" data-index="${index}">×</button>
+            </div>`).join("")}</div>` : ""}
+          <div style="height:10px"></div>
+          <button class="secondary-btn" type="button" data-action="pick-completion-images">添加照片</button>
+        </div>
+        <div class="field">
+          <div class="field-label">完成日期</div>
+          <input id="completionDate" type="date" value="${draft.completedAt}" />
+        </div>
+        <button class="primary-btn" type="button" data-action="save-completion" style="width:100%">保存完成记录</button>
+      `;
+    }
+
+    function renderCompletionDetailScreen(wish) {
+      const completion = wish.completion;
+      return `
+        ${renderTopbar("完成记录详情")}
+        <section class="celebrate-card" style="margin-bottom:16px">
+          <div class="hero-ill"><img src="${heroImage}" alt="庆祝插画"></div>
+          <h3>${escapeHtml(wish.title)}</h3>
+          <p>原始愿望与完成时刻，都被好好存下来了。</p>
+        </section>
+        <section class="detail-card">
+          <div class="info-row"><span class="info-label">原始愿望</span><span class="info-value">${escapeHtml(wish.title)}</span></div>
+          <div class="info-row"><span class="info-label">想法说明</span><span class="info-value">${escapeHtml(wish.description || "未填写")}</span></div>
+          <div class="info-row"><span class="info-label">创建时间</span><span class="info-value">${formatDate(wish.createdAt)}</span></div>
+          <div class="info-row"><span class="info-label">计划日期</span><span class="info-value">${formatDate(wish.plannedDate)}</span></div>
+          <div class="info-row"><span class="info-label">完成日期</span><span class="info-value">${formatDate(completion?.completedAt)}</span></div>
+        </section>
+        <section class="detail-card">
+          <h2 style="font-size:22px">完成记录</h2>
+          <p>${escapeHtml(completion?.text || "这次是用照片记录下来的，没有额外文字。")}</p>
+          ${completion?.imagePaths?.length ? `<div class="gallery">${completion.imagePaths.map(path => `<div class="gallery-item">${renderMedia(path)}</div>`).join("")}</div>` : ""}
+        </section>
+      `;
+    }
+
+    function openWishById(id) {
+      const wish = getWish(id);
+      if (!wish) return;
+      appState.activeWishId = id;
+      appState.screen = wish.status === "REALIZED" ? "completion-detail" : "detail";
+      appState.menuWishId = null;
+      render();
+    }
+
+    function openEditor(wish) {
+      appState.editorOpen = true;
+      appState.editor = wish ? {
+        id: wish.id,
+        title: wish.title,
+        description: wish.description,
+        plannedDate: wish.plannedDate || "",
+        coverImagePath: wish.coverImagePath || ""
+      } : emptyEditor();
+      syncEditor();
+      editorOverlayEl.classList.add("show");
+    }
+
+    function closeEditor() {
+      appState.editorOpen = false;
+      appState.editor = emptyEditor();
+      editorOverlayEl.classList.remove("show");
+    }
+
+    function syncEditor() {
+      document.getElementById("editorTitle").textContent = appState.editor.id ? "编辑愿望" : "新增愿望";
+      titleInputEl.value = appState.editor.title;
+      descInputEl.value = appState.editor.description;
+      dateInputEl.value = appState.editor.plannedDate;
+      titleCountEl.textContent = appState.editor.title.length;
+      descCountEl.textContent = appState.editor.description.length;
+      coverFieldEl.innerHTML = appState.editor.coverImagePath
+        ? `<div class="cover-preview" style="height:150px;margin-bottom:0">${renderMedia(appState.editor.coverImagePath)}</div>
+           <div style="height:10px"></div>
+           <div class="action-row">
+             <button class="secondary-btn" type="button" id="replaceCoverBtn">重新选择</button>
+             <button class="secondary-btn" type="button" id="clearCoverBtn">移除封面</button>
+           </div>`
+        : `<div class="picker-card" id="pickCoverCard">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2.2"/><path d="M21 15L16 10L6 20"/></svg>
+             <div>选择一张封面图片</div>
+           </div>`;
+    }
+
+    function openConfirm(title, text, handler) {
+      confirmHandler = handler;
+      document.getElementById("confirmTitle").textContent = title;
+      document.getElementById("confirmText").textContent = text;
+      confirmOverlayEl.classList.add("show");
+    }
+
+    function closeConfirm() {
+      confirmHandler = null;
+      confirmOverlayEl.classList.remove("show");
+    }
+
+    function saveEditor() {
+      const title = appState.editor.title.trim();
+      if (!title) {
+        alert("愿望标题不能为空");
+        return;
+      }
+      const payload = {
+        id: appState.editor.id || `wish-${crypto.randomUUID()}`,
+        title,
+        description: appState.editor.description.trim(),
+        coverImagePath: appState.editor.coverImagePath || "",
+        plannedDate: appState.editor.plannedDate || "",
+        createdAt: appState.editor.id ? getWish(appState.editor.id)?.createdAt || toDateInput(fixedNow) : toDateInput(fixedNow),
+        status: appState.editor.id ? getWish(appState.editor.id)?.status || "UNREALIZED" : "UNREALIZED",
+        completion: appState.editor.id ? getWish(appState.editor.id)?.completion || null : null
+      };
+      if (appState.editor.id) {
+        wishes = wishes.map(item => item.id === payload.id ? payload : item);
+      } else {
+        wishes.unshift(payload);
+      }
+      persist();
+      closeEditor();
+      render();
+    }
+
+    function startCompletion(wishId) {
+      const wish = getWish(wishId);
+      if (!wish) return;
+      appState.activeWishId = wishId;
+      appState.completionDraft = {
+        text: "",
+        imagePaths: [],
+        completedAt: toDateInput(fixedNow)
+      };
+      appState.screen = "completion";
+      render();
+    }
+
+    function saveCompletion() {
+      const wish = getWish(appState.activeWishId);
+      if (!wish) return;
+      const draft = appState.completionDraft;
+      if (!draft.text.trim() && !draft.imagePaths.length) {
+        alert("文字和图片至少填写一种");
+        return;
+      }
+      wishes = wishes.map(item => item.id === wish.id ? {
+        ...item,
+        status: "REALIZED",
+        completion: {
+          text: draft.text.trim(),
+          imagePaths: draft.imagePaths,
+          completedAt: draft.completedAt
+        }
+      } : item);
+      persist();
+      appState.selectedStatus = "REALIZED";
+      appState.screen = "list";
+      appState.activeWishId = null;
+      appState.completionDraft = emptyCompletion();
+      render();
+    }
+
+    function removeWish(id) {
+      wishes = wishes.filter(item => item.id !== id);
+      persist();
+      if (appState.activeWishId === id) {
+        appState.activeWishId = null;
+        appState.screen = "list";
+      }
+      render();
+    }
+
+    async function filesToDataUrls(files) {
+      return Promise.all(files.map(file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      })));
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function render() {
+      const wish = getWish(appState.activeWishId);
+      if (appState.screen === "detail" && wish) {
+        screenEl.innerHTML = renderDetailScreen(wish);
+      } else if (appState.screen === "completion" && wish) {
+        screenEl.innerHTML = renderCompletionScreen(wish);
+      } else if (appState.screen === "completion-detail" && wish) {
+        screenEl.innerHTML = renderCompletionDetailScreen(wish);
+      } else {
+        appState.screen = "list";
+        screenEl.innerHTML = renderListScreen();
+      }
+    }
+
+    screenEl.addEventListener("click", event => {
+      const actionEl = event.target.closest("[data-action]");
+      const openEl = event.target.closest("[data-open-wish]");
+
+      if (!actionEl && openEl) {
+        openWishById(openEl.dataset.openWish);
+        return;
+      }
+
+      if (!actionEl) {
+        if (!event.target.closest(".menu-wrap")) {
+          appState.menuWishId = null;
+          render();
+        }
+        return;
+      }
+
+      const { action, id, status, index } = actionEl.dataset;
+      if (action === "back" || action === "back-home") {
+        if (appState.screen === "list") {
+          alert("这里是可独立浏览的预览页，返回首页入口已预留在 Android 端。");
+        } else if (appState.screen === "completion") {
+          appState.screen = "detail";
+          render();
+        } else {
+          appState.screen = "list";
+          render();
+        }
+        return;
+      }
+      if (action === "open-editor") {
+        openEditor(null);
+        return;
+      }
+      if (action === "tab") {
+        appState.selectedStatus = status;
+        appState.menuWishId = null;
+        render();
+        return;
+      }
+      if (action === "toggle-menu") {
+        appState.menuWishId = appState.menuWishId === id ? null : id;
+        render();
+        return;
+      }
+      if (action === "edit-wish") {
+        openEditor(getWish(id));
+        return;
+      }
+      if (action === "delete-wish") {
+        openConfirm("删除这个愿望？", "删除后，原始愿望和完成记录都会一起移除。", () => {
+          removeWish(id);
+          closeConfirm();
+        });
+        return;
+      }
+      if (action === "open-detail") {
+        appState.activeWishId = id;
+        appState.screen = "detail";
+        render();
+        return;
+      }
+      if (action === "open-completion-detail") {
+        appState.activeWishId = id;
+        appState.screen = "completion-detail";
+        render();
+        return;
+      }
+      if (action === "edit-current") {
+        const wish = getWish(appState.activeWishId);
+        if (wish) openEditor(wish);
+        return;
+      }
+      if (action === "open-completion") {
+        startCompletion(appState.activeWishId);
+        return;
+      }
+      if (action === "pick-completion-images") {
+        completionPickerEl.click();
+        return;
+      }
+      if (action === "remove-completion-image") {
+        appState.completionDraft.imagePaths.splice(Number(index), 1);
+        render();
+      }
+      if (action === "save-completion") {
+        const textEl = document.getElementById("completionText");
+        const dateEl = document.getElementById("completionDate");
+        appState.completionDraft.text = textEl ? textEl.value.slice(0, 500) : appState.completionDraft.text;
+        appState.completionDraft.completedAt = dateEl ? dateEl.value : appState.completionDraft.completedAt;
+        saveCompletion();
+      }
+    });
+
+    titleInputEl.addEventListener("input", () => {
+      appState.editor.title = titleInputEl.value.slice(0, 50);
+      titleCountEl.textContent = appState.editor.title.length;
+    });
+
+    descInputEl.addEventListener("input", () => {
+      appState.editor.description = descInputEl.value.slice(0, 500);
+      descCountEl.textContent = appState.editor.description.length;
+    });
+
+    dateInputEl.addEventListener("input", () => {
+      appState.editor.plannedDate = dateInputEl.value;
+    });
+
+    document.getElementById("editorCancel").addEventListener("click", closeEditor);
+    document.getElementById("editorSave").addEventListener("click", saveEditor);
+    document.getElementById("confirmCancel").addEventListener("click", closeConfirm);
+    document.getElementById("confirmOk").addEventListener("click", () => {
+      if (confirmHandler) confirmHandler();
+    });
+
+    coverFieldEl.addEventListener("click", event => {
+      if (event.target.closest("#pickCoverCard") || event.target.closest("#replaceCoverBtn")) {
+        coverPickerEl.click();
+      }
+      if (event.target.closest("#clearCoverBtn")) {
+        appState.editor.coverImagePath = "";
+        syncEditor();
+      }
+    });
+
+    coverPickerEl.addEventListener("change", async event => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const [dataUrl] = await filesToDataUrls([file]);
+      appState.editor.coverImagePath = dataUrl;
+      syncEditor();
+      coverPickerEl.value = "";
+    });
+
+    completionPickerEl.addEventListener("change", async event => {
+      const files = Array.from(event.target.files || []).slice(0, 9 - appState.completionDraft.imagePaths.length);
+      if (!files.length) return;
+      const dataUrls = await filesToDataUrls(files);
+      appState.completionDraft.imagePaths.push(...dataUrls);
+      completionPickerEl.value = "";
+      render();
+    });
+
+    document.addEventListener("click", event => {
+      if (!event.target.closest(".menu-wrap")) {
+        const hasMenu = document.querySelector(".menu.show");
+        if (hasMenu) {
+          appState.menuWishId = null;
+          render();
+        }
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

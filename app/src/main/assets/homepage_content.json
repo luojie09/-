@@ -3,13 +3,14 @@
     "leftName": "小羊",
     "rightName": "小耶",
     "currentUserId": "sheep",
-    "relationshipLabel": "我们已经一起走过的日子",
+    "relationshipLabel": "我们已经在一起",
     "relationshipStartDate": "2026-05-06"
   },
   "topActions": {
     "message": "待接入消息 / 留言页",
     "settings": "待接入设置页"
   },
+  "heroHeightDp": 262,
   "quickRecord": {
     "placeholder": "今天想说点什么……",
     "entryMessage": "待接入快捷发布页",
@@ -41,16 +42,10 @@
   },
   "features": [
     {
-      "id": "anniversary",
-      "title": "纪念日",
-      "iconSlot": "anniversaryFeature",
-      "clickMessage": "待接入纪念日列表"
-    },
-    {
-      "id": "album",
-      "title": "甜蜜相册",
-      "iconSlot": "albumFeature",
-      "clickMessage": "待接入甜蜜相册页"
+      "id": "messageWall",
+      "title": "留言墙",
+      "iconSlot": "messageWallFeature",
+      "clickMessage": "待接入留言墙页"
     },
     {
       "id": "wishlist",
@@ -59,22 +54,16 @@
       "clickMessage": "待接入愿望清单页"
     },
     {
-      "id": "messageWall",
-      "title": "留言墙",
-      "iconSlot": "messageWallFeature",
-      "clickMessage": "待接入留言墙页"
-    },
-    {
-      "id": "diary",
-      "title": "心情日记",
-      "iconSlot": "diaryFeature",
-      "clickMessage": "待接入心情日记页"
+      "id": "anniversary",
+      "title": "纪念日",
+      "iconSlot": "anniversaryFeature",
+      "clickMessage": "待接入纪念日列表"
     },
     {
       "id": "tasks",
-      "title": "情侣任务",
+      "title": "挑战任务",
       "iconSlot": "taskFeature",
-      "clickMessage": "待接入情侣任务页"
+      "clickMessage": "待接入挑战任务页"
     }
   ],
   "recentActivityListMessage": "待接入完整动态列表",
@@ -101,4 +90,3 @@
     "profile": "待接入我的页"
   }
 }
-

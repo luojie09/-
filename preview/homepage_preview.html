@@ -81,17 +81,36 @@
     }
 
     .greeting{
-      font-size:18px;
-      font-weight:700;
+      font-family:"Baskerville","Times New Roman","STSong","Songti SC","SimSun","Noto Serif SC",serif;
+      font-size:17px;
+      font-weight:600;
+      letter-spacing:.02em;
       margin-bottom:6px;
+      color:var(--muted);
     }
 
     .names{
       margin:0;
-      font-size:42px;
-      line-height:1.04;
-      font-weight:900;
-      letter-spacing:-1.6px;
+      display:flex;
+      align-items:flex-end;
+      gap:6px;
+      margin-top:2px;
+    }
+
+    .name-cn{
+      font-family:"STSong","Songti SC","SimSun","Noto Serif SC",serif;
+      font-size:34px;
+      line-height:1.1;
+      font-weight:700;
+      letter-spacing:0;
+    }
+
+    .name-and{
+      font-size:24px;
+      line-height:1.2;
+      font-weight:500;
+      color:rgba(31,32,36,.82);
+      transform:translateY(-3px);
     }
 
     .top-actions{
@@ -131,16 +150,16 @@
 
     .hero-illustration{
       position:relative;
-      height:250px;
-      margin-top:6px;
+      height:246px;
+      margin-top:2px;
     }
 
     .hero-illustration img{
       position:absolute;
-      left:20px;
-      right:20px;
+      left:12px;
+      right:12px;
       bottom:0;
-      width:calc(100% - 40px);
+      width:calc(100% - 24px);
       height:100%;
       object-fit:contain;
       object-position:center bottom;
@@ -164,80 +183,110 @@
 
     .relationship{
       background:var(--surface);
-      border:1px solid var(--primary-soft);
+      border:1px solid rgba(243,223,230,.92);
       box-shadow:var(--shadow);
       border-radius:28px;
-      padding:18px 18px 16px;
+      padding:18px 18px 14px;
       position:relative;
     }
 
-    .relationship::before{
-      content:"";
-      position:absolute;
-      inset:7px;
-      border-radius:22px;
-      border:1px solid rgba(255,228,234,.62);
-      pointer-events:none;
-    }
-
     .eyebrow{
-      text-align:center;
-      font-size:15px;
+      text-align:left;
+      font-size:12px;
+      line-height:16px;
       font-weight:700;
-      margin-bottom:8px;
+      margin:0;
+      color:var(--muted);
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#eaf4ff;
     }
 
     .days{
       display:flex;
-      justify-content:center;
       align-items:flex-end;
-      gap:10px;
+      gap:8px;
       line-height:1;
     }
 
     .days-value{
-      font-size:92px;
-      font-weight:950;
+      font-family:"Comic Sans MS","Marker Felt","Segoe Print","Bradley Hand",cursive;
+      font-size:76px;
+      font-weight:700;
       letter-spacing:-3px;
+      line-height:1;
     }
 
     .days-unit{
-      font-size:30px;
+      font-size:24px;
       font-weight:800;
       padding-bottom:12px;
     }
 
-    .since{
-      margin-top:12px;
-      text-align:center;
-      color:var(--muted);
-      font-size:17px;
-      font-weight:600;
+    .relationship-hero{
+      position:relative;
+      min-height:116px;
+      padding-top:2px;
     }
 
-    .since strong{color:var(--primary)}
+    .relationship-hero .days{
+      position:absolute;
+      left:50%;
+      top:63%;
+      transform:translate(-50%,-50%);
+    }
+
+    .relationship-meta-top{
+      position:absolute;
+      left:0;
+      top:0;
+    }
 
     .anniversary{
-      margin-top:18px;
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:14px 14px 12px;
-      background:linear-gradient(180deg,#fffafa,#fff6f7);
+      margin-top:14px;
+      border-radius:20px;
+      padding:13px 14px;
+      background:rgba(255,255,255,.72);
     }
 
     .ann-row{
       display:flex;
       justify-content:space-between;
-      gap:8px;
-      font-size:15px;
+      align-items:flex-start;
+      gap:12px;
+    }
+
+    .ann-copy{
+      flex:1;
+    }
+
+    .ann-label{
+      font-size:13px;
       font-weight:800;
+      color:var(--muted);
+      margin-bottom:2px;
+    }
+
+    .ann-title{
+      font-size:16px;
+      font-weight:700;
+    }
+
+    .ann-remain{
+      white-space:nowrap;
+      font-size:13px;
+      font-weight:500;
+      padding:5px 10px;
+      border-radius:999px;
+      background:rgba(255,216,228,.34);
     }
 
     .progress{
-      margin-top:12px;
-      height:10px;
+      margin-top:6px;
+      height:6px;
       border-radius:999px;
-      background:#f9dfe7;
+      background:rgba(255,216,228,.3);
       overflow:hidden;
     }
 
@@ -246,7 +295,7 @@
       height:100%;
       width:0;
       border-radius:inherit;
-      background:linear-gradient(90deg,var(--primary),var(--primary-strong));
+      background:linear-gradient(90deg,rgba(255,111,149,.78),rgba(255,183,204,.72));
     }
 
     .content{
@@ -270,11 +319,25 @@
 
     .mood-card{
       border-radius:22px;
-      padding:12px 14px;
+      padding:14px 16px;
       display:flex;
       align-items:center;
       gap:12px;
       min-height:82px;
+    }
+
+    .mood-copy{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+
+    .mood-name{
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
+      margin:0;
     }
 
     .avatar{
@@ -287,30 +350,51 @@
     }
 
     .mood-main{
-      font-size:16px;
+      font-size:18px;
       font-weight:900;
       margin:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .mood-emoji{
       margin-left:auto;
-      font-size:26px;
+      font-size:28px;
     }
 
     .quick{
       margin-top:16px;
-      border-radius:24px;
-      padding:14px 16px;
+      border-radius:26px;
+      padding:16px;
+      display:block;
+    }
+
+    .quick-head{
       display:flex;
+      justify-content:space-between;
       align-items:center;
       gap:12px;
+      margin-bottom:12px;
+    }
+
+    .quick-label{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .quick-shell{
+      background:#fff4f6;
+      border:1px solid rgba(243,223,230,.92);
+      border-radius:20px;
+      padding:15px 16px;
     }
 
     .quick-input{
       color:var(--muted);
       font-size:16px;
       font-weight:600;
-      flex:1;
     }
 
     .quick-actions{
@@ -318,9 +402,19 @@
       gap:8px;
     }
 
+    .quick-action-btn{
+      width:38px;
+      height:38px;
+      border-radius:16px;
+      border:1px solid rgba(243,223,230,.92);
+      background:#fff4f6;
+      display:grid;
+      place-items:center;
+    }
+
     .quick-actions img{
-      width:28px;
-      height:28px;
+      width:22px;
+      height:22px;
       object-fit:contain;
     }
 
@@ -346,31 +440,73 @@
 
     .feature-grid{
       display:grid;
-      grid-template-columns:repeat(3, 1fr);
+      grid-template-columns:repeat(2, 1fr);
       gap:12px;
     }
 
     .feature{
-      min-height:156px;
+      min-height:152px;
       border-radius:24px;
-      padding:18px 10px 16px;
-      text-align:center;
+      padding:16px;
       display:flex;
       flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .feature.accent{
+      background:#fff4f6;
+    }
+
+    .feature.cream{
+      background:#fffcf4;
+    }
+
+    .feature.blush{
+      background:#fff7fb;
+    }
+
+    .feature.mint{
+      background:#fbfff8;
+    }
+
+    .feature-top{
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    .feature-icon{
+      width:52px;
+      height:52px;
+      border-radius:18px;
+      background:rgba(255,255,255,.82);
+      display:grid;
+      place-items:center;
+    }
+
+    .feature-badge{
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.72);
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+      white-space:nowrap;
     }
 
     .feature img{
-      width:52px;
-      height:52px;
+      width:36px;
+      height:36px;
       object-fit:contain;
     }
 
     .feature strong{
       display:block;
-      font-size:17px;
+      font-size:18px;
       font-weight:900;
     }
 
@@ -379,6 +515,24 @@
       font-size:14px;
       font-weight:700;
       color:var(--muted);
+    }
+
+    .feature-bottom{
+      width:100%;
+      display:flex;
+      justify-content:flex-end;
+    }
+
+    .feature-arrow{
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      background:rgba(255,255,255,.88);
+      color:var(--muted);
+      display:grid;
+      place-items:center;
+      font-size:18px;
+      font-weight:800;
     }
 
     .activity-list{
@@ -400,8 +554,8 @@
     }
 
     .activity-dot{
-      width:10px;
-      height:10px;
+      width:8px;
+      height:8px;
       border-radius:50%;
       background:var(--primary);
       justify-self:center;
@@ -429,8 +583,8 @@
 
     .chevron{
       color:#bbb2b7;
-      font-size:28px;
-      font-weight:500;
+      font-size:22px;
+      font-weight:800;
       text-align:right;
     }
 
@@ -484,13 +638,12 @@
     }
 
     @media (max-width:380px){
-      .names{font-size:36px}
-      .days-value{font-size:78px}
-      .feature{min-height:142px}
+      .names{font-size:34px}
+      .days-value{font-size:74px}
       .hero-illustration img{
-        left:12px;
-        right:12px;
-        width:calc(100% - 24px);
+        left:8px;
+        right:8px;
+        width:calc(100% - 16px);
       }
     }
   </style>
@@ -512,8 +665,12 @@
 
           <div class="header">
             <div>
-              <div class="greeting" id="greeting">早安</div>
-              <h1 class="names">小羊 &amp; 小耶</h1>
+              <div class="greeting" id="greeting">Good morning</div>
+              <h1 class="names">
+                <span class="name-cn">小羊</span>
+                <span class="name-and">&amp;</span>
+                <span class="name-cn">小耶</span>
+              </h1>
             </div>
             <div class="top-actions">
               <div class="icon-btn">
@@ -534,16 +691,22 @@
 
         <div class="relationship-wrap">
           <section class="relationship">
-            <div class="eyebrow">我们已经一起走过的日子</div>
-            <div class="days">
-              <span class="days-value" id="daysTogether">48</span>
-              <span class="days-unit">天</span>
+            <div class="relationship-hero">
+              <div class="relationship-meta-top">
+                <div class="eyebrow">我们已经在一起</div>
+              </div>
+              <div class="days">
+                <span class="days-value" id="daysTogether">48</span>
+                <span class="days-unit">天</span>
+              </div>
             </div>
-            <div class="since">从 <strong id="startDateText">2026.05.06</strong> 开始</div>
             <div class="anniversary">
               <div class="ann-row">
-                <span id="anniversaryTitle">下个纪念日：恋爱一周年</span>
-                <span id="anniversaryRemain">还有 318 天</span>
+                <div class="ann-copy">
+                  <div class="ann-label">下个纪念日</div>
+                  <div class="ann-title" id="anniversaryTitle">恋爱一周年</div>
+                </div>
+                <span class="ann-remain" id="anniversaryRemain">还有 318 天</span>
               </div>
               <div class="progress"><span id="anniversaryProgress"></span></div>
             </div>
@@ -552,61 +715,53 @@
       </section>
 
       <div class="content">
-        <section class="moods">
-          <div class="mood-card">
-            <img class="avatar" src="../app/src/main/res/drawable-nodpi/avatar_sheep.png" alt="小羊">
-            <p class="mood-main">小羊 · 开心</p>
-            <div class="mood-emoji">😊</div>
-          </div>
-          <div class="mood-card">
-            <img class="avatar" src="../app/src/main/res/drawable-nodpi/avatar_chick.png" alt="小耶">
-            <p class="mood-main">小耶 · 平静</p>
-            <div class="mood-emoji">🙂</div>
-          </div>
-        </section>
-
-        <section class="quick">
-          <div class="quick-input">今天想说点什么……</div>
-          <div class="quick-actions">
-            <img src="../app/src/main/res/drawable-nodpi/ic_gallery_stack.png" alt="相册">
-            <img src="../app/src/main/res/drawable-nodpi/ic_camera.png" alt="相机">
-            <img src="../app/src/main/res/drawable-nodpi/ic_calendar_outline_pink.png" alt="日期">
-          </div>
-        </section>
-
         <div class="section-title">
-          <h2>核心功能</h2>
+          <h2>来玩呀！</h2>
         </div>
         <section class="feature-grid">
-          <div class="feature">
-            <img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png" alt="纪念日">
-            <strong>纪念日</strong>
-            <small id="featureAnniversary">318天后</small>
-          </div>
-          <div class="feature">
-            <img src="../app/src/main/res/drawable-nodpi/ic_album_card.png" alt="甜蜜相册">
-            <strong>甜蜜相册</strong>
-            <small>128张</small>
-          </div>
-          <div class="feature">
-            <img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="愿望清单">
-            <strong>愿望清单</strong>
-            <small>3 / 8 完成</small>
-          </div>
-          <div class="feature">
-            <img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="留言墙">
+          <div class="feature blush">
+            <div class="feature-top">
+              <div class="feature-icon">
+                <img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="留言墙">
+              </div>
+              <div class="feature-badge">有留言</div>
+            </div>
             <strong>留言墙</strong>
             <small>9条新消息</small>
+            <div class="feature-bottom"><div class="feature-arrow">›</div></div>
           </div>
-          <div class="feature">
-            <img src="../app/src/main/res/drawable-nodpi/ic_diary_card.png" alt="心情日记">
-            <strong>心情日记</strong>
-            <small>已连续12天</small>
+          <div class="feature cream">
+            <div class="feature-top">
+              <div class="feature-icon">
+                <img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="愿望清单">
+              </div>
+              <div class="feature-badge">想去做</div>
+            </div>
+            <strong>愿望清单</strong>
+            <small>3 / 8 完成</small>
+            <div class="feature-bottom"><div class="feature-arrow">›</div></div>
           </div>
-          <div class="feature">
-            <img src="../app/src/main/res/drawable-nodpi/ic_task_card.png" alt="情侣任务">
-            <strong>情侣任务</strong>
+          <div class="feature accent">
+            <div class="feature-top">
+              <div class="feature-icon">
+                <img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png" alt="纪念日">
+              </div>
+              <div class="feature-badge">倒数中</div>
+            </div>
+            <strong>纪念日</strong>
+            <small id="featureAnniversary">318天后</small>
+            <div class="feature-bottom"><div class="feature-arrow">›</div></div>
+          </div>
+          <div class="feature mint">
+            <div class="feature-top">
+              <div class="feature-icon">
+                <img src="../app/src/main/res/drawable-nodpi/ic_task_card.png" alt="挑战任务">
+              </div>
+              <div class="feature-badge">一起冲</div>
+            </div>
+            <strong>挑战任务</strong>
             <small>2项进行中</small>
+            <div class="feature-bottom"><div class="feature-arrow">›</div></div>
           </div>
         </section>
 
@@ -682,7 +837,7 @@
         now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
       const hour = now.getHours();
       document.getElementById('greeting').textContent =
-        hour >= 5 && hour < 12 ? '早安' : hour >= 12 && hour < 18 ? '午安' : '晚上好';
+        hour >= 5 && hour < 12 ? 'Good morning' : hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening';
     }
 
     function updateRelationship() {
@@ -711,7 +866,7 @@
       const cycleTotal = Math.max(1, diffDays(nextAnniversary, cycleStart));
       const cycleElapsed = Math.max(0, Math.min(cycleTotal, diffDays(today, cycleStart)));
 
-      document.getElementById('anniversaryTitle').textContent = `下个纪念日：恋爱${toChineseNumber(years)}周年`;
+      document.getElementById('anniversaryTitle').textContent = `恋爱${toChineseNumber(years)}周年`;
       document.getElementById('anniversaryRemain').textContent = remain === 0 ? '就是今天' : `还有 ${remain} 天`;
       document.getElementById('featureAnniversary').textContent = remain === 0 ? '就是今天' : `${remain}天后`;
       document.getElementById('anniversaryProgress').style.width = `${(cycleElapsed / cycleTotal) * 100}%`;

@@ -66,6 +66,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.core:core-ktx:1.13.1")
@@ -73,6 +74,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
     implementation("com.google.android.material:material:1.12.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

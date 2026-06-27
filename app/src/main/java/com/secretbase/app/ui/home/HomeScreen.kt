@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,12 +46,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -71,6 +74,7 @@ import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SoftPinkStrong
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmBackground
+import com.secretbase.app.ui.theme.WarmBackgroundTop
 import com.secretbase.app.ui.theme.WarmGray
 
 @Composable
@@ -172,32 +176,7 @@ private fun HomeContent(
 
         item {
             PaddedSection {
-                MoodSection(
-                    moods = payload.moodCards,
-                    onMoodCardClick = onMoodCardClick,
-                )
-            }
-        }
-
-        item {
-            PaddedSection {
-                QuickRecordSection(
-                    placeholder = payload.quickRecord.placeholder,
-                    note = quickNoteText,
-                    visuals = payload.visuals,
-                    onNoteChange = onQuickNoteChange,
-                    onNoteSubmit = onQuickNoteSubmit,
-                    onAction = onAction,
-                    galleryMessage = payload.quickRecord.galleryMessage,
-                    cameraMessage = payload.quickRecord.cameraMessage,
-                    calendarMessage = payload.quickRecord.calendarMessage,
-                )
-            }
-        }
-
-        item {
-            PaddedSection {
-                SectionTitle(title = "核心功能", trailing = null)
+                SectionTitle(title = "来玩呀！", trailing = null)
             }
         }
 
@@ -345,18 +324,18 @@ private fun HomeHeader(
     ) {
         Column(
             modifier = Modifier.padding(top = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = greeting,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = InkBlack,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.2.sp,
+                ),
+                color = WarmGray,
             )
-            Text(
-                text = coupleDisplayName,
-                style = MaterialTheme.typography.headlineLarge,
-                color = InkBlack,
-            )
+            CoupleNameTitle(coupleDisplayName = coupleDisplayName)
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -380,16 +359,17 @@ private fun CoupleIllustration(hero: HeroVisualConfig) {
         modifier = Modifier.fillMaxSize(),
     ) {
         val horizontalPadding = when {
-            maxWidth <= 320.dp -> 12.dp
-            maxWidth <= 360.dp -> 18.dp
-            maxWidth <= 393.dp -> 22.dp
-            else -> 28.dp
+            maxWidth <= 320.dp -> 8.dp
+            maxWidth <= 360.dp -> 14.dp
+            maxWidth <= 393.dp -> 18.dp
+            else -> 24.dp
         }
 
         DrawableOrFallback(
             resId = hero.imageRes,
             modifier = Modifier
                 .fillMaxSize()
+                .scale(1.06f)
                 .padding(start = horizontalPadding, end = horizontalPadding, bottom = 2.dp),
             contentScale = ContentScale.Fit,
             alignment = Alignment.BottomCenter,
@@ -459,80 +439,119 @@ private fun RelationshipCard(
         modifier = modifier.shadow(20.dp, RoundedCornerShape(28.dp), clip = false),
         shape = RoundedCornerShape(28.dp),
         color = SurfaceWhite.copy(alpha = 0.98f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, SoftPink),
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                text = relationship.label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = InkBlack,
-            )
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp),
             ) {
                 Text(
-                    text = relationship.daysTogether.toString(),
-                    style = MaterialTheme.typography.headlineLarge.copy(fontSize = 64.sp, lineHeight = 64.sp),
-                    color = InkBlack,
+                    text = relationship.label,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    color = WarmGray,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .background(
+                            color = Color(0xFFEAF4FF),
+                            shape = RoundedCornerShape(999.dp),
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
                 )
-                Text(
-                    text = "天",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = InkBlack,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
+
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = relationship.daysTogether.toString(),
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontFamily = FontFamily.Cursive,
+                            fontSize = 68.sp,
+                            lineHeight = 68.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-1).sp,
+                        ),
+                        color = InkBlack,
+                        modifier = Modifier.padding(top = 24.dp),
+                    )
+                    Text(
+                        text = "天",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = InkBlack,
+                        modifier = Modifier.padding(top = 24.dp, bottom = 8.dp),
+                    )
+                }
             }
-            Text(
-                text = "从 ${relationship.startDateText} 开始",
-                style = MaterialTheme.typography.bodyLarge,
-                color = WarmGray,
-            )
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                color = SurfaceWhite,
-                border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
+                shape = RoundedCornerShape(20.dp),
+                color = SurfaceWhite.copy(alpha = 0.72f),
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.Top,
                     ) {
-                        Text(
-                            text = "下个纪念日：${relationship.anniversaryTitle}",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                            color = InkBlack,
-                        )
-                        Text(
-                            text = relationship.anniversaryCountdownLabel,
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                            color = InkBlack,
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = "下个纪念日",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = WarmGray,
+                            )
+                            Text(
+                                text = relationship.anniversaryTitle,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                                color = InkBlack,
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = SoftPink.copy(alpha = 0.34f),
+                        ) {
+                            Text(
+                                text = relationship.anniversaryCountdownLabel,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                color = InkBlack,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            )
+                        }
                     }
 
                     Box(
                         modifier = Modifier
+                            .height(6.dp)
                             .fillMaxWidth()
-                            .height(10.dp)
-                            .background(SoftPink.copy(alpha = 0.55f), RoundedCornerShape(100.dp)),
+                            .background(SoftPink.copy(alpha = 0.3f), RoundedCornerShape(100.dp)),
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(relationship.anniversaryProgress)
-                                .height(10.dp)
+                                .height(6.dp)
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(CherryPink, SoftPinkStrong),
+                                        listOf(
+                                            CherryPink.copy(alpha = 0.78f),
+                                            SoftPinkStrong.copy(alpha = 0.72f),
+                                        ),
                                     ),
                                     RoundedCornerShape(100.dp),
                                 ),
@@ -541,6 +560,63 @@ private fun RelationshipCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CoupleNameTitle(coupleDisplayName: String) {
+    val names = coupleDisplayName.split(" & ")
+    if (names.size == 2) {
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = names[0],
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 34.sp,
+                    lineHeight = 38.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.sp,
+                ),
+                color = InkBlack,
+            )
+            Text(
+                text = "&",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontSize = 24.sp,
+                    lineHeight = 30.sp,
+                    fontWeight = FontWeight.Medium,
+                ),
+                color = InkBlack.copy(alpha = 0.82f),
+                modifier = Modifier.padding(bottom = 3.dp),
+            )
+            Text(
+                text = names[1],
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 34.sp,
+                    lineHeight = 38.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.sp,
+                ),
+                color = InkBlack,
+            )
+        }
+    } else {
+        Text(
+            text = coupleDisplayName,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontFamily = FontFamily.Serif,
+                fontSize = 34.sp,
+                lineHeight = 38.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.sp,
+            ),
+            color = InkBlack,
+            maxLines = 2,
+        )
     }
 }
 
@@ -565,7 +641,7 @@ private fun MoodSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 14.dp),
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -575,19 +651,24 @@ private fun MoodSection(
                     )
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.Center,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            text = "${mood.displayName} · ${mood.moodLabel}",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            text = mood.displayName,
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = WarmGray,
+                        )
+                        Text(
+                            text = mood.moodLabel,
+                            style = MaterialTheme.typography.titleMedium,
                             color = InkBlack,
-                            maxLines = 2,
+                            maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
                     Text(
                         text = mood.moodEmoji,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineLarge.copy(fontSize = 28.sp, lineHeight = 28.sp),
                     )
                 }
             }
@@ -609,57 +690,76 @@ private fun QuickRecordSection(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(26.dp),
         color = SurfaceWhite.copy(alpha = 0.96f),
         shadowElevation = 10.dp,
         border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            BasicTextField(
-                value = note,
-                onValueChange = onNoteChange,
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = InkBlack),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Done,
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { onNoteSubmit() },
-                ),
-                decorationBox = { innerTextField ->
-                    Box {
-                        if (note.isBlank()) {
-                            Text(
-                                text = placeholder,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = WarmGray,
-                            )
-                        }
-                        innerTextField()
-                    }
-                },
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "快速记录",
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                    color = WarmGray,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    QuickActionIcon(
+                        iconRes = visuals.icon("quickGallery"),
+                        onClick = { onAction(galleryMessage) },
+                    )
+                    QuickActionIcon(
+                        iconRes = visuals.icon("quickCamera"),
+                        onClick = { onAction(cameraMessage) },
+                    )
+                    QuickActionIcon(
+                        iconRes = visuals.icon("quickCalendar"),
+                        onClick = { onAction(calendarMessage) },
+                    )
+                }
+            }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                QuickActionIcon(
-                    iconRes = visuals.icon("quickGallery"),
-                    onClick = { onAction(galleryMessage) },
-                )
-                QuickActionIcon(
-                    iconRes = visuals.icon("quickCamera"),
-                    onClick = { onAction(cameraMessage) },
-                )
-                QuickActionIcon(
-                    iconRes = visuals.icon("quickCalendar"),
-                    onClick = { onAction(calendarMessage) },
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                color = WarmBackgroundTop,
+                border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.85f)),
+            ) {
+                BasicTextField(
+                    value = note,
+                    onValueChange = onNoteChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 15.dp),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = InkBlack),
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { onNoteSubmit() },
+                    ),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (note.isBlank()) {
+                                Text(
+                                    text = placeholder,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = WarmGray,
+                                )
+                            }
+                            innerTextField()
+                        }
+                    },
                 )
             }
         }
@@ -674,17 +774,18 @@ private fun QuickActionIcon(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
-        color = Color.Transparent,
+        color = WarmBackgroundTop,
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.8f)),
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .padding(4.dp),
+                .size(38.dp)
+                .padding(6.dp),
             contentAlignment = Alignment.Center,
         ) {
             DrawableOrFallback(
                 resId = iconRes,
-                modifier = Modifier.size(26.dp),
+                modifier = Modifier.size(22.dp),
             )
         }
     }
@@ -703,15 +804,18 @@ private fun SectionTitle(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
             color = InkBlack,
         )
         if (trailing != null && onTrailingClick != null) {
             Text(
                 text = trailing,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                 color = WarmGray,
-                modifier = Modifier.clickable(onClick = onTrailingClick),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .clickable(onClick = onTrailingClick)
+                    .padding(horizontal = 2.dp, vertical = 4.dp),
             )
         }
     }
@@ -723,42 +827,117 @@ private fun FeatureGrid(
     onAction: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        features.chunked(3).forEach { row ->
+        features.chunked(2).forEach { row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 row.forEach { feature ->
-                    Surface(
-                        onClick = { onAction(feature.clickMessage) },
+                    FeatureGridCard(
+                        feature = feature,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp),
-                        color = SurfaceWhite.copy(alpha = 0.98f),
-                        shadowElevation = 12.dp,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
+                        accentBackground = feature.featureAccentBackground(),
+                        onAction = onAction,
+                    )
+                }
+                if (row.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeatureGridCard(
+    feature: FeatureCardUiModel,
+    modifier: Modifier = Modifier,
+    accentBackground: Color,
+    onAction: (String) -> Unit,
+) {
+    Surface(
+        onClick = { onAction(feature.clickMessage) },
+        modifier = modifier,
+        shape = RoundedCornerShape(24.dp),
+        color = accentBackground,
+        shadowElevation = 12.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 152.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(18.dp),
+                    color = SurfaceWhite.copy(alpha = 0.88f),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 10.dp, vertical = 18.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        DrawableOrFallback(
+                            resId = feature.iconRes,
+                            modifier = Modifier.size(36.dp),
+                        )
+                    }
+                }
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = SurfaceWhite.copy(alpha = 0.72f),
+                ) {
+                    Text(
+                        text = feature.featureBadgeText(),
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                        color = WarmGray,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    )
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = feature.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = InkBlack,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = feature.summary,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        color = WarmGray,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = SurfaceWhite.copy(alpha = 0.88f),
+                    ) {
+                        Box(
+                            modifier = Modifier.size(28.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            DrawableOrFallback(
-                                resId = feature.iconRes,
-                                modifier = Modifier.size(48.dp),
-                            )
                             Text(
-                                text = feature.title,
+                                text = "›",
                                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                color = InkBlack,
-                                textAlign = TextAlign.Center,
-                            )
-                            Text(
-                                text = feature.summary,
-                                style = MaterialTheme.typography.bodyMedium,
                                 color = WarmGray,
-                                textAlign = TextAlign.Center,
                             )
                         }
                     }
@@ -767,6 +946,28 @@ private fun FeatureGrid(
         }
     }
 }
+
+private fun FeatureCardUiModel.featureAccentBackground(): Color =
+    when (id) {
+        "anniversary" -> Color(0xFFFFF5F7)
+        "album" -> Color(0xFFFFFFFF)
+        "wishlist" -> Color(0xFFFFFCF4)
+        "messageWall" -> Color(0xFFFFF7FB)
+        "diary" -> Color(0xFFFFFBFC)
+        "tasks" -> Color(0xFFFBFFF8)
+        else -> SurfaceWhite.copy(alpha = 0.98f)
+    }
+
+private fun FeatureCardUiModel.featureBadgeText(): String =
+    when (id) {
+        "anniversary" -> "倒数中"
+        "album" -> "回忆簿"
+        "wishlist" -> "想去做"
+        "messageWall" -> "有留言"
+        "diary" -> "今天份"
+        "tasks" -> "一起冲"
+        else -> "看看"
+    }
 
 @Composable
 private fun ActivityCard(
@@ -812,7 +1013,7 @@ private fun ActivityRow(
         ) {
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(8.dp)
                     .background(CherryPink, CircleShape),
             )
             Surface(
@@ -836,13 +1037,13 @@ private fun ActivityRow(
                 )
                 Text(
                     text = activity.relativeTime,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                     color = WarmGray,
                 )
             }
             Text(
                 text = "›",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = WarmGray,
             )
         }
@@ -1207,7 +1408,7 @@ private fun previewHomeUiState(): HomeUiState {
             gradientStartHex = "#FFEEF3",
             gradientMiddleHex = "#FFF7F8",
             gradientEndHex = "#FFFBFA",
-            heightDp = 250,
+            heightDp = 262,
             bottomFadeHeightDp = 72,
             relationshipCardOverlapDp = 24,
         ),
@@ -1241,10 +1442,10 @@ private fun previewHomeUiState(): HomeUiState {
     return HomeUiState(
         isLoading = false,
         payload = HomePayload(
-            greeting = "早安",
+            greeting = "Good morning",
             coupleDisplayName = "小羊 & 小耶",
             relationship = RelationshipUiModel(
-                label = "我们已经一起走过的日子",
+                label = "我们已经在一起",
                 daysTogether = 48,
                 startDateText = "2026.05.06",
                 anniversaryTitle = "恋爱一周年",
@@ -1289,12 +1490,10 @@ private fun previewHomeUiState(): HomeUiState {
                 ),
             ),
             featureCards = listOf(
-                FeatureCardUiModel("anniversary", "纪念日", "318天后", "待接入纪念日", R.drawable.ic_anniversary_card),
-                FeatureCardUiModel("album", "甜蜜相册", "128张", "待接入相册", R.drawable.ic_album_card),
-                FeatureCardUiModel("wishlist", "愿望清单", "3 / 8 完成", "待接入愿望清单", R.drawable.ic_wishlist_card),
                 FeatureCardUiModel("messageWall", "留言墙", "9条新消息", "待接入留言墙", R.drawable.ic_message_wall_card),
-                FeatureCardUiModel("diary", "心情日记", "已连续12天", "待接入心情日记", R.drawable.ic_diary_card),
-                FeatureCardUiModel("tasks", "情侣任务", "2项进行中", "待接入情侣任务", R.drawable.ic_task_card),
+                FeatureCardUiModel("wishlist", "愿望清单", "3 / 8 完成", "待接入愿望清单", R.drawable.ic_wishlist_card),
+                FeatureCardUiModel("anniversary", "纪念日", "318天后", "待接入纪念日", R.drawable.ic_anniversary_card),
+                FeatureCardUiModel("tasks", "挑战任务", "2项进行中", "待接入挑战任务", R.drawable.ic_task_card),
             ),
             activities = listOf(
                 ActivityUiModel(

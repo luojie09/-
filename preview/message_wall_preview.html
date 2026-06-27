@@ -1,0 +1,1238 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>留言墙 V1.0 预览</title>
+  <style>
+    :root{
+      --bg:#fffbfa;
+      --bg-top:#fff3f6;
+      --surface:rgba(255,255,255,.98);
+      --line:#f5dce5;
+      --line-strong:#f7c8d8;
+      --ink:#1f2024;
+      --muted:#8c8892;
+      --pink:#ff6f95;
+      --pink-soft:#ffd9e5;
+      --pink-faint:#fff3f7;
+      --shadow:0 18px 46px rgba(122,57,73,.12);
+      --radius-xl:30px;
+      --radius-lg:24px;
+      --radius-md:20px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;background:#f4eff1;font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;color:var(--ink)}
+    body{min-height:100vh;padding:24px 12px;display:flex;justify-content:center}
+
+    .phone{
+      width:min(100%,430px);
+      min-height:calc(100vh - 48px);
+      background:linear-gradient(180deg,var(--bg-top),var(--bg));
+      border-radius:38px;
+      border:1px solid rgba(255,255,255,.85);
+      overflow:hidden;
+      box-shadow:0 28px 68px rgba(54,35,44,.18);
+      position:relative;
+    }
+
+    .scroll{
+      min-height:100%;
+      padding:calc(14px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .topbar{
+      display:grid;
+      grid-template-columns:44px 1fr 44px;
+      align-items:center;
+      margin-bottom:16px;
+    }
+
+    .topbar h1{
+      margin:0;
+      text-align:center;
+      font-size:23px;
+      font-weight:800;
+      letter-spacing:.02em;
+    }
+
+    .icon-circle{
+      width:44px;
+      height:44px;
+      border-radius:50%;
+      border:1px solid rgba(245,220,229,.85);
+      background:rgba(255,255,255,.95);
+      display:grid;
+      place-items:center;
+      box-shadow:0 8px 18px rgba(122,57,73,.08);
+      color:var(--pink);
+      cursor:pointer;
+    }
+
+    .icon-circle svg{width:22px;height:22px;display:block}
+    .icon-circle.back{color:var(--ink)}
+
+    .banner,
+    .composer,
+    .message-card,
+    .empty-state{
+      background:var(--surface);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+
+    .banner{
+      border-radius:28px;
+      padding:14px 12px 14px 18px;
+      display:grid;
+      grid-template-columns:1fr 142px;
+      gap:12px;
+      align-items:center;
+      margin-bottom:16px;
+    }
+
+    .banner-title{
+      margin:0 0 8px;
+      font-size:17px;
+      font-weight:800;
+    }
+
+    .banner-title .num{color:var(--pink)}
+
+    .banner-sub{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .banner-ill{
+      height:92px;
+      border-radius:22px;
+      background:linear-gradient(135deg,#fff6f9,#fffdfd);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .banner-ill img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .composer{
+      border-radius:30px;
+      padding:12px;
+      margin-bottom:18px;
+    }
+
+    .composer-shell{
+      border-radius:24px;
+      border:1px dashed var(--line-strong);
+      padding:12px;
+      background:rgba(255,251,252,.8);
+    }
+
+    .composer textarea,
+    .reply-box textarea,
+    .edit-sheet textarea{
+      width:100%;
+      border:none;
+      outline:none;
+      resize:none;
+      background:#fffafc;
+      border-radius:22px;
+      border:1px solid rgba(245,220,229,.9);
+      padding:16px;
+      min-height:112px;
+      font:600 16px/1.5 "PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--ink);
+    }
+
+    .composer textarea::placeholder,
+    .reply-box textarea::placeholder,
+    .edit-sheet textarea::placeholder{color:var(--muted)}
+
+    .composer-images{
+      display:flex;
+      gap:10px;
+      overflow:auto;
+      padding:2px 0;
+      margin-top:12px;
+    }
+
+    .thumb{
+      width:82px;
+      height:82px;
+      border-radius:22px;
+      overflow:hidden;
+      position:relative;
+      flex:none;
+      border:1px solid rgba(245,220,229,.88);
+      background:#fff8fb;
+    }
+
+    .thumb button{
+      position:absolute;
+      top:6px;
+      right:6px;
+      border:none;
+      border-radius:999px;
+      width:22px;
+      height:22px;
+      background:rgba(255,255,255,.9);
+      color:var(--pink);
+      cursor:pointer;
+    }
+
+    .composer-actions{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .ghost-action{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--pink);
+      font-weight:700;
+      cursor:pointer;
+      padding:8px 10px;
+      border-radius:16px;
+    }
+
+    .ghost-action svg{width:26px;height:26px}
+    .primary-btn{
+      border:none;
+      background:linear-gradient(135deg,#ff86a8,#ff5c89);
+      color:#fff;
+      font:800 17px/1 "PingFang SC","Microsoft YaHei",sans-serif;
+      padding:15px 28px;
+      border-radius:999px;
+      cursor:pointer;
+      box-shadow:0 12px 24px rgba(255,111,149,.25);
+    }
+    .primary-btn:disabled{
+      cursor:not-allowed;
+      background:#f4baca;
+      box-shadow:none;
+    }
+
+    .empty-state{
+      border-radius:28px;
+      padding:24px 22px;
+      text-align:center;
+    }
+
+    .empty-state h3{margin:10px 0 8px;font-size:22px}
+    .empty-state p{margin:0 0 16px;color:var(--muted)}
+
+    .feed{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .message-card{
+      border-radius:32px;
+      padding:18px;
+      position:relative;
+    }
+
+    .message-card.unread::before{
+      content:"";
+      position:absolute;
+      left:-8px;
+      top:74px;
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:var(--pink);
+      box-shadow:0 0 0 4px rgba(255,255,255,.65);
+    }
+
+    .message-head{
+      display:grid;
+      grid-template-columns:66px 1fr auto;
+      gap:14px;
+      align-items:start;
+    }
+
+    .avatar{
+      width:64px;
+      height:64px;
+      border-radius:50%;
+      border:1px solid var(--pink-soft);
+      padding:3px;
+      background:#fff;
+      box-shadow:0 8px 18px rgba(122,57,73,.08);
+      overflow:hidden;
+    }
+
+    .avatar img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      border-radius:50%;
+    }
+
+    .author{
+      margin-top:2px;
+    }
+
+    .author-name{
+      font-size:18px;
+      font-weight:800;
+      margin:0 0 4px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .edited{font-size:12px;color:var(--muted);font-weight:600}
+    .author-time{font-size:14px;color:var(--muted)}
+
+    .status-pill{
+      border-radius:999px;
+      padding:9px 14px;
+      background:#f7f2f4;
+      font-size:14px;
+      font-weight:700;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
+    .status-pill.highlight{
+      background:#fff0f5;
+      color:var(--pink);
+    }
+
+    .message-content{
+      margin:16px 0 14px 80px;
+      font-size:17px;
+      line-height:1.7;
+      font-weight:600;
+    }
+
+    .message-images{
+      margin-left:80px;
+      display:grid;
+      gap:8px;
+    }
+
+    .message-images.cols-1{grid-template-columns:1fr}
+    .message-images.cols-2{grid-template-columns:1fr 1fr}
+    .message-images.cols-3{grid-template-columns:1fr 1fr 1fr}
+
+    .media{
+      width:100%;
+      overflow:hidden;
+      border-radius:22px;
+      min-height:116px;
+      position:relative;
+      border:1px solid rgba(245,220,229,.85);
+      cursor:pointer;
+      background:#fff7fb;
+    }
+
+    .media.single{aspect-ratio:1.78}
+    .media.grid{aspect-ratio:1}
+    .media img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .mock-photo{
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+    }
+
+    .mock-photo::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 78% 18%, rgba(255,255,255,.42), transparent 30%),
+        radial-gradient(circle at 24% 68%, rgba(255,255,255,.18), transparent 28%);
+    }
+
+    .mock-photo::after{
+      content:attr(data-label);
+      position:absolute;
+      left:12px;
+      top:10px;
+      color:rgba(255,255,255,.94);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.08em;
+    }
+
+    .mock-blossom{background:linear-gradient(135deg,#7eb5f0,#ffcde2)}
+    .mock-sunset-gold{background:linear-gradient(135deg,#7a8fd6,#ffb56b)}
+    .mock-sunset-shore{background:linear-gradient(135deg,#f5b48a,#7ec8e3)}
+    .mock-note{background:linear-gradient(135deg,#f6d6ff,#ffd6e8)}
+
+    .message-actions{
+      margin:14px 0 0 80px;
+      display:flex;
+      align-items:center;
+      gap:18px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .message-actions button,
+    .reply-toggle{
+      border:none;
+      background:none;
+      padding:0;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:inherit;
+      font:inherit;
+      cursor:pointer;
+    }
+
+    .message-actions svg{width:22px;height:22px}
+
+    .reply-list{
+      margin:14px 0 0 80px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .reply-item{
+      border-radius:20px;
+      padding:12px;
+      border:1px solid rgba(245,220,229,.82);
+      background:#fffafc;
+      display:grid;
+      grid-template-columns:34px 1fr auto;
+      gap:10px;
+      align-items:start;
+    }
+
+    .reply-item .avatar{
+      width:34px;height:34px;padding:0
+    }
+
+    .reply-meta{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:4px;
+      flex-wrap:wrap;
+    }
+
+    .reply-name{font-size:14px;font-weight:800}
+    .reply-time{font-size:12px;color:var(--muted)}
+    .reply-content{font-size:14px;line-height:1.6}
+
+    .reply-item button.delete,
+    .more-menu button{
+      border:none;
+      background:none;
+      cursor:pointer;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .reply-box{
+      margin:12px 0 0 80px;
+      border-radius:24px;
+      background:#fffbfd;
+      border:1px solid rgba(255,216,229,.72);
+      padding:12px;
+    }
+
+    .reply-box textarea{min-height:88px}
+    .reply-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:12px;
+      margin-top:10px;
+    }
+
+    .text-btn{
+      border:none;
+      background:none;
+      color:var(--muted);
+      font-weight:700;
+      cursor:pointer;
+      padding:10px 6px;
+    }
+
+    .more-wrap{position:relative}
+    .more-menu{
+      position:absolute;
+      right:0;
+      top:40px;
+      width:118px;
+      border-radius:18px;
+      background:#fff;
+      box-shadow:0 18px 40px rgba(61,30,40,.14);
+      border:1px solid rgba(245,220,229,.9);
+      padding:8px;
+      display:none;
+      z-index:9;
+    }
+
+    .more-menu.show{display:block}
+    .more-menu button{
+      width:100%;
+      text-align:left;
+      padding:10px 12px;
+      border-radius:12px;
+    }
+    .more-menu button:hover{background:#fff5f8}
+    .more-menu button.danger{color:var(--pink)}
+
+    .viewer,
+    .edit-overlay,
+    .confirm-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(18,17,21,.78);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:24px 16px;
+      z-index:99;
+    }
+
+    .viewer.show,
+    .edit-overlay.show,
+    .confirm-overlay.show{display:flex}
+
+    .viewer-shell{
+      width:min(100%,430px);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .viewer-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:#fff;
+      font-weight:700;
+    }
+
+    .viewer-stage{
+      position:relative;
+      width:100%;
+      aspect-ratio:1/1.18;
+      border-radius:28px;
+      overflow:hidden;
+      background:#18151b;
+    }
+
+    .viewer-stage .media{
+      height:100%;
+      min-height:100%;
+      border:none;
+      border-radius:0;
+      cursor:default;
+    }
+
+    .viewer-nav{
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      width:42px;height:42px;
+      border:none;border-radius:50%;
+      background:rgba(255,255,255,.18);
+      color:#fff;
+      cursor:pointer;
+      font-size:18px;
+    }
+    .viewer-nav.prev{left:12px}
+    .viewer-nav.next{right:12px}
+
+    .sheet{
+      width:min(100%,410px);
+      border-radius:30px;
+      background:#fff;
+      box-shadow:0 28px 80px rgba(33,18,24,.25);
+      padding:18px;
+    }
+
+    .sheet h3{
+      margin:0 0 12px;
+      font-size:21px;
+    }
+    .sheet p{margin:0 0 18px;color:var(--muted);line-height:1.6}
+    .sheet-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="scroll">
+      <div class="topbar">
+        <button class="icon-circle back" type="button" title="返回" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L7.5 12L14.5 19"/></svg>
+        </button>
+        <h1>留言墙</h1>
+        <button class="icon-circle" id="scrollComposerBtn" type="button" title="写留言" aria-label="写留言">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20H21"/><path d="M16.5 3.5A2.1 2.1 0 0 1 19.5 6.5L8 18L3 19L4 14L16.5 3.5Z"/></svg>
+        </button>
+      </div>
+
+      <section class="banner">
+        <div>
+          <p class="banner-title" id="bannerTitle"></p>
+          <p class="banner-sub" id="bannerSub"></p>
+        </div>
+        <div class="banner-ill">
+          <img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp" alt="小羊和小耶插画">
+        </div>
+      </section>
+
+      <section class="composer" id="composerCard">
+        <div class="composer-shell">
+          <textarea id="draftInput" maxlength="500" placeholder="写点想对TA说的话…"></textarea>
+          <div class="composer-images hidden" id="draftImages"></div>
+          <div class="composer-actions">
+            <label class="ghost-action" for="imagePicker">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2.2"/><path d="M21 15L16 10L6 20"/></svg>
+              <span>添加照片</span>
+            </label>
+            <input id="imagePicker" class="hidden" type="file" accept="image/*" multiple />
+            <button class="primary-btn" id="publishBtn" type="button">发布留言</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="empty-state hidden" id="emptyState">
+        <div class="banner-ill" style="height:148px">
+          <img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp" alt="小羊和小耶插画">
+        </div>
+        <h3>这里还没有留言</h3>
+        <p>写下第一句只属于我们的悄悄话吧</p>
+        <button class="primary-btn" id="emptyWriteBtn" type="button">写留言</button>
+      </section>
+
+      <section class="feed" id="feed"></section>
+    </div>
+  </div>
+
+  <div class="viewer" id="viewer">
+    <div class="viewer-shell">
+      <div class="viewer-top">
+        <button class="icon-circle" type="button" id="viewerClose" aria-label="关闭">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M6 6L18 18"/><path d="M18 6L6 18"/></svg>
+        </button>
+        <div id="viewerCount">1 / 1</div>
+        <div style="width:44px"></div>
+      </div>
+      <div class="viewer-stage" id="viewerStage"></div>
+    </div>
+  </div>
+
+  <div class="edit-overlay" id="editOverlay">
+    <div class="sheet edit-sheet">
+      <h3>编辑留言</h3>
+      <textarea id="editInput" maxlength="500" placeholder="把这句心里话再润一润…"></textarea>
+      <div class="sheet-actions">
+        <button class="text-btn" type="button" id="editCancel">取消</button>
+        <button class="primary-btn" type="button" id="editSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="sheet">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmText"></p>
+      <div class="sheet-actions">
+        <button class="text-btn" type="button" id="confirmCancel">取消</button>
+        <button class="primary-btn" type="button" id="confirmOk">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const currentUserId = "sheep";
+    const currentUserName = "小羊";
+    const names = { sheep: "小羊", chick: "小耶" };
+    const avatars = {
+      sheep: "../app/src/main/res/drawable-nodpi/avatar_sheep.png",
+      chick: "../app/src/main/res/drawable-nodpi/avatar_chick.png"
+    };
+
+    let draft = { text: "", imagePaths: [] };
+    let activeReplyMessageId = null;
+    let replyText = "";
+    let expandedReplyIds = new Set();
+    let editingMessageId = null;
+    let viewerState = { open: false, messageId: null, index: 0 };
+    let confirmState = null;
+
+    const now = Date.now();
+    let messages = [
+      {
+        id: "message-sheep-blossom",
+        authorId: "sheep",
+        authorName: "小羊",
+        content: "今天看到一朵超美的樱花，第一时间就想分享给你。",
+        imagePaths: ["mock://blossom-sky"],
+        createdAt: now - 10 * 60 * 1000,
+        updatedAt: null,
+        isRead: true,
+        readAt: now - 10 * 60 * 1000,
+        counterpartReadAt: null,
+        replies: [
+          {
+            id: "reply-chick-blossom",
+            messageId: "message-sheep-blossom",
+            authorId: "chick",
+            authorName: "小耶",
+            content: "好想和你一起去看，光是照片就已经心动啦。",
+            createdAt: now - 5 * 60 * 1000,
+            isRead: false,
+            readAt: null
+          }
+        ]
+      },
+      {
+        id: "message-chick-sunset",
+        authorId: "chick",
+        authorName: "小耶",
+        content: "一起去看了日落和海，好治愈呀～",
+        imagePaths: ["mock://sunset-gold", "mock://sunset-shore"],
+        createdAt: now - 16 * 60 * 60 * 1000,
+        updatedAt: null,
+        isRead: false,
+        readAt: null,
+        counterpartReadAt: now - 15 * 60 * 60 * 1000,
+        replies: []
+      },
+      {
+        id: "message-sheep-morning",
+        authorId: "sheep",
+        authorName: "小羊",
+        content: "早安～新的一天也要元气满满哦！",
+        imagePaths: [],
+        createdAt: now - 32 * 60 * 60 * 1000,
+        updatedAt: null,
+        isRead: true,
+        readAt: now - 32 * 60 * 60 * 1000,
+        counterpartReadAt: now - 28 * 60 * 60 * 1000,
+        replies: [
+          { id: "reply-1", messageId: "message-sheep-morning", authorId: "sheep", authorName: "小羊", content: "记得喝温水，别空着肚子出门。", createdAt: now - 31 * 60 * 60 * 1000, isRead: true, readAt: now - 31 * 60 * 60 * 1000 },
+          { id: "reply-2", messageId: "message-sheep-morning", authorId: "chick", authorName: "小耶", content: "收到收到，今天也会很想你。", createdAt: now - 30 * 60 * 60 * 1000, isRead: true, readAt: now - 29 * 60 * 60 * 1000 },
+          { id: "reply-3", messageId: "message-sheep-morning", authorId: "sheep", authorName: "小羊", content: "那我等你下班，晚上一起吃小蛋糕。", createdAt: now - 29 * 60 * 60 * 1000, isRead: true, readAt: now - 29 * 60 * 60 * 1000 },
+          { id: "reply-4", messageId: "message-sheep-morning", authorId: "chick", authorName: "小耶", content: "好呀，想吃草莓奶油味的！", createdAt: now - 28 * 60 * 60 * 1000, isRead: true, readAt: now - 28 * 60 * 60 * 1000 }
+        ]
+      },
+      {
+        id: "message-chick-text",
+        authorId: "chick",
+        authorName: "小耶",
+        content: "回家路上给你带了热乎乎的小甜点，等会记得开门收惊喜。",
+        imagePaths: [],
+        createdAt: now - 46 * 60 * 60 * 1000,
+        updatedAt: null,
+        isRead: false,
+        readAt: null,
+        counterpartReadAt: now - 45 * 60 * 60 * 1000,
+        replies: []
+      }
+    ];
+
+    const feedEl = document.getElementById("feed");
+    const bannerTitleEl = document.getElementById("bannerTitle");
+    const bannerSubEl = document.getElementById("bannerSub");
+    const emptyStateEl = document.getElementById("emptyState");
+    const draftInputEl = document.getElementById("draftInput");
+    const draftImagesEl = document.getElementById("draftImages");
+    const imagePickerEl = document.getElementById("imagePicker");
+    const viewerEl = document.getElementById("viewer");
+    const viewerStageEl = document.getElementById("viewerStage");
+    const viewerCountEl = document.getElementById("viewerCount");
+    const editOverlayEl = document.getElementById("editOverlay");
+    const editInputEl = document.getElementById("editInput");
+    const confirmOverlayEl = document.getElementById("confirmOverlay");
+    const confirmTitleEl = document.getElementById("confirmTitle");
+    const confirmTextEl = document.getElementById("confirmText");
+
+    function unreadCount() {
+      return messages.reduce((count, message) => {
+        const messageUnread = message.authorId !== currentUserId && !message.isRead ? 1 : 0;
+        const replyUnread = message.replies.filter(reply => reply.authorId !== currentUserId && !reply.isRead).length;
+        return count + messageUnread + replyUnread;
+      }, 0);
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const diff = Date.now() - timestamp;
+      const minute = 60 * 1000;
+      const hour = 60 * minute;
+      if (diff < minute) return "刚刚";
+      if (diff < hour) return `${Math.floor(diff / minute)} 分钟前`;
+      const nowDate = new Date();
+      const sameDay = date.toDateString() === nowDate.toDateString();
+      if (sameDay) return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+      const yesterday = new Date(nowDate);
+      yesterday.setDate(nowDate.getDate() - 1);
+      if (date.toDateString() === yesterday.toDateString()) {
+        return `昨天 ${date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false })}`;
+      }
+      return `${date.getMonth() + 1}月${date.getDate()}日 ${date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false })}`;
+    }
+
+    function messageStatus(message) {
+      if (message.authorId === currentUserId) {
+        return {
+          text: message.counterpartReadAt ? "对方已读" : "对方未读",
+          highlight: !message.counterpartReadAt
+        };
+      }
+      return {
+        text: message.isRead ? "已读" : "未读",
+        highlight: !message.isRead
+      };
+    }
+
+    function visibleReplies(message) {
+      const expanded = expandedReplyIds.has(message.id);
+      return expanded || message.replies.length <= 3 ? message.replies : message.replies.slice(-3);
+    }
+
+    function imageCols(count) {
+      if (count === 1) return 1;
+      if (count === 2) return 2;
+      if (count === 3) return 3;
+      if (count === 4) return 2;
+      return 3;
+    }
+
+    function mockClass(path) {
+      if (path === "mock://blossom-sky") return ["mock-blossom", "樱花"];
+      if (path === "mock://sunset-gold") return ["mock-sunset-gold", "日落"];
+      if (path === "mock://sunset-shore") return ["mock-sunset-shore", "海边"];
+      return ["mock-note", "照片"];
+    }
+
+    function renderMedia(path, single = false) {
+      const cls = single ? "media single" : "media grid";
+      if (path.startsWith("mock://")) {
+        const [theme, label] = mockClass(path);
+        return `<div class="${cls}"><div class="mock-photo ${theme}" data-label="${label}"></div></div>`;
+      }
+      return `<div class="${cls}"><img src="${path}" alt="留言图片"></div>`;
+    }
+
+    function renderDraftImages() {
+      if (!draft.imagePaths.length) {
+        draftImagesEl.classList.add("hidden");
+        draftImagesEl.innerHTML = "";
+        return;
+      }
+      draftImagesEl.classList.remove("hidden");
+      draftImagesEl.innerHTML = draft.imagePaths.map((path, index) => {
+        return `<div class="thumb">
+          ${renderMedia(path).replace('class="media grid"', 'class="media grid" style="min-height:82px"')}
+          <button type="button" data-remove-index="${index}">×</button>
+        </div>`;
+      }).join("");
+    }
+
+    function renderBanner() {
+      const count = unreadCount();
+      bannerTitleEl.innerHTML = count > 0
+        ? `你有 <span class="num">${count}</span> 条新留言未读`
+        : `你有 <span class="num">0</span> 条新留言未读`;
+      bannerSubEl.textContent = count > 0
+        ? "有些话，想对你说很久了"
+        : "今天的留言都看完啦，去写一句新的悄悄话吧";
+    }
+
+    function renderFeed() {
+      if (!messages.length) {
+        emptyStateEl.classList.remove("hidden");
+        feedEl.innerHTML = "";
+        return;
+      }
+      emptyStateEl.classList.add("hidden");
+      feedEl.innerHTML = messages.map(message => {
+        const status = messageStatus(message);
+        const replies = visibleReplies(message);
+        const cols = imageCols(message.imagePaths.length);
+        return `
+          <article class="message-card ${status.highlight ? "unread" : ""}" data-message-id="${message.id}">
+            <div class="message-head">
+              <div class="avatar"><img src="${avatars[message.authorId]}" alt="${message.authorName}"></div>
+              <div class="author">
+                <div class="author-name">${message.authorName}${message.updatedAt ? '<span class="edited">已编辑</span>' : ""}</div>
+                <div class="author-time">${formatTime(message.createdAt)}</div>
+              </div>
+              <div>
+                <div class="status-pill ${status.highlight ? "highlight" : ""}">${status.text}</div>
+                ${message.authorId === currentUserId ? `
+                  <div class="more-wrap">
+                    <button class="text-btn more-btn" type="button" data-more="${message.id}">•••</button>
+                    <div class="more-menu" id="menu-${message.id}">
+                      <button type="button" data-edit="${message.id}">编辑留言</button>
+                      <button class="danger" type="button" data-delete-message="${message.id}">删除留言</button>
+                    </div>
+                  </div>` : ""}
+              </div>
+            </div>
+
+            ${message.content ? `<div class="message-content">${escapeHtml(message.content)}</div>` : ""}
+
+            ${message.imagePaths.length ? `
+              <div class="message-images cols-${cols}">
+                ${message.imagePaths.map((path, index) => `<div data-open-viewer="${message.id}" data-image-index="${index}">${renderMedia(path, message.imagePaths.length === 1)}</div>`).join("")}
+              </div>` : ""}
+
+            <div class="message-actions">
+              <button type="button" aria-label="喜欢">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.3L4.7 13C2.4 10.7 2.4 6.9 4.7 4.7C7 2.4 10.8 2.4 13.1 4.7L12 5.8L10.9 4.7C8.6 2.4 4.8 2.4 2.5 4.7C.2 7 .2 10.8 2.5 13.1L12 22.6L21.5 13.1C23.8 10.8 23.8 7 21.5 4.7C19.2 2.4 15.4 2.4 13.1 4.7"/></svg>
+              </button>
+              <button type="button" data-reply="${message.id}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5C21 16.2 16.7 20 11.5 20C10 20 8.6 19.7 7.3 19.1L3 20L4 15.9C3.4 14.6 3 13.1 3 11.5C3 6.8 7.3 3 12.5 3C17.7 3 22 6.8 22 11.5Z"/></svg>
+                <span>${message.replies.length ? `回复 ${message.replies.length}` : "回复"}</span>
+              </button>
+            </div>
+
+            ${replies.length ? `
+              <div class="reply-list">
+                ${replies.map(reply => `
+                  <div class="reply-item">
+                    <div class="avatar"><img src="${avatars[reply.authorId]}" alt="${reply.authorName}"></div>
+                    <div>
+                      <div class="reply-meta">
+                        <span class="reply-name">${reply.authorName}</span>
+                        <span class="reply-time">${formatTime(reply.createdAt)}</span>
+                      </div>
+                      <div class="reply-content">${escapeHtml(reply.content)}</div>
+                    </div>
+                    ${reply.authorId === currentUserId ? `<button class="delete" type="button" data-delete-reply="${reply.id}">删除</button>` : `<span></span>`}
+                  </div>
+                `).join("")}
+                ${message.replies.length > 3 ? `<button class="reply-toggle" type="button" data-toggle-replies="${message.id}">${expandedReplyIds.has(message.id) ? "收起回复" : `查看全部 ${message.replies.length} 条回复`}</button>` : ""}
+              </div>` : ""}
+
+            ${activeReplyMessageId === message.id ? `
+              <div class="reply-box">
+                <textarea data-reply-input="${message.id}" maxlength="300" placeholder="回复一句温柔的话吧…">${escapeHtml(replyText)}</textarea>
+                <div class="reply-actions">
+                  <button class="text-btn" type="button" data-cancel-reply="${message.id}">取消</button>
+                  <button class="primary-btn" type="button" data-send-reply="${message.id}">发送</button>
+                </div>
+              </div>` : ""}
+          </article>
+        `;
+      }).join("");
+    }
+
+    function render() {
+      renderBanner();
+      renderDraftImages();
+      renderFeed();
+      draftInputEl.value = draft.text;
+      updateViewer();
+      updateEditSheet();
+    }
+
+    function publishMessage() {
+      const content = draft.text.trim();
+      if (!content && !draft.imagePaths.length) {
+        alert("文字和图片不能同时为空");
+        return;
+      }
+      messages.unshift({
+        id: `message-${crypto.randomUUID()}`,
+        authorId: currentUserId,
+        authorName: currentUserName,
+        content,
+        imagePaths: [...draft.imagePaths],
+        createdAt: Date.now(),
+        updatedAt: null,
+        isRead: true,
+        readAt: Date.now(),
+        counterpartReadAt: null,
+        replies: []
+      });
+      draft = { text: "", imagePaths: [] };
+      draftInputEl.value = "";
+      imagePickerEl.value = "";
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function markMessageRead(messageId) {
+      const message = messages.find(item => item.id === messageId);
+      if (!message) return;
+      if (message.authorId !== currentUserId) {
+        message.isRead = true;
+        message.readAt = Date.now();
+      }
+      message.replies.forEach(reply => {
+        if (reply.authorId !== currentUserId) {
+          reply.isRead = true;
+          reply.readAt = Date.now();
+        }
+      });
+      renderBanner();
+    }
+
+    function openViewer(messageId, index) {
+      viewerState = { open: true, messageId, index };
+      markMessageRead(messageId);
+      updateViewer();
+    }
+
+    function updateViewer() {
+      if (!viewerState.open) {
+        viewerEl.classList.remove("show");
+        viewerStageEl.innerHTML = "";
+        return;
+      }
+      const message = messages.find(item => item.id === viewerState.messageId);
+      if (!message || !message.imagePaths.length) {
+        viewerState.open = false;
+        viewerEl.classList.remove("show");
+        return;
+      }
+      const total = message.imagePaths.length;
+      viewerState.index = Math.max(0, Math.min(viewerState.index, total - 1));
+      viewerCountEl.textContent = `${viewerState.index + 1} / ${total}`;
+      viewerStageEl.innerHTML = `
+        ${total > 1 ? `<button class="viewer-nav prev" type="button" ${viewerState.index === 0 ? "disabled" : ""}>‹</button>` : ""}
+        ${renderMedia(message.imagePaths[viewerState.index], true)}
+        ${total > 1 ? `<button class="viewer-nav next" type="button" ${viewerState.index === total - 1 ? "disabled" : ""}>›</button>` : ""}
+      `;
+      viewerEl.classList.add("show");
+    }
+
+    function updateEditSheet() {
+      if (!editingMessageId) {
+        editOverlayEl.classList.remove("show");
+        editInputEl.value = "";
+        return;
+      }
+      const message = messages.find(item => item.id === editingMessageId);
+      if (!message) return;
+      editInputEl.value = message.content;
+      editOverlayEl.classList.add("show");
+    }
+
+    function openConfirm(title, text, onConfirm) {
+      confirmState = onConfirm;
+      confirmTitleEl.textContent = title;
+      confirmTextEl.textContent = text;
+      confirmOverlayEl.classList.add("show");
+    }
+
+    function closeConfirm() {
+      confirmState = null;
+      confirmOverlayEl.classList.remove("show");
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    document.getElementById("publishBtn").addEventListener("click", publishMessage);
+    document.getElementById("scrollComposerBtn").addEventListener("click", () => {
+      document.getElementById("composerCard").scrollIntoView({ behavior: "smooth", block: "center" });
+      draftInputEl.focus();
+    });
+    document.getElementById("emptyWriteBtn").addEventListener("click", () => {
+      document.getElementById("composerCard").scrollIntoView({ behavior: "smooth", block: "center" });
+      draftInputEl.focus();
+    });
+    draftInputEl.addEventListener("input", event => {
+      draft.text = event.target.value.slice(0, 500);
+    });
+    imagePickerEl.addEventListener("change", event => {
+      const files = Array.from(event.target.files || []).slice(0, 9 - draft.imagePaths.length);
+      files.forEach(file => draft.imagePaths.push(URL.createObjectURL(file)));
+      renderDraftImages();
+    });
+    draftImagesEl.addEventListener("click", event => {
+      const button = event.target.closest("button[data-remove-index]");
+      if (!button) return;
+      const index = Number(button.dataset.removeIndex);
+      draft.imagePaths.splice(index, 1);
+      renderDraftImages();
+    });
+
+    feedEl.addEventListener("click", event => {
+      const target = event.target.closest("[data-reply],[data-toggle-replies],[data-open-viewer],[data-delete-reply],[data-delete-message],[data-edit],[data-send-reply],[data-cancel-reply],[data-more]");
+      if (!target) {
+        const card = event.target.closest(".message-card");
+        if (card) markMessageRead(card.dataset.messageId);
+        return;
+      }
+
+      if (target.dataset.reply) {
+        activeReplyMessageId = target.dataset.reply;
+        replyText = "";
+        markMessageRead(activeReplyMessageId);
+        render();
+        return;
+      }
+
+      if (target.dataset.toggleReplies) {
+        const id = target.dataset.toggleReplies;
+        if (expandedReplyIds.has(id)) expandedReplyIds.delete(id); else expandedReplyIds.add(id);
+        markMessageRead(id);
+        render();
+        return;
+      }
+
+      if (target.dataset.openViewer) {
+        openViewer(target.dataset.openViewer, Number(target.dataset.imageIndex || 0));
+        return;
+      }
+
+      if (target.dataset.deleteReply) {
+        const replyId = target.dataset.deleteReply;
+        openConfirm("删除这条回复？", "删除后无法恢复。", () => {
+          messages.forEach(message => {
+            message.replies = message.replies.filter(reply => !(reply.id === replyId && reply.authorId === currentUserId));
+          });
+          closeConfirm();
+          render();
+        });
+        return;
+      }
+
+      if (target.dataset.deleteMessage) {
+        const messageId = target.dataset.deleteMessage;
+        openConfirm("删除这条留言？", "删除后，这条留言、它的回复以及图片引用都会一起移除。", () => {
+          messages = messages.filter(message => !(message.id === messageId && message.authorId === currentUserId));
+          closeConfirm();
+          render();
+        });
+        return;
+      }
+
+      if (target.dataset.edit) {
+        editingMessageId = target.dataset.edit;
+        updateEditSheet();
+        return;
+      }
+
+      if (target.dataset.sendReply) {
+        const id = target.dataset.sendReply;
+        if (!replyText.trim()) {
+          alert("回复内容不能为空");
+          return;
+        }
+        const message = messages.find(item => item.id === id);
+        if (!message) return;
+        message.replies.push({
+          id: `reply-${crypto.randomUUID()}`,
+          messageId: id,
+          authorId: currentUserId,
+          authorName: currentUserName,
+          content: replyText.trim(),
+          createdAt: Date.now(),
+          isRead: true,
+          readAt: Date.now()
+        });
+        activeReplyMessageId = null;
+        replyText = "";
+        render();
+        return;
+      }
+
+      if (target.dataset.cancelReply) {
+        activeReplyMessageId = null;
+        replyText = "";
+        render();
+        return;
+      }
+
+      if (target.dataset.more) {
+        document.querySelectorAll(".more-menu.show").forEach(menu => {
+          if (menu.id !== `menu-${target.dataset.more}`) menu.classList.remove("show");
+        });
+        document.getElementById(`menu-${target.dataset.more}`)?.classList.toggle("show");
+      }
+    });
+
+    feedEl.addEventListener("input", event => {
+      const target = event.target;
+      if (target.matches("[data-reply-input]")) {
+        replyText = target.value.slice(0, 300);
+      }
+    });
+
+    document.getElementById("viewerClose").addEventListener("click", () => {
+      viewerState.open = false;
+      updateViewer();
+    });
+    viewerStageEl.addEventListener("click", event => {
+      if (event.target.closest(".viewer-nav.prev")) {
+        viewerState.index -= 1;
+        updateViewer();
+      }
+      if (event.target.closest(".viewer-nav.next")) {
+        viewerState.index += 1;
+        updateViewer();
+      }
+    });
+
+    document.getElementById("editCancel").addEventListener("click", () => {
+      editingMessageId = null;
+      updateEditSheet();
+    });
+    document.getElementById("editSave").addEventListener("click", () => {
+      const message = messages.find(item => item.id === editingMessageId);
+      if (!message) return;
+      const text = editInputEl.value.trim();
+      if (!text) {
+        alert("留言内容不能为空");
+        return;
+      }
+      message.content = text.slice(0, 500);
+      message.updatedAt = Date.now();
+      editingMessageId = null;
+      render();
+    });
+
+    document.getElementById("confirmCancel").addEventListener("click", closeConfirm);
+    document.getElementById("confirmOk").addEventListener("click", () => {
+      if (confirmState) confirmState();
+    });
+
+    document.addEventListener("click", event => {
+      if (!event.target.closest(".more-wrap")) {
+        document.querySelectorAll(".more-menu.show").forEach(menu => menu.classList.remove("show"));
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 package com.secretbase.app.ui.home
 
 import androidx.annotation.DrawableRes
+import com.secretbase.app.AppActions
 import com.secretbase.app.data.BottomNavMessages
+import com.secretbase.app.data.FeatureSpec
 import com.secretbase.app.data.HomeSnapshot
 import com.secretbase.app.data.HomeVisuals
 import com.secretbase.app.data.MoodOption
@@ -94,8 +96,8 @@ fun HomeSnapshot.toUiState(
             relationship = relationship,
             visuals = visuals,
             quickRecord = quickRecord,
-            topActionMessages = topActionMessages,
-            bottomNavMessages = bottomNavMessages,
+            topActionMessages = topActionMessages.copy(message = AppActions.OpenMessageWall),
+            bottomNavMessages = bottomNavMessages.copy(anniversary = AppActions.OpenAnniversary),
             moodOptions = MoodOption.defaults,
             moodCards = users.map { user ->
                 MoodCardUiModel(
@@ -112,7 +114,7 @@ fun HomeSnapshot.toUiState(
                     id = feature.id,
                     title = feature.title,
                     summary = summaryForFeature(feature.id, relationship.daysUntilAnniversary),
-                    clickMessage = feature.clickMessage,
+                    clickMessage = featureAction(feature),
                     iconRes = visuals.icon(feature.iconSlot),
                 )
             },
@@ -172,10 +174,18 @@ private fun HomeSnapshot.summaryForFeature(featureId: String, anniversaryDays: I
         else -> ""
     }
 
+private fun featureAction(feature: FeatureSpec): String =
+    when (feature.id) {
+        "messageWall" -> AppActions.OpenMessageWall
+        "wishlist" -> AppActions.OpenWishList
+        "anniversary" -> AppActions.OpenAnniversary
+        else -> feature.clickMessage
+    }
+
 private fun greetingAt(hour: Int): String = when (hour) {
-    in 5..11 -> "早安"
-    in 12..17 -> "午安"
-    else -> "晚上好"
+    in 5..11 -> "Good morning"
+    in 12..17 -> "Good afternoon"
+    else -> "Good evening"
 }
 
 private fun anniversaryTitle(startDate: LocalDate, nextAnniversary: LocalDate): String {

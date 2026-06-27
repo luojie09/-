@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>纪念日预览</title>
+  <style>
+    :root{
+      --bg:#fffaf9;
+      --bg-top:#fff1f5;
+      --surface:rgba(255,255,255,.98);
+      --line:#f6dce5;
+      --ink:#202128;
+      --muted:#8d8896;
+      --pink:#ff6f95;
+      --pink-strong:#ff5a8b;
+      --pink-soft:#ffe2eb;
+      --blue:#edf6ff;
+      --gold:#fff3d7;
+      --mint:#ecfbf5;
+      --gray:#f3f1f3;
+      --shadow:0 18px 44px rgba(116,61,78,.12);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;background:#f3eef1;color:var(--ink);font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif}
+    body{min-height:100vh;padding:24px 12px;display:flex;justify-content:center}
+
+    .phone{
+      width:min(100%,430px);
+      min-height:calc(100vh - 48px);
+      background:linear-gradient(180deg,var(--bg-top),var(--bg));
+      border-radius:38px;
+      border:1px solid rgba(255,255,255,.88);
+      box-shadow:0 28px 72px rgba(49,34,41,.16);
+      overflow:hidden;
+    }
+
+    .screen{
+      min-height:100%;
+      padding:calc(14px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .topbar{
+      display:grid;
+      grid-template-columns:44px 1fr 44px;
+      align-items:center;
+      margin-bottom:14px;
+    }
+
+    .title{
+      margin:0;
+      text-align:center;
+      font-size:22px;
+      font-weight:800;
+    }
+
+    .circle-btn{
+      width:44px;
+      height:44px;
+      border:none;
+      border-radius:50%;
+      background:rgba(255,255,255,.96);
+      border:1px solid rgba(246,220,229,.9);
+      box-shadow:0 10px 20px rgba(116,61,78,.08);
+      display:grid;
+      place-items:center;
+      color:var(--ink);
+      cursor:pointer;
+    }
+
+    .circle-btn svg{width:21px;height:21px}
+    .circle-btn.add{color:var(--pink)}
+
+    .hero,
+    .card,
+    .empty-card{
+      background:var(--surface);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+
+    .hero{
+      border-radius:30px;
+      padding:18px 16px 16px;
+      margin-bottom:16px;
+      text-align:center;
+    }
+
+    .hero-ill{
+      height:152px;
+      border-radius:24px;
+      overflow:hidden;
+      background:linear-gradient(180deg,#fff6fa,#fffdfd);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:14px;
+    }
+
+    .hero-ill img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .hero-label{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .hero-days{
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:8px;
+      margin:10px 0 6px;
+    }
+
+    .hero-days strong{
+      font-size:60px;
+      line-height:1;
+      font-weight:800;
+      color:var(--pink-strong);
+    }
+
+    .hero-days span{
+      padding-bottom:7px;
+      font-size:24px;
+      font-weight:800;
+    }
+
+    .hero-sub{
+      margin:0;
+      font-size:15px;
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .legend{
+      display:grid;
+      gap:8px;
+      margin:0 0 16px;
+      padding:14px 16px;
+      border-radius:24px;
+      border:1px solid rgba(246,220,229,.92);
+      background:rgba(255,255,255,.72);
+    }
+
+    .legend-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .legend-dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      flex:none;
+    }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .card{
+      border-radius:26px;
+      padding:14px 14px 12px;
+    }
+
+    .card-head{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:10px;
+    }
+
+    .icon-box{
+      width:48px;
+      height:48px;
+      border-radius:18px;
+      display:grid;
+      place-items:center;
+      font-size:22px;
+      flex:none;
+      background:#fff7fb;
+      border:1px solid rgba(246,220,229,.9);
+    }
+
+    .card-main{min-width:0;flex:1}
+    .card-title{
+      margin:2px 0 4px;
+      font-size:18px;
+      font-weight:800;
+      line-height:1.35;
+    }
+
+    .card-date{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:8px;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      padding:7px 11px;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .pill.today{background:var(--pink-soft);color:var(--pink-strong)}
+    .pill.upcoming{background:var(--gold);color:#b07400}
+    .pill.past{background:var(--mint);color:#3a8f75}
+    .pill.expired{background:var(--gray);color:#7a7a83}
+    .pill.repeat{background:var(--blue);color:#5a7794}
+
+    .text-icon{
+      border:none;
+      background:none;
+      color:var(--muted);
+      font-size:20px;
+      line-height:1;
+      cursor:pointer;
+      padding:4px 2px;
+      flex:none;
+    }
+
+    .menu-wrap{position:relative}
+    .menu{
+      position:absolute;
+      right:0;
+      top:32px;
+      width:118px;
+      border-radius:18px;
+      border:1px solid rgba(245,220,229,.9);
+      background:#fff;
+      box-shadow:0 18px 40px rgba(52,30,39,.14);
+      padding:8px;
+      display:none;
+      z-index:10;
+    }
+
+    .menu.show{display:block}
+    .menu button{
+      width:100%;
+      border:none;
+      background:none;
+      text-align:left;
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      color:var(--ink);
+      font:600 14px/1.2 inherit;
+    }
+
+    .menu button:hover{background:#fff4f8}
+    .menu button.danger{color:var(--pink)}
+
+    .empty-card{
+      border-radius:28px;
+      padding:24px 20px;
+      text-align:center;
+    }
+
+    .empty-card h3{margin:10px 0 6px;font-size:22px}
+    .empty-card p{margin:0 0 16px;color:var(--muted);line-height:1.7}
+
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(21,18,24,.62);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      padding:20px 10px;
+      z-index:99;
+    }
+
+    .overlay.show{display:flex}
+
+    .sheet{
+      width:min(100%,430px);
+      border-radius:30px 30px 0 0;
+      background:#fff;
+      box-shadow:0 30px 72px rgba(33,20,28,.3);
+      padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+      max-height:88vh;
+      overflow:auto;
+    }
+
+    .sheet h3{
+      margin:0 0 16px;
+      font-size:22px;
+    }
+
+    .field{margin-bottom:14px}
+    .field-label{margin-bottom:8px;font-size:14px;font-weight:800}
+
+    input[type="text"],
+    input[type="date"]{
+      width:100%;
+      border:none;
+      outline:none;
+      border-radius:22px;
+      background:#fffafc;
+      border:1px solid rgba(245,220,229,.95);
+      padding:14px 16px;
+      font:600 15px/1.6 "PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--ink);
+    }
+
+    .switch-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:4px 0 6px;
+    }
+
+    .switch-note{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+      margin-top:4px;
+    }
+
+    .toggle{
+      width:54px;
+      height:32px;
+      border:none;
+      border-radius:999px;
+      background:#f1d7df;
+      position:relative;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    .toggle::after{
+      content:"";
+      position:absolute;
+      top:4px;
+      left:4px;
+      width:24px;
+      height:24px;
+      border-radius:50%;
+      background:#fff;
+      box-shadow:0 4px 10px rgba(32,20,26,.14);
+      transition:.2s;
+    }
+
+    .toggle.active{
+      background:linear-gradient(135deg,#ff89aa,#ff5c89);
+    }
+
+    .toggle.active::after{
+      transform:translateX(22px);
+    }
+
+    .reminders{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .reminder{
+      border:none;
+      border-radius:999px;
+      padding:11px 14px;
+      background:#fff;
+      border:1px solid rgba(245,220,229,.92);
+      color:var(--muted);
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .reminder.active{
+      background:linear-gradient(135deg,#ff89aa,#ff5c89);
+      border-color:transparent;
+      color:#fff;
+      box-shadow:0 12px 22px rgba(255,111,149,.22);
+    }
+
+    .primary-btn,
+    .secondary-btn{
+      border:none;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:800;
+      font-family:inherit;
+      padding:14px 24px;
+      font-size:16px;
+    }
+
+    .primary-btn{
+      background:linear-gradient(135deg,#ff89aa,#ff5c89);
+      color:#fff;
+      box-shadow:0 14px 24px rgba(255,111,149,.24);
+    }
+
+    .secondary-btn{
+      background:#fff;
+      border:1px solid rgba(245,220,229,.95);
+      color:var(--ink);
+    }
+
+    .sheet-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    .confirm{
+      width:min(100%,380px);
+      border-radius:28px;
+      background:#fff;
+      box-shadow:0 30px 80px rgba(33,20,28,.3);
+      padding:22px 20px;
+      margin:auto;
+    }
+
+    .confirm h3{margin:0 0 10px;font-size:22px}
+    .confirm p{margin:0;color:var(--muted);line-height:1.7}
+    .confirm .sheet-actions{margin-top:18px}
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen" id="screen"></div>
+  </div>
+
+  <div class="overlay" id="editorOverlay">
+    <div class="sheet">
+      <h3 id="editorTitle"></h3>
+      <div class="field">
+        <div class="field-label">纪念日名称 *</div>
+        <input id="nameInput" type="text" maxlength="50" placeholder="请输入纪念日名称" />
+      </div>
+      <div class="field">
+        <div class="field-label">日期 *</div>
+        <input id="dateInput" type="date" />
+      </div>
+      <div class="field">
+        <div class="switch-row">
+          <div>
+            <div class="field-label" style="margin:0">每年重复</div>
+            <div class="switch-note">生日、相识纪念日这类更适合打开重复。</div>
+          </div>
+          <button class="toggle" id="repeatToggle" type="button" aria-label="每年重复"></button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">提醒时间</div>
+        <div class="reminders" id="reminderRow"></div>
+      </div>
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="editorCancel" type="button">取消</button>
+        <button class="primary-btn" id="editorSave" type="button">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="confirmOverlay">
+    <div class="confirm">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmText"></p>
+      <div class="sheet-actions">
+        <button class="secondary-btn" id="confirmCancel" type="button">取消</button>
+        <button class="primary-btn" id="confirmOk" type="button">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "secretbase-preview-anniversaries-v1";
+    const screenEl = document.getElementById("screen");
+    const overlayEl = document.getElementById("editorOverlay");
+    const confirmOverlayEl = document.getElementById("confirmOverlay");
+    const heroImage = "../app/src/main/res/drawable-nodpi/home_couple_hero.webp";
+    const relationshipStart = "2026-05-06";
+    const todayMs = new Date("2026-06-27T12:00:00+08:00").getTime();
+    const today = toDateString(todayMs);
+
+    const reminderOptions = [
+      { value: "NONE", label: "不提醒" },
+      { value: "SAME_DAY", label: "当天提醒" },
+      { value: "ONE_DAY_BEFORE", label: "提前1天" },
+      { value: "THREE_DAYS_BEFORE", label: "提前3天" }
+    ];
+
+    const iconMap = {
+      "在一起的日子": "💗",
+      "第一次约会": "✈️",
+      "第一次旅行": "🦋",
+      "第一次见家长": "🍀",
+      "生日 - 小羊": "🎂",
+      "生日 - 小耶": "🎁"
+    };
+
+    const appState = {
+      editorOpen: false,
+      editingId: null,
+      name: "",
+      date: today,
+      repeatYearly: true,
+      reminderType: "NONE",
+      menuId: null
+    };
+
+    let anniversaries = loadItems();
+    let confirmHandler = null;
+
+    function seedItems() {
+      return [
+        { id: "anniversary-love", title: "在一起的日子", date: "2026-05-06", repeatYearly: false, reminderType: "NONE", createdAt: "2026-05-06" },
+        { id: "anniversary-first-date", title: "第一次约会", date: "2026-06-15", repeatYearly: true, reminderType: "SAME_DAY", createdAt: "2026-05-20" },
+        { id: "anniversary-first-trip", title: "第一次旅行", date: "2026-10-01", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-23" },
+        { id: "anniversary-first-growth", title: "第一次见家长", date: "2026-10-20", repeatYearly: false, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-26" },
+        { id: "anniversary-sheep-birthday", title: "生日 - 小羊", date: "2026-08-15", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-28" },
+        { id: "anniversary-chick-birthday", title: "生日 - 小耶", date: "2026-11-02", repeatYearly: true, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-28" }
+      ];
+    }
+
+    function loadItems() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        const seed = seedItems();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+        return seed;
+      }
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        const seed = seedItems();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+        return seed;
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(anniversaries));
+    }
+
+    function toDateString(timestamp) {
+      const date = new Date(timestamp);
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${date.getFullYear()}-${month}-${day}`;
+    }
+
+    function formatDate(value) {
+      return value.replaceAll("-", ".");
+    }
+
+    function dateDiffInDays(from, to) {
+      const start = new Date(`${from}T00:00:00+08:00`).getTime();
+      const end = new Date(`${to}T00:00:00+08:00`).getTime();
+      return Math.round((end - start) / 86400000);
+    }
+
+    function relationshipDays() {
+      return Math.max(1, dateDiffInDays(relationshipStart, today) + 1);
+    }
+
+    function normalizedDate(item) {
+      if (!item.repeatYearly) return item.date;
+      const [, month, day] = item.date.split("-");
+      const thisYear = `${today.slice(0, 4)}-${month}-${day}`;
+      return thisYear < today ? `${Number(today.slice(0, 4)) + 1}-${month}-${day}` : thisYear;
+    }
+
+    function itemStatus(item) {
+      const effectiveDate = normalizedDate(item);
+      const diff = dateDiffInDays(today, effectiveDate);
+      if (diff === 0) {
+        return { text: "就是今天", tone: "today", sortBucket: 0, distance: 0 };
+      }
+      if (diff > 0) {
+        return { text: `还有 ${diff} 天`, tone: "upcoming", sortBucket: 1, distance: diff };
+      }
+      if (item.repeatYearly) {
+        return { text: `已经过去 ${Math.abs(diff)} 天`, tone: "past", sortBucket: 2, distance: Math.abs(diff) };
+      }
+      return { text: "已过期（不重复）", tone: "expired", sortBucket: 3, distance: 9999 };
+    }
+
+    function sortedItems() {
+      return [...anniversaries]
+        .map(item => ({ ...item, meta: itemStatus(item) }))
+        .sort((a, b) => {
+          if (a.meta.sortBucket !== b.meta.sortBucket) return a.meta.sortBucket - b.meta.sortBucket;
+          return a.meta.distance - b.meta.distance;
+        });
+    }
+
+    function legend() {
+      return `
+        <section class="legend">
+          <div class="legend-item"><span class="legend-dot" style="background:#ff8ead"></span>就是今天</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#ffc45c"></span>还有 x 天</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#7bd0b2"></span>已经过去 x 天</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#c8c6cc"></span>已过期（不重复）</div>
+        </section>
+      `;
+    }
+
+    function renderCard(item) {
+      const meta = item.meta;
+      const reminder = reminderOptions.find(option => option.value === item.reminderType)?.label || "不提醒";
+      return `
+        <article class="card">
+          <div class="card-head">
+            <div class="icon-box">${iconMap[item.title] || "💞"}</div>
+            <div class="card-main">
+              <div class="card-title">${escapeHtml(item.title)}</div>
+              <div class="card-date">${formatDate(item.date)}</div>
+              <div class="chip-row">
+                <span class="pill ${meta.tone}">${meta.text}</span>
+                <span class="pill repeat">${item.repeatYearly ? "每年重复" : "不重复"}</span>
+                <span class="pill repeat">${reminder}</span>
+              </div>
+            </div>
+            <div class="menu-wrap">
+              <button class="text-icon" type="button" data-action="toggle-menu" data-id="${item.id}">…</button>
+              <div class="menu ${appState.menuId === item.id ? "show" : ""}">
+                <button type="button" data-action="edit" data-id="${item.id}">编辑</button>
+                <button class="danger" type="button" data-action="delete" data-id="${item.id}">删除</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function render() {
+      const items = sortedItems();
+      screenEl.innerHTML = `
+        <div class="topbar">
+          <button class="circle-btn" type="button" data-action="back-home" aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L7.5 12L14.5 19"/></svg>
+          </button>
+          <h1 class="title">纪念日</h1>
+          <button class="circle-btn add" type="button" data-action="open-editor" aria-label="新增">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5V19"/><path d="M5 12H19"/></svg>
+          </button>
+        </div>
+
+        <section class="hero">
+          <div class="hero-ill"><img src="${heroImage}" alt="插画"></div>
+          <p class="hero-label">我们在一起已经</p>
+          <div class="hero-days"><strong>${relationshipDays()}</strong><span>天</span></div>
+          <p class="hero-sub">从 ${formatDate(relationshipStart)} 开始</p>
+        </section>
+
+        ${legend()}
+
+        ${items.length ? `<section class="list">${items.map(renderCard).join("")}</section>` : `
+          <section class="empty-card">
+            <div class="hero-ill"><img src="${heroImage}" alt="插画"></div>
+            <h3>还没有纪念日</h3>
+            <p>把值得记住的日子都放进来，以后就不会错过了。</p>
+            <button class="primary-btn" type="button" data-action="open-editor">新增纪念日</button>
+          </section>
+        `}
+      `;
+    }
+
+    function openEditor(item) {
+      appState.editorOpen = true;
+      appState.editingId = item ? item.id : null;
+      appState.name = item ? item.title : "";
+      appState.date = item ? item.date : today;
+      appState.repeatYearly = item ? item.repeatYearly : true;
+      appState.reminderType = item ? item.reminderType : "NONE";
+      document.getElementById("editorTitle").textContent = item ? "编辑纪念日" : "新增纪念日";
+      document.getElementById("nameInput").value = appState.name;
+      document.getElementById("dateInput").value = appState.date;
+      renderReminderRow();
+      syncToggle();
+      overlayEl.classList.add("show");
+    }
+
+    function closeEditor() {
+      appState.editorOpen = false;
+      overlayEl.classList.remove("show");
+    }
+
+    function syncToggle() {
+      document.getElementById("repeatToggle").classList.toggle("active", appState.repeatYearly);
+    }
+
+    function renderReminderRow() {
+      document.getElementById("reminderRow").innerHTML = reminderOptions.map(option => `
+        <button class="reminder ${appState.reminderType === option.value ? "active" : ""}" type="button" data-action="pick-reminder" data-value="${option.value}">${option.label}</button>
+      `).join("");
+    }
+
+    function saveEditor() {
+      const title = document.getElementById("nameInput").value.trim();
+      const date = document.getElementById("dateInput").value;
+      if (!title) {
+        alert("纪念日名称不能为空");
+        return;
+      }
+      if (!date) {
+        alert("请选择日期");
+        return;
+      }
+      const payload = {
+        id: appState.editingId || `anniversary-${crypto.randomUUID()}`,
+        title,
+        date,
+        repeatYearly: appState.repeatYearly,
+        reminderType: appState.reminderType,
+        createdAt: appState.editingId ? anniversaries.find(item => item.id === appState.editingId)?.createdAt || today : today
+      };
+      if (appState.editingId) {
+        anniversaries = anniversaries.map(item => item.id === payload.id ? payload : item);
+      } else {
+        anniversaries.push(payload);
+      }
+      persist();
+      closeEditor();
+      render();
+    }
+
+    function openConfirm(title, text, handler) {
+      confirmHandler = handler;
+      document.getElementById("confirmTitle").textContent = title;
+      document.getElementById("confirmText").textContent = text;
+      confirmOverlayEl.classList.add("show");
+    }
+
+    function closeConfirm() {
+      confirmHandler = null;
+      confirmOverlayEl.classList.remove("show");
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    screenEl.addEventListener("click", event => {
+      const actionEl = event.target.closest("[data-action]");
+      if (!actionEl) {
+        if (!event.target.closest(".menu-wrap")) {
+          appState.menuId = null;
+          render();
+        }
+        return;
+      }
+
+      const { action, id, value } = actionEl.dataset;
+      if (action === "back-home") {
+        alert("这里是可独立浏览的预览页，Android 端已经预留从首页进入纪念日页面的跳转。");
+        return;
+      }
+      if (action === "open-editor") {
+        openEditor(null);
+        return;
+      }
+      if (action === "toggle-menu") {
+        appState.menuId = appState.menuId === id ? null : id;
+        render();
+        return;
+      }
+      if (action === "edit") {
+        const item = anniversaries.find(entry => entry.id === id);
+        if (item) openEditor(item);
+        return;
+      }
+      if (action === "delete") {
+        openConfirm("删除这个纪念日？", "删除后不会再出现在列表中，后续可以重新新增。", () => {
+          anniversaries = anniversaries.filter(item => item.id !== id);
+          persist();
+          closeConfirm();
+          render();
+        });
+        return;
+      }
+    });
+
+    document.getElementById("editorCancel").addEventListener("click", closeEditor);
+    document.getElementById("editorSave").addEventListener("click", saveEditor);
+    document.getElementById("confirmCancel").addEventListener("click", closeConfirm);
+    document.getElementById("confirmOk").addEventListener("click", () => {
+      if (confirmHandler) confirmHandler();
+    });
+
+    document.getElementById("repeatToggle").addEventListener("click", () => {
+      appState.repeatYearly = !appState.repeatYearly;
+      syncToggle();
+    });
+
+    document.getElementById("reminderRow").addEventListener("click", event => {
+      const button = event.target.closest("[data-action='pick-reminder']");
+      if (!button) return;
+      appState.reminderType = button.dataset.value;
+      renderReminderRow();
+    });
+
+    document.addEventListener("click", event => {
+      if (!event.target.closest(".menu-wrap")) {
+        const hasMenu = document.querySelector(".menu.show");
+        if (hasMenu) {
+          appState.menuId = null;
+          render();
+        }
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
