@@ -1,6 +1,15 @@
 package com.secretbase.app.data
 
 import android.content.Context
+import com.secretbase.app.data.supabase.SupabaseConfig
+import com.secretbase.app.data.supabase.isoInstantToMillis
+import com.secretbase.app.data.supabase.millisToIsoDate
+import com.secretbase.app.data.supabase.millisToIsoInstant
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
@@ -10,13 +19,16 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-class HomeRepository(private val context: Context) {
+class HomeRepository(
+    private val context: Context,
+    private val client: SupabaseClient? = null,
+) {
 
     private val sharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val zoneId: ZoneId = ZoneId.systemDefault()
 
-    fun loadSnapshot(): HomeSnapshot {
+    suspend fun loadSnapshot(): HomeSnapshot {
         val visuals = parseVisualConfig(readAssetJson(VISUAL_CONFIG_ASSET))
         val content = readAssetJson(CONTENT_CONFIG_ASSET)
 
@@ -121,7 +133,28 @@ class HomeRepository(private val context: Context) {
         )
     }
 
-    fun saveMood(userId: String, mood: MoodOption) {
+    suspend fun saveMood(userId: String, mood: MoodOption) {
+        if (SupabaseConfig.isConfigured && client != null) {
+            val supabaseClient = client
+            runCatching {
+                supabaseClient.from(MOODS_TABLE).delete {
+                    filter {
+                        eq("user_id", userId)
+                    }
+                }
+                supabaseClient.from(MOODS_TABLE).insert(
+                    MoodRow(
+                        userId = userId,
+                        moodLabel = mood.label,
+                        recordedDate = millisToIsoDate(System.currentTimeMillis()),
+                        updatedAt = millisToIsoInstant(System.currentTimeMillis()),
+                    ),
+                )
+            }.onSuccess {
+                return
+            }
+        }
+
         val root = loadJsonObject(sharedPreferences.getString(KEY_MOOD_RECORDS, null))
         val record = JSONObject()
             .put("label", mood.label)
@@ -130,7 +163,24 @@ class HomeRepository(private val context: Context) {
         sharedPreferences.edit().putString(KEY_MOOD_RECORDS, root.toString()).apply()
     }
 
-    fun addQuickNote(note: String) {
+    suspend fun addQuickNote(note: String) {
+        if (SupabaseConfig.isConfigured && client != null) {
+            val supabaseClient = client
+            runCatching {
+                supabaseClient.from(NOTES_TABLE).insert(
+                    QuickNoteRow(
+                        id = "note-${UUID.randomUUID()}",
+                        title = note,
+                        iconSlot = "activityNote",
+                        createdAt = millisToIsoInstant(System.currentTimeMillis()),
+                        clickMessage = "待接入动态详情页",
+                    ),
+                )
+            }.onSuccess {
+                return
+            }
+        }
+
         val root = loadJsonArray(sharedPreferences.getString(KEY_USER_ACTIVITIES, null))
         val activity = JSONObject()
             .put("id", "note-${UUID.randomUUID()}")
@@ -140,6 +190,74 @@ class HomeRepository(private val context: Context) {
             .put("clickMessage", "待接入动态详情页")
         root.put(activity)
         sharedPreferences.edit().putString(KEY_USER_ACTIVITIES, root.toString()).apply()
+    }
+
+    private suspend fun loadPersistedMoods(): Map<String, PersistedMood> {
+        if (SupabaseConfig.isConfigured && client != null) {
+            val supabaseClient = client
+            runCatching {
+                supabaseClient.from(MOODS_TABLE)
+                    .select {
+                        order("updated_at", order = Order.DESCENDING)
+                    }
+                    .decodeList<MoodRow>()
+                    .associate { row ->
+                        row.userId to PersistedMood(
+                            label = row.moodLabel,
+                            date = LocalDate.parse(row.recordedDate),
+                        )
+                    }
+            }.onSuccess { return it }
+        }
+
+        val root = loadJsonObject(sharedPreferences.getString(KEY_MOOD_RECORDS, null))
+        return buildMap {
+            val iterator = root.keys()
+            while (iterator.hasNext()) {
+                val key = iterator.next()
+                val record = root.getJSONObject(key)
+                put(
+                    key,
+                    PersistedMood(
+                        label = record.getString("label"),
+                        date = LocalDate.parse(record.getString("date")),
+                    ),
+                )
+            }
+        }
+    }
+
+    private suspend fun loadUserActivities(): List<ActivityRecord> {
+        if (SupabaseConfig.isConfigured && client != null) {
+            val supabaseClient = client
+            runCatching {
+                supabaseClient.from(NOTES_TABLE)
+                    .select {
+                        order("created_at", order = Order.DESCENDING)
+                    }
+                    .decodeList<QuickNoteRow>()
+                    .map { row ->
+                        ActivityRecord(
+                            id = row.id,
+                            title = row.title,
+                            iconSlot = row.iconSlot,
+                            timestamp = Instant.ofEpochMilli(isoInstantToMillis(row.createdAt)),
+                            clickMessage = row.clickMessage,
+                        )
+                    }
+            }.onSuccess { return it }
+        }
+
+        val root = loadJsonArray(sharedPreferences.getString(KEY_USER_ACTIVITIES, null))
+        return root.mapObjects { json ->
+            ActivityRecord(
+                id = json.getString("id"),
+                title = json.getString("title"),
+                iconSlot = json.getString("iconSlot"),
+                timestamp = Instant.ofEpochMilli(json.getLong("timestamp")),
+                clickMessage = json.getString("clickMessage"),
+            )
+        }
     }
 
     private fun parseVisualConfig(json: JSONObject): HomeVisuals {
@@ -180,37 +298,6 @@ class HomeRepository(private val context: Context) {
         )
     }
 
-    private fun loadPersistedMoods(): Map<String, PersistedMood> {
-        val root = loadJsonObject(sharedPreferences.getString(KEY_MOOD_RECORDS, null))
-        return buildMap {
-            val iterator = root.keys()
-            while (iterator.hasNext()) {
-                val key = iterator.next()
-                val record = root.getJSONObject(key)
-                put(
-                    key,
-                    PersistedMood(
-                        label = record.getString("label"),
-                        date = LocalDate.parse(record.getString("date")),
-                    ),
-                )
-            }
-        }
-    }
-
-    private fun loadUserActivities(): List<ActivityRecord> {
-        val root = loadJsonArray(sharedPreferences.getString(KEY_USER_ACTIVITIES, null))
-        return root.mapObjects { json ->
-            ActivityRecord(
-                id = json.getString("id"),
-                title = json.getString("title"),
-                iconSlot = json.getString("iconSlot"),
-                timestamp = Instant.ofEpochMilli(json.getLong("timestamp")),
-                clickMessage = json.getString("clickMessage"),
-            )
-        }
-    }
-
     private fun readAssetJson(fileName: String): JSONObject =
         JSONObject(
             context.assets.open(fileName).bufferedReader().use { reader ->
@@ -246,11 +333,30 @@ class HomeRepository(private val context: Context) {
         val date: LocalDate,
     )
 
+    @Serializable
+    private data class MoodRow(
+        @SerialName("user_id") val userId: String,
+        @SerialName("mood_label") val moodLabel: String,
+        @SerialName("recorded_date") val recordedDate: String,
+        @SerialName("updated_at") val updatedAt: String,
+    )
+
+    @Serializable
+    private data class QuickNoteRow(
+        val id: String,
+        val title: String,
+        @SerialName("icon_slot") val iconSlot: String,
+        @SerialName("created_at") val createdAt: String,
+        @SerialName("click_message") val clickMessage: String,
+    )
+
     companion object {
         private const val PREFS_NAME = "secret_base_home_state"
         private const val KEY_MOOD_RECORDS = "mood_records"
         private const val KEY_USER_ACTIVITIES = "user_activities"
         private const val VISUAL_CONFIG_ASSET = "homepage_visual_config.json"
         private const val CONTENT_CONFIG_ASSET = "homepage_content.json"
+        private const val MOODS_TABLE = "user_moods"
+        private const val NOTES_TABLE = "home_quick_notes"
     }
 }

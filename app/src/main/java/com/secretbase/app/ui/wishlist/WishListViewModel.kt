@@ -228,14 +228,12 @@ class WishListViewModel(
 
     private fun loadVisuals() {
         viewModelScope.launch {
-            runCatching { homeRepository.loadSnapshot().visuals }
-                .onSuccess {
-                    visuals = it
-                    updateUi()
-                }
-                .onFailure {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "加载愿望清单失败") }
-                }
+            try {
+                visuals = homeRepository.loadSnapshot().visuals
+                updateUi()
+            } catch (_: Throwable) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "加载愿望清单失败") }
+            }
         }
     }
 

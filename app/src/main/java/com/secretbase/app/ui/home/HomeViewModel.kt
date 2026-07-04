@@ -113,19 +113,17 @@ class HomeViewModel(
                 }
             }
 
-            runCatching { homeRepository.loadSnapshot() }
-                .onSuccess { snapshot ->
-                    latestBaseSnapshot = snapshot
-                    renderUi()
+            try {
+                latestBaseSnapshot = homeRepository.loadSnapshot()
+                renderUi()
+            } catch (_: Throwable) {
+                _uiState.update { state ->
+                    state.copy(
+                        isLoading = false,
+                        errorMessage = "加载失败，点击重试",
+                    )
                 }
-                .onFailure {
-                    _uiState.update { state ->
-                        state.copy(
-                            isLoading = false,
-                            errorMessage = "加载失败，点击重试",
-                        )
-                    }
-                }
+            }
         }
     }
 

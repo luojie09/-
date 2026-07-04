@@ -104,11 +104,11 @@ class AnniversaryViewModel(
         val title = state.title.trim()
         val date = state.date
         if (title.isBlank()) {
-            emitMessage("纪念日名称不能为空")
+            emitMessage("绾康鏃ュ悕绉颁笉鑳戒负绌�")
             return
         }
         if (date == null) {
-            emitMessage("请选择日期")
+            emitMessage("璇烽€夋嫨鏃ユ湡")
             return
         }
         val item = Anniversary(
@@ -127,10 +127,10 @@ class AnniversaryViewModel(
                 anniversaryRepository.updateAnniversary(item)
             }
             result.onSuccess {
-                emitMessage(if (state.editingId == null) "纪念日已添加" else "纪念日已更新")
+                emitMessage(if (state.editingId == null) "绾康鏃ュ凡娣诲姞" else "绾康鏃ュ凡鏇存柊")
                 dismissEditor()
             }.onFailure { error ->
-                emitMessage(error.message ?: "保存失败")
+                emitMessage(error.message ?: "淇濆瓨澶辫触")
             }
             _uiState.update { it.copy(isSaving = false) }
         }
@@ -139,22 +139,21 @@ class AnniversaryViewModel(
     fun deleteItem(id: String) {
         viewModelScope.launch {
             anniversaryRepository.deleteAnniversary(id)
-                .onSuccess { emitMessage("纪念日已删除") }
-                .onFailure { error -> emitMessage(error.message ?: "删除失败") }
+                .onSuccess { emitMessage("绾康鏃ュ凡鍒犻櫎") }
+                .onFailure { error -> emitMessage(error.message ?: "鍒犻櫎澶辫触") }
         }
     }
 
     private fun loadSnapshot() {
         viewModelScope.launch {
-            runCatching { homeRepository.loadSnapshot() }
-                .onSuccess { snapshot ->
-                    relationshipStart = snapshot.couple.relationshipStartDate
-                    visuals = snapshot.visuals
-                    updateUi()
-                }
-                .onFailure {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "加载纪念日失败") }
-                }
+            try {
+                val snapshot = homeRepository.loadSnapshot()
+                relationshipStart = snapshot.couple.relationshipStartDate
+                visuals = snapshot.visuals
+                updateUi()
+            } catch (_: Throwable) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "鍔犺浇绾康鏃ュけ璐�") }
+            }
         }
     }
 
@@ -218,10 +217,10 @@ private fun Anniversary.toUiModel(today: LocalDate): AnniversaryUiModel {
     }
     val days = ChronoUnit.DAYS.between(today, effectiveDate).toInt()
     val (statusText, tone) = when {
-        days == 0 -> "就是今天" to AnniversaryStatusTone.TODAY
-        days > 0 -> "还有 $days 天" to AnniversaryStatusTone.UPCOMING
-        repeatYearly -> "已经过去 ${kotlin.math.abs(days)} 天" to AnniversaryStatusTone.PASSED
-        else -> "已过期（不重复）" to AnniversaryStatusTone.EXPIRED
+        days == 0 -> "灏辨槸浠婂ぉ" to AnniversaryStatusTone.TODAY
+        days > 0 -> "杩樻湁 $days 澶�" to AnniversaryStatusTone.UPCOMING
+        repeatYearly -> "宸茬粡杩囧幓 ${kotlin.math.abs(days)} 澶�" to AnniversaryStatusTone.PASSED
+        else -> "宸茶繃鏈燂紙涓嶉噸澶嶏級" to AnniversaryStatusTone.EXPIRED
     }
     return AnniversaryUiModel(
         id = id,
@@ -229,7 +228,7 @@ private fun Anniversary.toUiModel(today: LocalDate): AnniversaryUiModel {
         dateText = eventDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
         statusText = statusText,
         statusTone = tone,
-        repeatLabel = if (repeatYearly) "每年重复" else "不重复",
+        repeatLabel = if (repeatYearly) "姣忓勾閲嶅" else "涓嶉噸澶�",
         reminderType = reminderType,
     )
 }

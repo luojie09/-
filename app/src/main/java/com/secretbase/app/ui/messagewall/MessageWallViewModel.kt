@@ -226,20 +226,18 @@ class MessageWallViewModel(
 
     private fun loadVisuals() {
         viewModelScope.launch {
-            runCatching { homeRepository.loadSnapshot().visuals }
-                .onSuccess {
-                    visuals = it
-                    updateUi()
+            try {
+                visuals = homeRepository.loadSnapshot().visuals
+                updateUi()
+            } catch (_: Throwable) {
+                _uiState.update { state ->
+                    state.copy(
+                        isLoading = false,
+                        visuals = HomeVisuals.EMPTY,
+                        errorMessage = "加载留言墙失败",
+                    )
                 }
-                .onFailure {
-                    _uiState.update { state ->
-                        state.copy(
-                            isLoading = false,
-                            visuals = HomeVisuals.EMPTY,
-                            errorMessage = "加载留言墙失败",
-                        )
-                    }
-                }
+            }
         }
     }
 
