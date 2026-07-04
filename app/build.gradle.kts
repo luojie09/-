@@ -17,6 +17,12 @@ val localProperties = Properties().apply {
 
 fun localProperty(name: String): String = localProperties.getProperty(name)?.trim().orEmpty()
 
+fun appConfig(name: String): String =
+    providers.gradleProperty(name).orNull?.trim()
+        ?.takeIf { it.isNotBlank() }
+        ?: System.getenv(name)?.trim()?.takeIf { it.isNotBlank() }
+        ?: localProperty(name)
+
 fun String.toBuildConfigString(): String =
     "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
@@ -32,11 +38,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "SUPABASE_URL", localProperty("SUPABASE_URL").toBuildConfigString())
+        buildConfigField("String", "SUPABASE_URL", appConfig("SUPABASE_URL").toBuildConfigString())
         buildConfigField(
             "String",
             "SUPABASE_PUBLISHABLE_KEY",
-            localProperty("SUPABASE_PUBLISHABLE_KEY").toBuildConfigString(),
+            appConfig("SUPABASE_PUBLISHABLE_KEY").toBuildConfigString(),
         )
 
         vectorDrawables {

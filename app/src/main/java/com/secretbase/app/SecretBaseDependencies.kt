@@ -15,7 +15,12 @@ import com.secretbase.app.data.wish.SupabaseWishRepository
 import com.secretbase.app.data.wish.WishRepository
 
 class SecretBaseDependencies(context: Context) {
-    private val supabaseClient = SupabaseClientProvider.client.takeIf { SupabaseConfig.isConfigured }
+    private val supabaseClient =
+        if (SupabaseConfig.isConfigured) {
+            SupabaseClientProvider.client
+        } else {
+            null
+        }
 
     val homeRepository = HomeRepository(context, supabaseClient)
     val messageRepository: MessageRepository =
