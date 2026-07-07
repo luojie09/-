@@ -18,12 +18,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -41,15 +39,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.secretbase.app.ui.common.SecretBasePageBackground
+import com.secretbase.app.ui.common.SecretBasePageTopBar
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
-import com.secretbase.app.ui.theme.ShadowPink
 import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SurfaceWhite
-import com.secretbase.app.ui.theme.WarmBackground
-import com.secretbase.app.ui.theme.WarmBackgroundTop
 import com.secretbase.app.ui.theme.WarmGray
 import kotlinx.coroutines.launch
 
@@ -85,35 +81,23 @@ fun MessageWallScreen(
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = WarmBackground,
-    ) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            topBar = {
-                MessageWallTopBar(
-                    onBack = onBack,
-                    onComposeClick = {
-                        scope.launch { listState.animateScrollToItem(COMPOSER_INDEX) }
-                    },
-                )
-            },
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                WarmBackgroundTop,
-                                WarmBackground,
-                            ),
-                        ),
-                    ),
-            ) {
+    Scaffold(
+        containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            SecretBasePageTopBar(
+                title = "留言墙",
+                onBack = onBack,
+                actionIcon = Icons.Outlined.Edit,
+                actionDescription = "写留言",
+                onActionClick = {
+                    scope.launch { listState.animateScrollToItem(COMPOSER_INDEX) }
+                },
+            )
+        },
+    ) { innerPadding ->
+        SecretBasePageBackground {
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
@@ -121,7 +105,7 @@ fun MessageWallScreen(
                         start = 16.dp,
                         end = 16.dp,
                         top = innerPadding.calculateTopPadding() + 10.dp,
-                        bottom = innerPadding.calculateBottomPadding() + 28.dp,
+                        bottom = innerPadding.calculateBottomPadding() + 32.dp,
                     ),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
@@ -207,7 +191,6 @@ fun MessageWallScreen(
                         }
                     }
                 }
-            }
         }
     }
 
@@ -217,43 +200,6 @@ fun MessageWallScreen(
             onValueChange = onUpdateEditingText,
             onDismiss = onCancelEditing,
             onConfirm = onSaveEditing,
-        )
-    }
-}
-
-@Composable
-private fun MessageWallTopBar(
-    onBack: () -> Unit,
-    onComposeClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(start = 8.dp, end = 10.dp, top = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        WallCircleButton(
-            icon = Icons.AutoMirrored.Outlined.ArrowBack,
-            contentDescription = "返回",
-            onClick = onBack,
-            tint = InkBlack,
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = "留言墙",
-            style = androidx.compose.material3.MaterialTheme.typography.titleLarge.copy(
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-            ),
-            color = InkBlack,
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        WallCircleButton(
-            icon = Icons.Outlined.Edit,
-            contentDescription = "写留言",
-            onClick = onComposeClick,
-            tint = CherryPink,
         )
     }
 }
@@ -274,13 +220,26 @@ private fun UnreadMessageBanner(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 18.dp, top = 14.dp, end = 8.dp, bottom = 14.dp),
+                .padding(start = 18.dp, top = 16.dp, end = 10.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(999.dp),
+                    color = SoftPink.copy(alpha = 0.56f),
+                ) {
+                    Text(
+                        text = if (unreadCount > 0) "有新的想念" else "今天也很安静",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
+                        ),
+                        color = CherryPink,
+                    )
+                }
                 Text(
                     text = buildAnnotatedString {
                         append("你有 ")
@@ -337,9 +296,23 @@ private fun QuickMessageComposer(
         border = androidx.compose.foundation.BorderStroke(1.dp, SoftPink.copy(alpha = 0.8f)),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "今天想留下点什么？",
+                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                    ),
+                    color = InkBlack,
+                )
+                Text(
+                    text = "一句想念、一张照片，都会变成以后再翻看也会心软的小瞬间。",
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    color = WarmGray,
+                )
+            }
             DraftInputCard(
                 value = draftText,
                 onValueChange = onDraftTextChange,

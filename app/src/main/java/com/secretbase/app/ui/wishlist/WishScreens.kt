@@ -62,6 +62,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.secretbase.app.ui.common.SecretBasePageBackground
+import com.secretbase.app.ui.common.SecretBasePageTopBar
+import com.secretbase.app.ui.common.SecretBaseSectionIntro
 import com.secretbase.app.ui.messagewall.ComposerImageAction
 import com.secretbase.app.ui.messagewall.DraftInputCard
 import com.secretbase.app.ui.messagewall.MessageMedia
@@ -74,8 +77,6 @@ import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
 import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SurfaceWhite
-import com.secretbase.app.ui.theme.WarmBackground
-import com.secretbase.app.ui.theme.WarmBackgroundTop
 import com.secretbase.app.ui.theme.WarmGray
 import java.time.Instant
 import java.time.ZoneId
@@ -138,18 +139,14 @@ fun WishListScreen(
             )
         },
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(WarmBackgroundTop, WarmBackground))),
-        ) {
+        SecretBasePageBackground {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
                     top = innerPadding.calculateTopPadding() + 10.dp,
-                    bottom = innerPadding.calculateBottomPadding() + 26.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 32.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
@@ -164,6 +161,33 @@ fun WishListScreen(
                     WishStatusTabs(
                         selectedStatus = uiState.selectedStatus,
                         onSelectStatus = onSelectStatus,
+                    )
+                }
+                item {
+                    SecretBaseSectionIntro(
+                        eyebrow = if (uiState.selectedStatus == com.secretbase.app.data.wish.WishStatus.UNREALIZED) {
+                            "正在发芽"
+                        } else {
+                            "已经收藏"
+                        },
+                        title = if (visibleWishes.isEmpty()) {
+                            if (uiState.selectedStatus == com.secretbase.app.data.wish.WishStatus.UNREALIZED) {
+                                "先写下第一个想一起完成的愿望"
+                            } else {
+                                "等愿望一点点实现，再回来收藏它们"
+                            }
+                        } else {
+                            if (uiState.selectedStatus == com.secretbase.app.data.wish.WishStatus.UNREALIZED) {
+                                "还有 ${visibleWishes.size} 个愿望在等你们慢慢实现"
+                            } else {
+                                "已经把 ${visibleWishes.size} 个完成瞬间收好了"
+                            }
+                        },
+                        subtitle = if (uiState.selectedStatus == com.secretbase.app.data.wish.WishStatus.UNREALIZED) {
+                            "把想去做、想去看、想一起完成的小事都放进这里，生活会一点点变得更有期待。"
+                        } else {
+                            "愿望实现之后，连同照片和心情一起留下来，以后回看也会有光。"
+                        },
                     )
                 }
                 if (visibleWishes.isEmpty()) {
@@ -279,76 +303,77 @@ fun WishDetailScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(WarmBackgroundTop, WarmBackground)))
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = innerPadding.calculateTopPadding() + 12.dp,
-                    bottom = 24.dp,
-                ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Surface(
-                color = SurfaceWhite.copy(alpha = 0.98f),
-                shadowElevation = 16.dp,
-                tonalElevation = 0.dp,
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
+        SecretBasePageBackground {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = innerPadding.calculateTopPadding() + 12.dp,
+                        bottom = 28.dp,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                Surface(
+                    color = SurfaceWhite.copy(alpha = 0.98f),
+                    shadowElevation = 16.dp,
+                    tonalElevation = 0.dp,
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
                 ) {
-                    if (wish.coverImagePath != null) {
-                        MessageMedia(
-                            imagePath = wish.coverImagePath,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(198.dp)
-                                .background(Color(0xFFFFF7FA), RoundedCornerShape(24.dp)),
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        if (wish.coverImagePath != null) {
+                            MessageMedia(
+                                imagePath = wish.coverImagePath,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(198.dp)
+                                    .background(Color(0xFFFFF7FA), RoundedCornerShape(24.dp)),
+                            )
+                        } else {
+                            WallIllustration(
+                                illustrationRes = illustrationRes,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(198.dp),
+                            )
+                        }
+                        Text(
+                            text = wish.title,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                            color = InkBlack,
                         )
-                    } else {
-                        WallIllustration(
-                            illustrationRes = illustrationRes,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(198.dp),
+                        Text(
+                            text = wish.description.ifBlank { "这一条愿望还没写下更多说明，但已经足够让人期待。" },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = InkBlack,
                         )
+                        WishMetaLine("计划日期", wish.plannedDateText ?: "尚未设定")
+                        WishMetaLine("创建时间", wish.createdAtText)
                     }
-                    Text(
-                        text = wish.title,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                        color = InkBlack,
-                    )
-                    Text(
-                        text = wish.description.ifBlank { "这一条愿望还没写下更多说明，但已经足够让人期待。" },
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = InkBlack,
-                    )
-                    WishMetaLine("计划日期", wish.plannedDateText ?: "尚未设定")
-                    WishMetaLine("创建时间", wish.createdAtText)
                 }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                SecondaryActionButton(
-                    text = "编辑",
-                    modifier = Modifier.weight(1f),
-                    onClick = onEdit,
-                )
-                PublishPillButton(
-                    text = "完成愿望",
-                    enabled = true,
-                    onClick = onComplete,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    SecondaryActionButton(
+                        text = "编辑",
+                        modifier = Modifier.weight(1f),
+                        onClick = onEdit,
+                    )
+                    PublishPillButton(
+                        text = "完成愿望",
+                        enabled = true,
+                        onClick = onComplete,
+                    )
+                }
             }
         }
     }
@@ -404,83 +429,84 @@ fun WishCompletionScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(WarmBackgroundTop, WarmBackground)))
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = innerPadding.calculateTopPadding() + 10.dp,
-                    bottom = 24.dp,
-                ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Surface(
-                color = SurfaceWhite.copy(alpha = 0.98f),
-                shadowElevation = 16.dp,
-                tonalElevation = 0.dp,
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
+        SecretBasePageBackground {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = innerPadding.calculateTopPadding() + 10.dp,
+                        bottom = 28.dp,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                Surface(
+                    color = SurfaceWhite.copy(alpha = 0.98f),
+                    shadowElevation = 16.dp,
+                    tonalElevation = 0.dp,
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
                 ) {
-                    WallIllustration(
-                        illustrationRes = illustrationRes,
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(150.dp),
-                    )
-                    Text(
-                        text = "太棒了！",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                        color = InkBlack,
-                    )
-                    Text(
-                        text = "记录下这份美好的时刻吧",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = WarmGray,
-                    )
-                    Text(
-                        text = wish.title,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = CherryPink,
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        WallIllustration(
+                            illustrationRes = illustrationRes,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp),
+                        )
+                        Text(
+                            text = "太棒了！",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                            color = InkBlack,
+                        )
+                        Text(
+                            text = "记录下这份美好的时刻吧",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = WarmGray,
+                        )
+                        Text(
+                            text = wish.title,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = CherryPink,
+                        )
+                    }
+                }
+                FieldLabel("完成感想")
+                DraftInputCard(
+                    value = completionText,
+                    onValueChange = onCompletionTextChange,
+                    placeholder = "写下完成这个愿望的感受吧…",
+                    minHeight = 140.dp,
+                )
+                CounterText(completionText.length, 500)
+                FieldLabel("完成照片（最多9张）")
+                if (completionImages.isNotEmpty()) {
+                    SelectedImageStrip(
+                        images = completionImages,
+                        onRemove = onRemoveImage,
                     )
                 }
-            }
-            FieldLabel("完成感想")
-            DraftInputCard(
-                value = completionText,
-                onValueChange = onCompletionTextChange,
-                placeholder = "写下完成这个愿望的感受吧…",
-                minHeight = 140.dp,
-            )
-            CounterText(completionText.length, 500)
-            FieldLabel("完成照片（最多9张）")
-            if (completionImages.isNotEmpty()) {
-                SelectedImageStrip(
-                    images = completionImages,
-                    onRemove = onRemoveImage,
+                ComposerImageAction(onClick = { picker.launch("image/*") })
+                FieldLabel("完成日期")
+                DateField(
+                    value = completionDate.toDateText(),
+                    placeholder = "选择完成日期",
+                    onClick = { datePicker(completionDate) },
+                )
+                PublishPillButton(
+                    text = if (isSaving) "保存中…" else "保存完成记录",
+                    enabled = !isSaving,
+                    onClick = onSave,
                 )
             }
-            ComposerImageAction(onClick = { picker.launch("image/*") })
-            FieldLabel("完成日期")
-            DateField(
-                value = completionDate.toDateText(),
-                placeholder = "选择完成日期",
-                onClick = { datePicker(completionDate) },
-            )
-            PublishPillButton(
-                text = if (isSaving) "保存中…" else "保存完成记录",
-                enabled = !isSaving,
-                onClick = onSave,
-            )
         }
     }
 }
@@ -503,54 +529,55 @@ fun WishCompletionDetailScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(WarmBackgroundTop, WarmBackground)))
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = innerPadding.calculateTopPadding() + 10.dp,
-                    bottom = 24.dp,
-                ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Surface(
-                color = SurfaceWhite.copy(alpha = 0.98f),
-                shadowElevation = 16.dp,
-                tonalElevation = 0.dp,
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
+        SecretBasePageBackground {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = innerPadding.calculateTopPadding() + 10.dp,
+                        bottom = 28.dp,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                Surface(
+                    color = SurfaceWhite.copy(alpha = 0.98f),
+                    shadowElevation = 16.dp,
+                    tonalElevation = 0.dp,
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
                 ) {
-                    WallIllustration(
-                        illustrationRes = illustrationRes,
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(158.dp),
-                    )
-                    Text(
-                        text = wish.title,
-                        modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                        color = InkBlack,
-                    )
-                    InfoBlock("原始愿望", wish.description.ifBlank { "没有额外说明" })
-                    WishMetaLine("创建时间", wish.createdAtText)
-                    WishMetaLine("计划日期", wish.plannedDateText ?: "尚未设定")
-                    WishMetaLine("完成日期", wish.completionDateText ?: "刚刚实现")
-                    InfoBlock(
-                        "完成记录",
-                        wish.completionSummary ?: "这次实现得太开心了，所以把心情都留在照片里啦。",
-                    )
-                    if (wish.completionImagePaths.isNotEmpty()) {
-                        WishPhotoGrid(imagePaths = wish.completionImagePaths)
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        WallIllustration(
+                            illustrationRes = illustrationRes,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(158.dp),
+                        )
+                        Text(
+                            text = wish.title,
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                            color = InkBlack,
+                        )
+                        InfoBlock("原始愿望", wish.description.ifBlank { "没有额外说明" })
+                        WishMetaLine("创建时间", wish.createdAtText)
+                        WishMetaLine("计划日期", wish.plannedDateText ?: "尚未设定")
+                        WishMetaLine("完成日期", wish.completionDateText ?: "刚刚实现")
+                        InfoBlock(
+                            "完成记录",
+                            wish.completionSummary ?: "这次实现得太开心了，所以把心情都留在照片里啦。",
+                        )
+                        if (wish.completionImagePaths.isNotEmpty()) {
+                            WishPhotoGrid(imagePaths = wish.completionImagePaths)
+                        }
                     }
                 }
             }
@@ -565,36 +592,13 @@ private fun WishTopBar(
     onAdd: () -> Unit,
     onMore: Boolean = true,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 10.dp, end = 10.dp, top = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        WallCircleButton(
-            icon = Icons.Outlined.ArrowBack,
-            contentDescription = "返回",
-            tint = InkBlack,
-            onClick = onBack,
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-            color = InkBlack,
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        if (onMore) {
-            WallCircleButton(
-                icon = Icons.Outlined.Add,
-                contentDescription = "新增",
-                tint = InkBlack,
-                onClick = onAdd,
-            )
-        } else {
-            Spacer(modifier = Modifier.size(46.dp))
-        }
-    }
+    SecretBasePageTopBar(
+        title = title,
+        onBack = onBack,
+        actionIcon = if (onMore) Icons.Outlined.Add else null,
+        actionDescription = if (onMore) "新增" else null,
+        onActionClick = if (onMore) onAdd else null,
+    )
 }
 
 @Composable
@@ -618,6 +622,17 @@ private fun WishHeroCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = Color(0xFFFFF1F5),
+            ) {
+                Text(
+                    text = "一起慢慢实现",
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                    color = CherryPink,
+                )
+            }
             Text(
                 text = "有你在身边",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
@@ -636,10 +651,10 @@ private fun WishHeroCard(
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                StatCard("未实现", unrealizedCount, Modifier.weight(1f))
-                StatCard("已实现", realizedCount, Modifier.weight(1f))
+                StatCard("未实现", unrealizedCount, Modifier.weight(1f), Color(0xFFFFF4F8))
+                StatCard("已实现", realizedCount, Modifier.weight(1f), Color(0xFFF5FBF7))
             }
         }
     }
@@ -650,10 +665,11 @@ private fun StatCard(
     label: String,
     count: Int,
     modifier: Modifier = Modifier,
+    cardColor: Color = Color(0xFFFFFBFD),
 ) {
     Surface(
-        modifier = modifier.padding(horizontal = 2.dp),
-        color = Color(0xFFFFFBFD),
+        modifier = modifier,
+        color = cardColor,
         shape = RoundedCornerShape(18.dp),
         border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.7f)),
     ) {
@@ -663,7 +679,7 @@ private fun StatCard(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = WarmGray)
-            Text("$count", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold), color = InkBlack)
+            Text("$count", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold), color = CherryPink)
         }
     }
 }
@@ -757,11 +773,34 @@ private fun WishCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text(
-                    text = wish.title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = InkBlack,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = wish.title,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                        color = InkBlack,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = if (wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED) {
+                            Color(0xFFFFF2F6)
+                        } else {
+                            Color(0xFFF1FAF4)
+                        },
+                    ) {
+                        Text(
+                            text = if (wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED) "待实现" else "已实现",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = if (wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED) CherryPink else Color(0xFF4DAA74),
+                        )
+                    }
+                }
                 Text(
                     text = when (wish.status) {
                         com.secretbase.app.data.wish.WishStatus.UNREALIZED -> wish.description.ifBlank { "把这个愿望轻轻放在未来吧" }
@@ -951,15 +990,16 @@ private fun SecondaryActionButton(
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier,
+        onClick = onClick,
         color = SurfaceWhite,
         shape = RoundedCornerShape(999.dp),
         border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.85f)),
-        shadowElevation = 4.dp,
+        shadowElevation = 6.dp,
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 13.dp),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             color = InkBlack,
         )

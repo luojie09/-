@@ -808,15 +808,19 @@ private fun SectionTitle(
             color = InkBlack,
         )
         if (trailing != null && onTrailingClick != null) {
-            Text(
-                text = trailing,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = WarmGray,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .clickable(onClick = onTrailingClick)
-                    .padding(horizontal = 2.dp, vertical = 4.dp),
-            )
+            Surface(
+                onClick = onTrailingClick,
+                shape = RoundedCornerShape(999.dp),
+                color = SurfaceWhite.copy(alpha = 0.82f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.76f)),
+            ) {
+                Text(
+                    text = trailing,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = WarmGray,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                )
+            }
         }
     }
 }
@@ -1109,6 +1113,7 @@ private fun HomeBottomBar(
         color = SurfaceWhite.copy(alpha = 0.96f),
         shadowElevation = 18.dp,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.52f)),
     ) {
         Row(
             modifier = Modifier
@@ -1151,25 +1156,28 @@ private fun BottomNavItem(
     active: Boolean,
     onClick: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+    Surface(
+        onClick = onClick,
+        color = if (active) Color(0xFFFFF2F6) else Color.Transparent,
+        shape = RoundedCornerShape(18.dp),
     ) {
-        DrawableOrFallback(
-            resId = iconRes,
-            modifier = Modifier.size(28.dp),
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-            ),
-            color = if (active) CherryPink else WarmGray,
-        )
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            DrawableOrFallback(
+                resId = iconRes,
+                modifier = Modifier.size(28.dp),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                ),
+                color = if (active) CherryPink else WarmGray,
+            )
+        }
     }
 }
 

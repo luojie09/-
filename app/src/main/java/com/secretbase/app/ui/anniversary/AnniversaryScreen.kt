@@ -2,7 +2,6 @@ package com.secretbase.app.ui.anniversary
 
 import android.app.DatePickerDialog
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,6 +56,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.secretbase.app.data.anniversary.AnniversaryReminder
+import com.secretbase.app.ui.common.SecretBasePageBackground
+import com.secretbase.app.ui.common.SecretBasePageTopBar
+import com.secretbase.app.ui.common.SecretBaseSectionIntro
 import com.secretbase.app.ui.messagewall.PublishPillButton
 import com.secretbase.app.ui.messagewall.WallCircleButton
 import com.secretbase.app.ui.messagewall.WallIllustration
@@ -64,8 +66,6 @@ import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
 import com.secretbase.app.ui.theme.SurfaceWhite
-import com.secretbase.app.ui.theme.WarmBackground
-import com.secretbase.app.ui.theme.WarmBackgroundTop
 import com.secretbase.app.ui.theme.WarmGray
 import java.time.Instant
 import java.time.ZoneId
@@ -112,67 +112,59 @@ fun AnniversaryScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 10.dp, end = 10.dp, top = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                WallCircleButton(
-                    icon = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = "返回",
-                    tint = InkBlack,
-                    onClick = onBack,
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "纪念日",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                    color = InkBlack,
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                WallCircleButton(
-                    icon = Icons.Outlined.Add,
-                    contentDescription = "新增纪念日",
-                    tint = InkBlack,
-                    onClick = onAdd,
-                )
-            }
+            SecretBasePageTopBar(
+                title = "纪念日",
+                onBack = onBack,
+                actionIcon = Icons.Outlined.Add,
+                actionDescription = "新增纪念日",
+                onActionClick = onAdd,
+            )
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(WarmBackgroundTop, WarmBackground))),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = innerPadding.calculateTopPadding() + 10.dp,
-                bottom = 24.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            item {
-                AnniversaryHero(
-                    illustrationRes = uiState.visuals.hero.imageRes,
-                    relationshipDays = uiState.relationshipDays,
-                    relationshipStartText = uiState.relationshipStartText,
-                )
-            }
-            if (uiState.items.isEmpty()) {
+        SecretBasePageBackground {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = innerPadding.calculateTopPadding() + 10.dp,
+                    bottom = 32.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
                 item {
-                    AnniversaryEmptyState(
+                    AnniversaryHero(
                         illustrationRes = uiState.visuals.hero.imageRes,
-                        onAdd = onAdd,
+                        relationshipDays = uiState.relationshipDays,
+                        relationshipStartText = uiState.relationshipStartText,
                     )
                 }
-            } else {
-                items(uiState.items, key = AnniversaryUiModel::id) { item ->
-                    AnniversaryCard(
-                        item = item,
-                        onEdit = { onEdit(item.id) },
-                        onDelete = { pendingDeleteId = item.id },
+                item {
+                    SecretBaseSectionIntro(
+                        eyebrow = "重要日子",
+                        title = if (uiState.items.isEmpty()) "先把重要的日子收进来" else "已经珍藏 ${uiState.items.size} 个纪念日",
+                        subtitle = if (uiState.items.isEmpty()) {
+                            "生日、第一次见面、第一次旅行，都值得被温柔记住。"
+                        } else {
+                            "把会发光的回忆放进同一条时间线里，往后翻也会很有仪式感。"
+                        },
                     )
+                }
+                if (uiState.items.isEmpty()) {
+                    item {
+                        AnniversaryEmptyState(
+                            illustrationRes = uiState.visuals.hero.imageRes,
+                            onAdd = onAdd,
+                        )
+                    }
+                } else {
+                    items(uiState.items, key = AnniversaryUiModel::id) { item ->
+                        AnniversaryCard(
+                            item = item,
+                            onEdit = { onEdit(item.id) },
+                            onDelete = { pendingDeleteId = item.id },
+                        )
+                    }
                 }
             }
         }
@@ -267,6 +259,17 @@ private fun AnniversaryHero(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = Color(0xFFFFF1F5),
+            ) {
+                Text(
+                    text = "恋爱时间线",
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                    color = CherryPink,
+                )
+            }
             WallIllustration(
                 illustrationRes = illustrationRes,
                 modifier = Modifier
@@ -309,7 +312,17 @@ private fun AnniversaryCard(
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(item.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold), color = InkBlack)
                 Text(item.dateText, style = MaterialTheme.typography.bodySmall, color = WarmGray)
-                Text(item.repeatLabel, style = MaterialTheme.typography.bodySmall, color = WarmGray)
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color(0xFFFFF4F8),
+                ) {
+                    Text(
+                        text = item.repeatLabel,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                        color = CherryPink,
+                    )
+                }
             }
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 AnniversaryStatusPill(item)
@@ -369,13 +382,14 @@ private fun MiniAction(
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.clickable(onClick = onClick),
+        onClick = onClick,
         color = Color(0xFFFFFBFD),
         shape = RoundedCornerShape(999.dp),
         border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.72f)),
+        shadowElevation = 4.dp,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {

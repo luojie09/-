@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -73,12 +74,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
 import com.secretbase.app.ui.theme.ShadowPink
 import com.secretbase.app.ui.theme.SoftPink
+import com.secretbase.app.ui.theme.SoftPinkStrong
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
 
@@ -489,11 +492,12 @@ fun DraftInputCard(
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(minHeight)
+                .heightIn(min = minHeight)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             textStyle = MaterialTheme.typography.titleMedium.copy(
                 color = InkBlack,
                 fontWeight = FontWeight.SemiBold,
+                lineHeight = 28.sp,
             ),
             decorationBox = { innerTextField ->
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -551,23 +555,37 @@ fun SelectedImageStrip(
 
 @Composable
 fun ComposerImageAction(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(999.dp),
+        color = SurfaceWhite.copy(alpha = 0.94f),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.76f)),
+        shadowElevation = 6.dp,
     ) {
-        Icon(
-            imageVector = Icons.Outlined.AddPhotoAlternate,
-            contentDescription = "添加图片",
-            tint = CherryPink,
-        )
-        Text(
-            text = "添加照片",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = CherryPink,
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .background(SoftPink.copy(alpha = 0.68f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.AddPhotoAlternate,
+                    contentDescription = "添加图片",
+                    tint = CherryPink,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Text(
+                text = "添加照片",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = InkBlack,
+            )
+        }
     }
 }
 
@@ -578,14 +596,19 @@ fun PublishPillButton(
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
-        color = if (enabled) CherryPink else SoftPink,
-        shadowElevation = if (enabled) 8.dp else 0.dp,
+        onClick = onClick,
+        enabled = enabled,
+        color = if (enabled) CherryPink else SoftPinkStrong,
+        shadowElevation = if (enabled) 10.dp else 0.dp,
         shape = RoundedCornerShape(999.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (enabled) CherryPink.copy(alpha = 0.22f) else OutlinePink.copy(alpha = 0.72f),
+        ),
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 13.dp),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
             color = SurfaceWhite,
         )
@@ -618,11 +641,11 @@ fun WallCircleButton(
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.size(46.dp),
+        modifier = Modifier.size(48.dp),
         color = SurfaceWhite.copy(alpha = 0.96f),
         shape = CircleShape,
-        shadowElevation = 8.dp,
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.65f)),
+        shadowElevation = 10.dp,
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.72f)),
         onClick = onClick,
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -630,6 +653,7 @@ fun WallCircleButton(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 tint = tint,
+                modifier = Modifier.size(22.dp),
             )
         }
     }
@@ -642,7 +666,8 @@ fun WallIllustration(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(24.dp))
+            .border(1.dp, OutlinePink.copy(alpha = 0.45f), RoundedCornerShape(24.dp))
             .background(
                 Brush.linearGradient(
                     listOf(
