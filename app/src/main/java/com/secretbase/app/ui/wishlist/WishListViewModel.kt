@@ -1,5 +1,6 @@
 package com.secretbase.app.ui.wishlist
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -220,8 +221,13 @@ class WishListViewModel(
     private fun observeWishes() {
         viewModelScope.launch {
             wishRepository.observeWishes().collectLatest { wishes ->
-                latestWishes = wishes
-                updateUi()
+                runCatching {
+                    latestWishes = wishes
+                    updateUi()
+                }.onFailure { error ->
+                    Log.e(TAG, "Failed to render wish list state", error)
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "加载愿望清单失败，请稍后重试") }
+                }
             }
         }
     }
@@ -261,6 +267,7 @@ class WishListViewModel(
         private const val TITLE_LIMIT = 50
         private const val DESCRIPTION_LIMIT = 500
         private const val MAX_IMAGES = 9
+        private const val TAG = "WishListViewModel"
 
         fun factory(
             homeRepository: HomeRepository,

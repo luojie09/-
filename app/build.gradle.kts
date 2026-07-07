@@ -83,6 +83,9 @@ android {
     experimentalProperties["android.experimental.enableScreenshotTest"] = true
 
     testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
         screenshotTests {
             imageDifferenceThreshold = 0.001f
         }
@@ -109,6 +112,11 @@ dependencies {
         exclude(group = "io.github.jan-tennert.supabase", module = "auth-kt-android")
     }
     implementation("io.ktor:ktor-client-android:3.1.2")
+
+    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("androidx.test.ext:junit:1.2.1")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.13")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

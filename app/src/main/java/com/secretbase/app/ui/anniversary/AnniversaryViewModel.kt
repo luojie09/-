@@ -1,5 +1,6 @@
 package com.secretbase.app.ui.anniversary
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -160,8 +161,13 @@ class AnniversaryViewModel(
     private fun observeAnniversaries() {
         viewModelScope.launch {
             anniversaryRepository.observeAnniversaries().collectLatest { items ->
-                latestItems = items
-                updateUi()
+                runCatching {
+                    latestItems = items
+                    updateUi()
+                }.onFailure { error ->
+                    Log.e(TAG, "Failed to render anniversary state", error)
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "加载纪念日失败，请稍后重试") }
+                }
             }
         }
     }
@@ -190,6 +196,8 @@ class AnniversaryViewModel(
     }
 
     companion object {
+        private const val TAG = "AnniversaryViewModel"
+
         fun factory(
             homeRepository: HomeRepository,
             anniversaryRepository: AnniversaryRepository,

@@ -1,5 +1,6 @@
 package com.secretbase.app
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -28,64 +29,22 @@ import com.secretbase.app.ui.wishlist.WishListViewModel
 @Composable
 fun SecretBaseApp() {
     val appContext = LocalContext.current.applicationContext
-    val dependencies = remember(appContext) { SecretBaseDependencies(appContext) }
+    val dependencies = remember(appContext) {
+        runCatching { SecretBaseDependencies(appContext) }
+            .getOrElse { error ->
+                Log.e(
+                    "SecretBaseApp",
+                    "Failed to create app dependencies. Falling back to local-only dependencies.",
+                    error,
+                )
+                SecretBaseDependencies(
+                    context = appContext,
+                    enableRemoteModules = false,
+                )
+            }
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     var backStack by rememberSaveable { mutableStateOf(listOf(AppRoute.Home.route)) }
-
-    val homeViewModel: HomeViewModel = viewModel(
-        factory = HomeViewModel.factory(
-            homeRepository = dependencies.homeRepository,
-            messageRepository = dependencies.messageRepository,
-            wishRepository = dependencies.wishRepository,
-        ),
-    )
-    val messageWallViewModel: MessageWallViewModel = viewModel(
-        factory = MessageWallViewModel.factory(
-            homeRepository = dependencies.homeRepository,
-            messageRepository = dependencies.messageRepository,
-        ),
-    )
-    val wishListViewModel: WishListViewModel = viewModel(
-        factory = WishListViewModel.factory(
-            homeRepository = dependencies.homeRepository,
-            wishRepository = dependencies.wishRepository,
-        ),
-    )
-    val anniversaryViewModel: AnniversaryViewModel = viewModel(
-        factory = AnniversaryViewModel.factory(
-            homeRepository = dependencies.homeRepository,
-            anniversaryRepository = dependencies.anniversaryRepository,
-        ),
-    )
-
-    val homeState = homeViewModel.uiState.collectAsStateWithLifecycle()
-    val messageWallState = messageWallViewModel.uiState.collectAsStateWithLifecycle()
-    val wishState = wishListViewModel.uiState.collectAsStateWithLifecycle()
-    val anniversaryState = anniversaryViewModel.uiState.collectAsStateWithLifecycle()
-
-    LaunchedEffect(homeViewModel) {
-        homeViewModel.messages.collect { message ->
-            snackbarHostState.showSnackbar(message)
-        }
-    }
-
-    LaunchedEffect(messageWallViewModel) {
-        messageWallViewModel.messages.collect { message ->
-            snackbarHostState.showSnackbar(message)
-        }
-    }
-
-    LaunchedEffect(wishListViewModel) {
-        wishListViewModel.messages.collect { message ->
-            snackbarHostState.showSnackbar(message)
-        }
-    }
-
-    LaunchedEffect(anniversaryViewModel) {
-        anniversaryViewModel.messages.collect { message ->
-            snackbarHostState.showSnackbar(message)
-        }
-    }
 
     val currentRoute = remember(backStack) { AppRoute.parse(backStack.last()) }
 
@@ -115,75 +74,34 @@ fun SecretBaseApp() {
     }
 
     when (currentRoute) {
-        AppRoute.Home -> HomeScreen(
-            uiState = homeState.value,
+        AppRoute.Home -> HomeRoute(
+            dependencies = dependencies,
             snackbarHostState = snackbarHostState,
-            onRetry = homeViewModel::refresh,
-            onMoodCardClick = homeViewModel::onMoodCardClick,
-            onMoodSelected = homeViewModel::updateMood,
-            onDismissMoodPicker = homeViewModel::dismissMoodPicker,
-            onQuickNoteChange = homeViewModel::updateQuickNote,
-            onQuickNoteSubmit = homeViewModel::submitQuickNote,
-            onPlaceholderAction = { action ->
-                when (action) {
-                    AppActions.OpenMessageWall -> navigate(AppRoute.MessageWall.route)
-                    AppActions.OpenWishList -> navigate(AppRoute.WishList.route)
-                    AppActions.OpenAnniversary -> navigate(AppRoute.Anniversary.route)
-                    else -> homeViewModel.onPlaceholderAction(action)
-                }
-            },
+            onNavigate = { route -> navigate(route) },
         )
 
-        AppRoute.MessageWall -> MessageWallScreen(
-            uiState = messageWallState.value,
+        AppRoute.MessageWall -> MessageWallRoute(
+            dependencies = dependencies,
             snackbarHostState = snackbarHostState,
             onBack = ::popBack,
-            onDraftTextChange = messageWallViewModel::updateDraftText,
-            onAddImages = messageWallViewModel::addSelectedImages,
-            onRemoveSelectedImage = messageWallViewModel::removeSelectedImage,
-            onPublish = messageWallViewModel::publishMessage,
-            onReplyClick = messageWallViewModel::openReplyComposer,
-            onReplyTextChange = messageWallViewModel::updateReplyText,
-            onSendReply = messageWallViewModel::sendReply,
-            onCancelReply = messageWallViewModel::closeReplyComposer,
-            onToggleReplies = messageWallViewModel::toggleExpandedReplies,
-            onDeleteMessage = messageWallViewModel::deleteMessage,
-            onDeleteReply = messageWallViewModel::deleteReply,
-            onStartEditing = messageWallViewModel::startEditing,
-            onMarkMessageRead = messageWallViewModel::markMessageRead,
-            onUpdateEditingText = messageWallViewModel::updateEditingText,
-            onCancelEditing = messageWallViewModel::cancelEditing,
-            onSaveEditing = messageWallViewModel::saveEditing,
         )
 
-        AppRoute.WishList -> WishListScreen(
-            uiState = wishState.value,
+        AppRoute.WishList -> WishListRoute(
+            dependencies = dependencies,
             snackbarHostState = snackbarHostState,
             onBack = ::popBack,
-            onSelectStatus = wishListViewModel::selectStatus,
-            onAddWish = wishListViewModel::showAddWish,
-            onWishClick = { wishId ->
-                val wish = wishListViewModel.wishById(wishId) ?: return@WishListScreen
-                if (wish.status == WishStatus.REALIZED) {
-                    navigate(AppRoute.WishCompletionDetail(wishId).route)
-                } else {
-                    navigate(AppRoute.WishDetail(wishId).route)
-                }
-            },
-            onEditWish = wishListViewModel::editWish,
-            onDeleteWish = wishListViewModel::deleteWish,
-            onCompleteWish = { wishId ->
-                navigate(AppRoute.WishDetail(wishId).route)
-            },
-            onEditorTitleChange = wishListViewModel::updateEditorTitle,
-            onEditorDescriptionChange = wishListViewModel::updateEditorDescription,
-            onEditorPlannedDateChange = wishListViewModel::updateEditorPlannedDate,
-            onEditorCoverChange = wishListViewModel::updateEditorCover,
-            onDismissEditor = wishListViewModel::dismissEditor,
-            onSaveWish = wishListViewModel::saveWish,
+            onNavigate = { route -> navigate(route) },
         )
 
         is AppRoute.WishDetail -> {
+            val wishListViewModel: WishListViewModel = viewModel(
+                factory = WishListViewModel.factory(
+                    homeRepository = dependencies.homeRepository,
+                    wishRepository = dependencies.wishRepository,
+                ),
+            )
+            val wishState = wishListViewModel.uiState.collectAsStateWithLifecycle()
+            CollectSnackbarMessages(wishListViewModel, snackbarHostState)
             val wish = wishListViewModel.wishById(currentRoute.wishId)
             if (wish != null) {
                 WishDetailScreen(
@@ -205,6 +123,14 @@ fun SecretBaseApp() {
         }
 
         is AppRoute.WishCompletion -> {
+            val wishListViewModel: WishListViewModel = viewModel(
+                factory = WishListViewModel.factory(
+                    homeRepository = dependencies.homeRepository,
+                    wishRepository = dependencies.wishRepository,
+                ),
+            )
+            val wishState = wishListViewModel.uiState.collectAsStateWithLifecycle()
+            CollectSnackbarMessages(wishListViewModel, snackbarHostState)
             val wish = wishListViewModel.wishById(currentRoute.wishId)
             if (wish != null) {
                 WishCompletionScreen(
@@ -234,6 +160,14 @@ fun SecretBaseApp() {
         }
 
         is AppRoute.WishCompletionDetail -> {
+            val wishListViewModel: WishListViewModel = viewModel(
+                factory = WishListViewModel.factory(
+                    homeRepository = dependencies.homeRepository,
+                    wishRepository = dependencies.wishRepository,
+                ),
+            )
+            val wishState = wishListViewModel.uiState.collectAsStateWithLifecycle()
+            CollectSnackbarMessages(wishListViewModel, snackbarHostState)
             val wish = wishListViewModel.wishById(currentRoute.wishId)
             if (wish != null) {
                 WishCompletionDetailScreen(
@@ -246,20 +180,208 @@ fun SecretBaseApp() {
             }
         }
 
-        AppRoute.Anniversary -> AnniversaryScreen(
-            uiState = anniversaryState.value,
+        AppRoute.Anniversary -> AnniversaryRoute(
+            dependencies = dependencies,
             snackbarHostState = snackbarHostState,
             onBack = ::popBack,
-            onAdd = anniversaryViewModel::showAddEditor,
-            onEdit = anniversaryViewModel::editItem,
-            onDelete = anniversaryViewModel::deleteItem,
-            onTitleChange = anniversaryViewModel::updateTitle,
-            onDateChange = anniversaryViewModel::updateDate,
-            onRepeatChange = anniversaryViewModel::toggleRepeat,
-            onReminderChange = anniversaryViewModel::updateReminder,
-            onDismissEditor = anniversaryViewModel::dismissEditor,
-            onSaveEditor = anniversaryViewModel::saveEditor,
         )
+    }
+}
+
+@Composable
+private fun HomeRoute(
+    dependencies: SecretBaseDependencies,
+    snackbarHostState: SnackbarHostState,
+    onNavigate: (String) -> Unit,
+) {
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModel.factory(
+            homeRepository = dependencies.homeRepository,
+            messageRepository = dependencies.messageRepository,
+            wishRepository = dependencies.wishRepository,
+        ),
+    )
+    val homeState = homeViewModel.uiState.collectAsStateWithLifecycle()
+    CollectSnackbarMessages(homeViewModel, snackbarHostState)
+
+    HomeScreen(
+        uiState = homeState.value,
+        snackbarHostState = snackbarHostState,
+        onRetry = homeViewModel::refresh,
+        onMoodCardClick = homeViewModel::onMoodCardClick,
+        onMoodSelected = homeViewModel::updateMood,
+        onDismissMoodPicker = homeViewModel::dismissMoodPicker,
+        onQuickNoteChange = homeViewModel::updateQuickNote,
+        onQuickNoteSubmit = homeViewModel::submitQuickNote,
+        onPlaceholderAction = { action ->
+            when (action) {
+                AppActions.OpenMessageWall -> onNavigate(AppRoute.MessageWall.route)
+                AppActions.OpenWishList -> onNavigate(AppRoute.WishList.route)
+                AppActions.OpenAnniversary -> onNavigate(AppRoute.Anniversary.route)
+                else -> homeViewModel.onPlaceholderAction(action)
+            }
+        },
+    )
+}
+
+@Composable
+private fun MessageWallRoute(
+    dependencies: SecretBaseDependencies,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+) {
+    val messageWallViewModel: MessageWallViewModel = viewModel(
+        factory = MessageWallViewModel.factory(
+            homeRepository = dependencies.homeRepository,
+            messageRepository = dependencies.messageRepository,
+        ),
+    )
+    val messageWallState = messageWallViewModel.uiState.collectAsStateWithLifecycle()
+    CollectSnackbarMessages(messageWallViewModel, snackbarHostState)
+
+    MessageWallScreen(
+        uiState = messageWallState.value,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onDraftTextChange = messageWallViewModel::updateDraftText,
+        onAddImages = messageWallViewModel::addSelectedImages,
+        onRemoveSelectedImage = messageWallViewModel::removeSelectedImage,
+        onPublish = messageWallViewModel::publishMessage,
+        onReplyClick = messageWallViewModel::openReplyComposer,
+        onReplyTextChange = messageWallViewModel::updateReplyText,
+        onSendReply = messageWallViewModel::sendReply,
+        onCancelReply = messageWallViewModel::closeReplyComposer,
+        onToggleReplies = messageWallViewModel::toggleExpandedReplies,
+        onDeleteMessage = messageWallViewModel::deleteMessage,
+        onDeleteReply = messageWallViewModel::deleteReply,
+        onStartEditing = messageWallViewModel::startEditing,
+        onMarkMessageRead = messageWallViewModel::markMessageRead,
+        onUpdateEditingText = messageWallViewModel::updateEditingText,
+        onCancelEditing = messageWallViewModel::cancelEditing,
+        onSaveEditing = messageWallViewModel::saveEditing,
+    )
+}
+
+@Composable
+private fun WishListRoute(
+    dependencies: SecretBaseDependencies,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+    onNavigate: (String) -> Unit,
+) {
+    val wishListViewModel: WishListViewModel = viewModel(
+        factory = WishListViewModel.factory(
+            homeRepository = dependencies.homeRepository,
+            wishRepository = dependencies.wishRepository,
+        ),
+    )
+    val wishState = wishListViewModel.uiState.collectAsStateWithLifecycle()
+    CollectSnackbarMessages(wishListViewModel, snackbarHostState)
+
+    WishListScreen(
+        uiState = wishState.value,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onSelectStatus = wishListViewModel::selectStatus,
+        onAddWish = wishListViewModel::showAddWish,
+        onWishClick = { wishId ->
+            val wish = wishListViewModel.wishById(wishId) ?: return@WishListScreen
+            if (wish.status == WishStatus.REALIZED) {
+                onNavigate(AppRoute.WishCompletionDetail(wishId).route)
+            } else {
+                onNavigate(AppRoute.WishDetail(wishId).route)
+            }
+        },
+        onEditWish = wishListViewModel::editWish,
+        onDeleteWish = wishListViewModel::deleteWish,
+        onCompleteWish = { wishId ->
+            onNavigate(AppRoute.WishDetail(wishId).route)
+        },
+        onEditorTitleChange = wishListViewModel::updateEditorTitle,
+        onEditorDescriptionChange = wishListViewModel::updateEditorDescription,
+        onEditorPlannedDateChange = wishListViewModel::updateEditorPlannedDate,
+        onEditorCoverChange = wishListViewModel::updateEditorCover,
+        onDismissEditor = wishListViewModel::dismissEditor,
+        onSaveWish = wishListViewModel::saveWish,
+    )
+}
+
+@Composable
+private fun AnniversaryRoute(
+    dependencies: SecretBaseDependencies,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+) {
+    val anniversaryViewModel: AnniversaryViewModel = viewModel(
+        factory = AnniversaryViewModel.factory(
+            homeRepository = dependencies.homeRepository,
+            anniversaryRepository = dependencies.anniversaryRepository,
+        ),
+    )
+    val anniversaryState = anniversaryViewModel.uiState.collectAsStateWithLifecycle()
+    CollectSnackbarMessages(anniversaryViewModel, snackbarHostState)
+
+    AnniversaryScreen(
+        uiState = anniversaryState.value,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onAdd = anniversaryViewModel::showAddEditor,
+        onEdit = anniversaryViewModel::editItem,
+        onDelete = anniversaryViewModel::deleteItem,
+        onTitleChange = anniversaryViewModel::updateTitle,
+        onDateChange = anniversaryViewModel::updateDate,
+        onRepeatChange = anniversaryViewModel::toggleRepeat,
+        onReminderChange = anniversaryViewModel::updateReminder,
+        onDismissEditor = anniversaryViewModel::dismissEditor,
+        onSaveEditor = anniversaryViewModel::saveEditor,
+    )
+}
+
+@Composable
+private fun CollectSnackbarMessages(
+    viewModel: HomeViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+}
+
+@Composable
+private fun CollectSnackbarMessages(
+    viewModel: MessageWallViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+}
+
+@Composable
+private fun CollectSnackbarMessages(
+    viewModel: WishListViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+}
+
+@Composable
+private fun CollectSnackbarMessages(
+    viewModel: AnniversaryViewModel,
+    snackbarHostState: SnackbarHostState,
+) {
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
     }
 }
 

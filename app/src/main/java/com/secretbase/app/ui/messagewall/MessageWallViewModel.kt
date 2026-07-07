@@ -1,5 +1,6 @@
 package com.secretbase.app.ui.messagewall
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -248,9 +249,19 @@ class MessageWallViewModel(
                 messageRepository.observeDraft(),
             ) { messages, draft -> messages to draft }
                 .collectLatest { (messages, draft) ->
-                    latestMessages = messages.sortedByDescending { it.createdAt }
-                    latestDraft = draft
-                    updateUi()
+                    runCatching {
+                        latestMessages = messages.sortedByDescending { it.createdAt }
+                        latestDraft = draft
+                        updateUi()
+                    }.onFailure { error ->
+                        Log.e(TAG, "Failed to render message wall state", error)
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "加载留言墙失败，请稍后重试",
+                            )
+                        }
+                    }
                 }
         }
     }
@@ -286,6 +297,7 @@ class MessageWallViewModel(
         private const val MAX_MESSAGE_LENGTH = 500
         private const val MAX_REPLY_LENGTH = 300
         private const val MAX_IMAGE_COUNT = 9
+        private const val TAG = "MessageWallViewModel"
 
         fun factory(
             homeRepository: HomeRepository,

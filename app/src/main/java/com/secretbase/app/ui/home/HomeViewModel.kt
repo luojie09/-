@@ -1,5 +1,6 @@
 package com.secretbase.app.ui.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -130,8 +131,12 @@ class HomeViewModel(
     private fun observeMessageWall() {
         viewModelScope.launch {
             messageRepository.observeMessages().collectLatest { messages ->
-                latestMessageWall = messages
-                renderUi()
+                runCatching {
+                    latestMessageWall = messages
+                    renderUi()
+                }.onFailure { error ->
+                    Log.e(TAG, "Failed to render home state from message wall updates", error)
+                }
             }
         }
     }
@@ -139,8 +144,12 @@ class HomeViewModel(
     private fun observeWishes() {
         viewModelScope.launch {
             wishRepository.observeWishes().collectLatest { wishes ->
-                latestWishes = wishes
-                renderUi()
+                runCatching {
+                    latestWishes = wishes
+                    renderUi()
+                }.onFailure { error ->
+                    Log.e(TAG, "Failed to render home state from wish updates", error)
+                }
             }
         }
     }
@@ -166,6 +175,7 @@ class HomeViewModel(
 
     companion object {
         private const val MAX_NOTE_LENGTH = 500
+        private const val TAG = "HomeViewModel"
 
         fun factory(
             homeRepository: HomeRepository,

@@ -15,9 +15,12 @@ import com.secretbase.app.data.wish.FakeWishRepository
 import com.secretbase.app.data.wish.SupabaseWishRepository
 import com.secretbase.app.data.wish.WishRepository
 
-class SecretBaseDependencies(context: Context) {
+class SecretBaseDependencies(
+    context: Context,
+    enableRemoteModules: Boolean = true,
+) {
     private val supabaseClient =
-        if (SupabaseConfig.isConfigured) {
+        if (enableRemoteModules && SupabaseConfig.isConfigured) {
             runCatching { SupabaseClientProvider.client }
                 .onFailure { error ->
                     Log.e(
