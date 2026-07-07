@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
@@ -114,40 +115,36 @@ fun MessageCard(
                 indication = null,
                 onClick = onCardOpened,
             ),
-        color = SurfaceWhite.copy(alpha = 0.98f),
-        shadowElevation = 18.dp,
+        color = SurfaceWhite.copy(alpha = 0.985f),
+        shadowElevation = 20.dp,
         tonalElevation = 0.dp,
-        shape = RoundedCornerShape(32.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.92f)),
+        shape = RoundedCornerShape(34.dp),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.84f)),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 18.dp),
+                .padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 20.dp),
             verticalAlignment = Alignment.Top,
         ) {
-            if (message.statusHighlight) {
-                Box(
-                    modifier = Modifier
-                        .padding(top = 42.dp, end = 10.dp)
-                        .size(14.dp)
-                        .background(CherryPink, CircleShape),
-                )
-            } else {
-                Spacer(modifier = Modifier.width(24.dp))
-            }
+            Box(
+                modifier = Modifier
+                    .padding(top = 44.dp, end = 14.dp)
+                    .size(12.dp)
+                    .background(
+                        color = if (message.statusHighlight) CherryPink else Color.Transparent,
+                        shape = CircleShape,
+                    ),
+            )
 
             AvatarBubble(
                 avatarRes = message.avatarRes,
-                modifier = Modifier
-                    .size(64.dp)
-                    .border(1.dp, SoftPink, CircleShape)
-                    .padding(3.dp),
+                modifier = Modifier.size(76.dp),
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(14.dp))
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -155,7 +152,7 @@ fun MessageCard(
                 ) {
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -163,7 +160,7 @@ fun MessageCard(
                         ) {
                             Text(
                                 text = message.authorName,
-                                style = MaterialTheme.typography.titleMedium.copy(
+                                style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.ExtraBold,
                                 ),
                                 color = InkBlack,
@@ -178,12 +175,15 @@ fun MessageCard(
                         }
                         Text(
                             text = message.timeText,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.titleMedium,
                             color = WarmGray,
                         )
                     }
 
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
                         MessageStatusPill(
                             text = message.statusText,
                             highlight = message.statusHighlight,
@@ -195,6 +195,7 @@ fun MessageCard(
                                         imageVector = Icons.Outlined.MoreHoriz,
                                         contentDescription = "更多操作",
                                         tint = WarmGray,
+                                        modifier = Modifier.size(24.dp),
                                     )
                                 }
                                 DropdownMenu(
@@ -224,9 +225,9 @@ fun MessageCard(
                 if (message.content.isNotBlank()) {
                     Text(
                         text = message.content,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.15f,
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 28.sp,
                         ),
                         color = InkBlack,
                     )
@@ -244,31 +245,33 @@ fun MessageCard(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(18.dp),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.FavoriteBorder,
                             contentDescription = null,
                             tint = CherryPink,
+                            modifier = Modifier.size(28.dp),
                         )
                     }
                     Row(
                         modifier = Modifier.clickable(onClick = onReplyClick),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ChatBubbleOutline,
                             contentDescription = "回复留言",
                             tint = WarmGray,
+                            modifier = Modifier.size(27.dp),
                         )
                         Text(
                             text = if (message.replyCount > 0) "回复 ${message.replyCount}" else "回复",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                             color = WarmGray,
                         )
                     }
@@ -334,29 +337,40 @@ private fun ReplySection(
     onDeleteReply: (String) -> Unit,
     onToggleReplies: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (message.replyCount > 0) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                message.visibleReplies.forEach { reply ->
-                    ReplyItem(
-                        reply = reply,
-                        onDelete = { onDeleteReply(reply.id) },
-                    )
-                }
-                if (message.hiddenReplyCount > 0) {
-                    Text(
-                        text = "查看全部 ${message.replyCount} 条回复",
-                        modifier = Modifier.clickable(onClick = onToggleReplies),
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = CherryPink,
-                    )
-                } else if (message.replyCount > 3) {
-                    Text(
-                        text = "收起回复",
-                        modifier = Modifier.clickable(onClick = onToggleReplies),
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = WarmGray,
-                    )
+            Surface(
+                color = Color(0xFFFFFBFD),
+                shape = RoundedCornerShape(28.dp),
+                border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.68f)),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    message.visibleReplies.forEach { reply ->
+                        ReplyItem(
+                            reply = reply,
+                            onDelete = { onDeleteReply(reply.id) },
+                        )
+                    }
+                    if (message.hiddenReplyCount > 0) {
+                        Text(
+                            text = "查看全部 ${message.replyCount} 条回复",
+                            modifier = Modifier.clickable(onClick = onToggleReplies),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = CherryPink,
+                        )
+                    } else if (message.replyCount > 3) {
+                        Text(
+                            text = "收起回复",
+                            modifier = Modifier.clickable(onClick = onToggleReplies),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = WarmGray,
+                        )
+                    }
                 }
             }
         }
@@ -378,35 +392,38 @@ private fun ReplyItem(
     onDelete: () -> Unit,
 ) {
     Surface(
-        color = Color(0xFFFFFAFC),
-        shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.8f)),
+        color = SurfaceWhite.copy(alpha = 0.98f),
+        shape = RoundedCornerShape(24.dp),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.56f)),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.Top,
         ) {
             AvatarBubble(
                 avatarRes = reply.avatarRes,
-                modifier = Modifier.size(34.dp),
+                modifier = Modifier.size(44.dp),
             )
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = reply.authorName,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = InkBlack,
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = reply.timeText,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = WarmGray,
                     )
                     Spacer(modifier = Modifier.weight(1f))
@@ -425,7 +442,10 @@ private fun ReplyItem(
                 }
                 Text(
                     text = reply.content,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 26.sp,
+                    ),
                     color = InkBlack,
                 )
             }
@@ -621,13 +641,17 @@ private fun MessageStatusPill(
     highlight: Boolean,
 ) {
     Surface(
-        color = if (highlight) Color(0xFFFFF1F5) else Color(0xFFF7F3F4),
+        color = if (highlight) Color(0xFFFFF1F6) else Color(0xFFF8F4F5),
         shape = RoundedCornerShape(999.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (highlight) CherryPink.copy(alpha = 0.14f) else OutlinePink.copy(alpha = 0.32f),
+        ),
     ) {
         Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+            text = text.ifBlank { "已送达" },
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             color = if (highlight) CherryPink else WarmGray,
         )
     }
@@ -697,7 +721,8 @@ fun AvatarBubble(
         modifier = modifier,
         color = SurfaceWhite,
         shape = CircleShape,
-        shadowElevation = 4.dp,
+        shadowElevation = 8.dp,
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.48f)),
     ) {
         if (avatarRes != null) {
             Image(
@@ -715,40 +740,43 @@ fun MessageImageGrid(
     imagePaths: List<String>,
     onImageClick: (Int) -> Unit,
 ) {
-    val columns = when (imagePaths.size) {
-        1 -> 1
-        2 -> 2
-        3 -> 3
-        4 -> 2
-        else -> 3
-    }
-    val rows = imagePaths.chunked(columns)
+    if (imagePaths.size == 1) {
+        MessageMedia(
+            imagePath = imagePaths.first(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.72f)
+                .clip(RoundedCornerShape(30.dp))
+                .clickable { onImageClick(0) },
+        )
+    } else {
+        val columns = when (imagePaths.size) {
+            2 -> 2
+            4 -> 2
+            else -> 3
+        }
+        val rows = imagePaths.chunked(columns)
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        rows.forEachIndexed { rowIndex, row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                row.forEachIndexed { columnIndex, imagePath ->
-                    val imageIndex = rowIndex * columns + columnIndex
-                    val ratio = when (imagePaths.size) {
-                        1 -> 1.78f
-                        2 -> 1f
-                        3 -> 0.92f
-                        else -> 1f
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            rows.forEachIndexed { rowIndex, row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    row.forEachIndexed { columnIndex, imagePath ->
+                        val imageIndex = rowIndex * columns + columnIndex
+                        MessageMedia(
+                            imagePath = imagePath,
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(22.dp))
+                                .clickable { onImageClick(imageIndex) },
+                        )
                     }
-                    MessageMedia(
-                        imagePath = imagePath,
-                        modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(ratio)
-                            .clip(RoundedCornerShape(22.dp))
-                            .clickable { onImageClick(imageIndex) },
-                    )
-                }
-                repeat(columns - row.size) {
-                    Spacer(modifier = Modifier.weight(1f))
+                    repeat(columns - row.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -759,6 +787,8 @@ fun MessageImageGrid(
 fun MessageMedia(
     imagePath: String,
     modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop,
+    backgroundColor: Color = Color(0xFFFFF7FA),
 ) {
     val mockPalette = remember(imagePath) { mockPaletteFor(imagePath) }
     if (mockPalette != null) {
@@ -770,8 +800,8 @@ fun MessageMedia(
         AsyncImage(
             model = imagePath,
             contentDescription = null,
-            modifier = modifier.background(Color(0xFFFFF7FA)),
-            contentScale = ContentScale.Crop,
+            modifier = modifier.background(backgroundColor),
+            contentScale = contentScale,
         )
     }
 }
@@ -834,12 +864,20 @@ fun MessageImageViewer(
     initialPage: Int,
     onDismiss: () -> Unit,
 ) {
+    if (imagePaths.isEmpty()) return
+
     val pagerState = rememberPagerState(
         initialPage = initialPage.coerceIn(0, imagePaths.lastIndex),
         pageCount = { imagePaths.size },
     )
 
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+        ),
+    ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = Color(0xFF141217),
@@ -918,7 +956,6 @@ private fun ZoomableMedia(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
-                .clip(RoundedCornerShape(28.dp))
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
@@ -926,6 +963,8 @@ private fun ZoomableMedia(
                     translationY = offsetY
                 }
                 .transformable(transformableState),
+            contentScale = ContentScale.Fit,
+            backgroundColor = Color.Transparent,
         )
     }
 }
