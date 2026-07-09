@@ -1,9 +1,7 @@
 package com.secretbase.app.data.anniversary
 
 import android.util.Log
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Order
+import com.secretbase.app.data.supabase.SupabaseRestClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,7 +18,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class SupabaseAnniversaryRepository(
-    private val client: SupabaseClient,
+    private val client: SupabaseRestClient,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : AnniversaryRepository {
 
@@ -38,34 +36,25 @@ class SupabaseAnniversaryRepository(
     override fun observeAnniversaries(): Flow<List<Anniversary>> = anniversaries.asStateFlow()
 
     override suspend fun addAnniversary(item: Anniversary): Result<Unit> = runCatching {
-        client.from(TABLE_NAME).insert(item.toRow())
+        client.insert(TABLE_NAME, item.toRow())
         refreshAnniversaries()
     }
 
     override suspend fun updateAnniversary(item: Anniversary): Result<Unit> = runCatching {
-        client.from(TABLE_NAME).update(item.toRow()) {
-            filter {
-                eq("id", item.id)
-            }
-        }
+        client.update(TABLE_NAME, client.eq("id", item.id), item.toRow())
         refreshAnniversaries()
     }
 
     override suspend fun deleteAnniversary(id: String): Result<Unit> = runCatching {
-        client.from(TABLE_NAME).delete {
-            filter {
-                eq("id", id)
-            }
-        }
+        client.delete(TABLE_NAME, client.eq("id", id))
         refreshAnniversaries()
     }
 
     private suspend fun refreshAnniversaries() {
-        val rows = client.from(TABLE_NAME)
-            .select {
-                order("date", order = Order.ASCENDING)
-            }
-            .decodeList<AnniversaryRow>()
+        val rows = client.select<AnniversaryRow>(
+            table = TABLE_NAME,
+            query = client.and("select=*", client.order("date")),
+        )
 
         anniversaries.value = rows.map { row -> row.toDomain() }
     }

@@ -1,11 +1,9 @@
 package com.secretbase.app.data.message
 
 import android.util.Log
+import com.secretbase.app.data.supabase.SupabaseRestClient
 import com.secretbase.app.data.supabase.isoInstantToMillis
 import com.secretbase.app.data.supabase.millisToIsoInstant
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,7 +16,7 @@ import kotlinx.serialization.Serializable
 import java.util.UUID
 
 class SupabaseMessageRepository(
-    private val client: SupabaseClient,
+    private val client: SupabaseRestClient,
     private val currentUserId: String,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : MessageRepository {
@@ -50,12 +48,8 @@ class SupabaseMessageRepository(
             updatedAt = millisToIsoInstant(now()),
         )
         runCatching {
-            client.from(DRAFTS_TABLE).delete {
-                filter {
-                    eq("user_id", currentUserId)
-                }
-            }
-            client.from(DRAFTS_TABLE).insert(row)
+            client.delete(DRAFTS_TABLE, client.eq("user_id", currentUserId))
+            client.insert(DRAFTS_TABLE, row)
             draft.value = row.toDomain()
         }.onFailure { error ->
             Log.e(TAG, "Failed to update draft in Supabase", error)
@@ -65,11 +59,7 @@ class SupabaseMessageRepository(
 
     override suspend fun clearDraft() {
         runCatching {
-            client.from(DRAFTS_TABLE).delete {
-                filter {
-                    eq("user_id", currentUserId)
-                }
-            }
+            client.delete(DRAFTS_TABLE, client.eq("user_id", currentUserId))
         }.onFailure { error ->
             Log.e(TAG, "Failed to clear draft in Supabase", error)
         }
@@ -97,7 +87,7 @@ class SupabaseMessageRepository(
             readAt = timestamp,
             counterpartReadAt = null,
         )
-        client.from(MESSAGES_TABLE).insert(message.toRow())
+        client.insert(MESSAGES_TABLE, message.toRow())
         refreshMessages()
         clearDraft()
         message
@@ -112,26 +102,27 @@ class SupabaseMessageRepository(
 
         val message = messages.value.firstOrNull { it.id == messageId }
             ?: error("Message not found")
-        client.from(MESSAGES_TABLE).update(
-            message.copy(content = safeContent, updatedAt = now()).toRow(),
-        ) {
-            filter {
-                eq("id", messageId)
-                eq("author_id", currentUserId)
-            }
-        }
+        client.update(
+            table = MESSAGES_TABLE,
+            query = client.and(
+                client.eq("id", messageId),
+                client.eq("author_id", currentUserId),
+            ),
+            row = message.copy(content = safeContent, updatedAt = now()).toRow(),
+        )
         refreshMessages()
     }
 
     override suspend fun deleteMessage(
         messageId: String,
     ): Result<Unit> = runCatching {
-        client.from(MESSAGES_TABLE).delete {
-            filter {
-                eq("id", messageId)
-                eq("author_id", currentUserId)
-            }
-        }
+        client.delete(
+            table = MESSAGES_TABLE,
+            query = client.and(
+                client.eq("id", messageId),
+                client.eq("author_id", currentUserId),
+            ),
+        )
         refreshMessages()
     }
 
@@ -153,7 +144,7 @@ class SupabaseMessageRepository(
             isRead = true,
             readAt = timestamp,
         )
-        client.from(REPLIES_TABLE).insert(reply.toRow())
+        client.insert(REPLIES_TABLE, reply.toRow())
         refreshMessages()
         reply
     }
@@ -161,12 +152,13 @@ class SupabaseMessageRepository(
     override suspend fun deleteReply(
         replyId: String,
     ): Result<Unit> = runCatching {
-        client.from(REPLIES_TABLE).delete {
-            filter {
-                eq("id", replyId)
-                eq("author_id", currentUserId)
-            }
-        }
+        client.delete(
+            table = REPLIES_TABLE,
+            query = client.and(
+                client.eq("id", replyId),
+                client.eq("author_id", currentUserId),
+            ),
+        )
         refreshMessages()
     }
 
@@ -177,31 +169,27 @@ class SupabaseMessageRepository(
         val message = messages.value.firstOrNull { it.id == messageId } ?: return@runCatching
 
         if (message.authorId != currentUserId && !message.isRead) {
-            client.from(MESSAGES_TABLE).update(
-                message.copy(
+            client.update(
+                table = MESSAGES_TABLE,
+                query = client.eq("id", messageId),
+                row = message.copy(
                     isRead = true,
                     readAt = readAt,
                 ).toRow(),
-            ) {
-                filter {
-                    eq("id", messageId)
-                }
-            }
+            )
         }
 
         message.replies
             .filter { reply -> reply.authorId != currentUserId && !reply.isRead }
             .forEach { reply ->
-                client.from(REPLIES_TABLE).update(
-                    reply.copy(
+                client.update(
+                    table = REPLIES_TABLE,
+                    query = client.eq("id", reply.id),
+                    row = reply.copy(
                         isRead = true,
                         readAt = readAt,
                     ).toRow(),
-                ) {
-                    filter {
-                        eq("id", reply.id)
-                    }
-                }
+                )
             }
         refreshMessages()
     }
@@ -212,17 +200,15 @@ class SupabaseMessageRepository(
     }
 
     private suspend fun refreshMessages() {
-        val messageRows = client.from(MESSAGES_TABLE)
-            .select {
-                order("created_at", order = Order.DESCENDING)
-            }
-            .decodeList<MessageRow>()
+        val messageRows = client.select<MessageRow>(
+            table = MESSAGES_TABLE,
+            query = client.and("select=*", client.order("created_at", descending = true)),
+        )
 
-        val replyRows = client.from(REPLIES_TABLE)
-            .select {
-                order("created_at", order = Order.ASCENDING)
-            }
-            .decodeList<ReplyRow>()
+        val replyRows = client.select<ReplyRow>(
+            table = REPLIES_TABLE,
+            query = client.and("select=*", client.order("created_at")),
+        )
 
         val repliesByMessageId = replyRows
             .groupBy { it.messageId }
@@ -234,13 +220,10 @@ class SupabaseMessageRepository(
     }
 
     private suspend fun refreshDraft() {
-        val rows = client.from(DRAFTS_TABLE)
-            .select {
-                filter {
-                    eq("user_id", currentUserId)
-                }
-            }
-            .decodeList<DraftRow>()
+        val rows = client.select<DraftRow>(
+            table = DRAFTS_TABLE,
+            query = client.and("select=*", client.eq("user_id", currentUserId)),
+        )
         draft.value = rows.firstOrNull()?.toDomain() ?: MessageDraft()
     }
 

@@ -2,12 +2,10 @@ package com.secretbase.app.data
 
 import android.content.Context
 import com.secretbase.app.data.supabase.SupabaseConfig
+import com.secretbase.app.data.supabase.SupabaseRestClient
 import com.secretbase.app.data.supabase.isoInstantToMillis
 import com.secretbase.app.data.supabase.millisToIsoDate
 import com.secretbase.app.data.supabase.millisToIsoInstant
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.json.JSONArray
@@ -22,7 +20,7 @@ import java.util.UUID
 class HomeRepository(
     private val context: Context,
     private val currentUserId: String,
-    private val client: SupabaseClient? = null,
+    private val client: SupabaseRestClient? = null,
 ) {
 
     private val sharedPreferences =
@@ -138,12 +136,9 @@ class HomeRepository(
         if (SupabaseConfig.isConfigured && client != null) {
             val supabaseClient = client
             runCatching {
-                supabaseClient.from(MOODS_TABLE).delete {
-                    filter {
-                        eq("user_id", userId)
-                    }
-                }
-                supabaseClient.from(MOODS_TABLE).insert(
+                supabaseClient.delete(MOODS_TABLE, supabaseClient.eq("user_id", userId))
+                supabaseClient.insert(
+                    MOODS_TABLE,
                     MoodRow(
                         userId = userId,
                         moodLabel = mood.label,
@@ -170,7 +165,8 @@ class HomeRepository(
         if (SupabaseConfig.isConfigured && client != null) {
             val supabaseClient = client
             runCatching {
-                supabaseClient.from(NOTES_TABLE).insert(
+                supabaseClient.insert(
+                    NOTES_TABLE,
                     QuickNoteRow(
                         id = "note-${UUID.randomUUID()}",
                         title = note,
@@ -201,11 +197,11 @@ class HomeRepository(
         if (SupabaseConfig.isConfigured && client != null) {
             val supabaseClient = client
             runCatching {
-                supabaseClient.from(MOODS_TABLE)
-                    .select {
-                        order("updated_at", order = Order.DESCENDING)
-                    }
-                    .decodeList<MoodRow>()
+                supabaseClient
+                    .select<MoodRow>(
+                        table = MOODS_TABLE,
+                        query = supabaseClient.and("select=*", supabaseClient.order("updated_at", descending = true)),
+                    )
                     .associate { row ->
                         row.userId to PersistedMood(
                             label = row.moodLabel,
@@ -236,11 +232,11 @@ class HomeRepository(
         if (SupabaseConfig.isConfigured && client != null) {
             val supabaseClient = client
             runCatching {
-                supabaseClient.from(NOTES_TABLE)
-                    .select {
-                        order("created_at", order = Order.DESCENDING)
-                    }
-                    .decodeList<QuickNoteRow>()
+                supabaseClient
+                    .select<QuickNoteRow>(
+                        table = NOTES_TABLE,
+                        query = supabaseClient.and("select=*", supabaseClient.order("created_at", descending = true)),
+                    )
                     .map { row ->
                         ActivityRecord(
                             id = row.id,

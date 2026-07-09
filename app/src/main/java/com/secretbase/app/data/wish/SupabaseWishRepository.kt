@@ -1,9 +1,6 @@
 package com.secretbase.app.data.wish
 
 import android.util.Log
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -13,13 +10,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import com.secretbase.app.data.supabase.SupabaseRestClient
 import com.secretbase.app.data.supabase.isoInstantToMillis
 import com.secretbase.app.data.supabase.millisToIsoInstant
 import com.secretbase.app.data.supabase.millisToNullableIsoDate
 import com.secretbase.app.data.supabase.nullableIsoDateToMillis
 
 class SupabaseWishRepository(
-    private val client: SupabaseClient,
+    private val client: SupabaseRestClient,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : WishRepository {
 
@@ -37,25 +35,17 @@ class SupabaseWishRepository(
     override fun observeWishes(): Flow<List<Wish>> = wishes.asStateFlow()
 
     override suspend fun addWish(wish: Wish): Result<Unit> = runCatching {
-        client.from(TABLE_NAME).insert(wish.toRow())
+        client.insert(TABLE_NAME, wish.toRow())
         refreshWishes()
     }
 
     override suspend fun updateWish(wish: Wish): Result<Unit> = runCatching {
-        client.from(TABLE_NAME).update(wish.toRow()) {
-            filter {
-                eq("id", wish.id)
-            }
-        }
+        client.update(TABLE_NAME, client.eq("id", wish.id), wish.toRow())
         refreshWishes()
     }
 
     override suspend fun deleteWish(wishId: String): Result<Unit> = runCatching {
-        client.from(TABLE_NAME).delete {
-            filter {
-                eq("id", wishId)
-            }
-        }
+        client.delete(TABLE_NAME, client.eq("id", wishId))
         refreshWishes()
     }
 
@@ -69,20 +59,15 @@ class SupabaseWishRepository(
             status = WishStatus.REALIZED,
             completion = completion,
         )
-        client.from(TABLE_NAME).update(updated.toRow()) {
-            filter {
-                eq("id", wishId)
-            }
-        }
+        client.update(TABLE_NAME, client.eq("id", wishId), updated.toRow())
         refreshWishes()
     }
 
     private suspend fun refreshWishes() {
-        val rows = client.from(TABLE_NAME)
-            .select {
-                order("created_at", order = Order.DESCENDING)
-            }
-            .decodeList<WishRow>()
+        val rows = client.select<WishRow>(
+            table = TABLE_NAME,
+            query = client.and("select=*", client.order("created_at", descending = true)),
+        )
 
         wishes.value = rows.map { row -> row.toDomain() }
     }
