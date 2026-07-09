@@ -67,10 +67,15 @@ class HomeViewModel(
         }
 
         viewModelScope.launch {
-            homeRepository.addQuickNote(text)
-            _uiState.update { it.copy(quickNoteText = "") }
-            emitMessage("已记录到最近动态")
-            loadSnapshot(showLoading = false)
+            runCatching {
+                homeRepository.addQuickNote(text)
+            }.onSuccess {
+                _uiState.update { it.copy(quickNoteText = "") }
+                emitMessage("已记录到最近动态")
+                loadSnapshot(showLoading = false)
+            }.onFailure { error ->
+                emitMessage(error.message ?: "记录失败，请稍后重试")
+            }
         }
     }
 
@@ -91,10 +96,15 @@ class HomeViewModel(
     fun updateMood(mood: MoodOption) {
         val userId = _uiState.value.editingMoodUserId ?: return
         viewModelScope.launch {
-            homeRepository.saveMood(userId, mood)
-            _uiState.update { it.copy(editingMoodUserId = null) }
-            emitMessage("今日心情已更新")
-            loadSnapshot(showLoading = false)
+            runCatching {
+                homeRepository.saveMood(userId, mood)
+            }.onSuccess {
+                _uiState.update { it.copy(editingMoodUserId = null) }
+                emitMessage("今日心情已更新")
+                loadSnapshot(showLoading = false)
+            }.onFailure { error ->
+                emitMessage(error.message ?: "心情更新失败，请稍后重试")
+            }
         }
     }
 

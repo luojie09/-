@@ -153,6 +153,8 @@ class HomeRepository(
                 )
             }.onSuccess {
                 return
+            }.onFailure { error ->
+                throw IllegalStateException("心情同步到云端失败，请稍后重试", error)
             }
         }
 
@@ -179,6 +181,8 @@ class HomeRepository(
                 )
             }.onSuccess {
                 return
+            }.onFailure { error ->
+                throw IllegalStateException("记录同步到云端失败，请稍后重试", error)
             }
         }
 

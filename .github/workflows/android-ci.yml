@@ -19,8 +19,8 @@ jobs:
       contents: read
     env:
       JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8
-      SUPABASE_URL: ${{ vars.SUPABASE_URL || secrets.SUPABASE_URL }}
-      SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_URL: ${{ vars.SUPABASE_URL || secrets.SUPABASE_URL || 'https://rcdcfvlvjxkeipysxbjt.supabase.co' }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_Ky0mYIAMFOcBBAbscl6-2Q_E_J_abem' }}
 
     steps:
       - name: Checkout repository
@@ -43,6 +43,16 @@ jobs:
 
       - name: Grant gradlew execute permission
         run: chmod +x gradlew
+
+      - name: Verify Supabase configuration
+        run: |
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_PUBLISHABLE_KEY"
+          curl --fail --silent --show-error \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY" \
+            "$SUPABASE_URL/rest/v1/messages?select=id&limit=1" \
+            > /dev/null
 
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace
