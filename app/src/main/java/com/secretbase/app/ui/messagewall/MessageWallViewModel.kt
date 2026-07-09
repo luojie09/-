@@ -9,7 +9,6 @@ import com.secretbase.app.data.HomeVisuals
 import com.secretbase.app.data.message.Message
 import com.secretbase.app.data.message.MessageDraft
 import com.secretbase.app.data.message.MessageRepository
-import com.secretbase.app.data.message.SecretBaseUsers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,6 +27,7 @@ import java.time.format.DateTimeFormatter
 class MessageWallViewModel(
     private val homeRepository: HomeRepository,
     private val messageRepository: MessageRepository,
+    private val currentUserId: String,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MessageWallUiState())
@@ -161,7 +161,7 @@ class MessageWallViewModel(
 
     fun startEditing(messageId: String) {
         val message = latestMessages.firstOrNull { it.id == messageId } ?: return
-        if (message.authorId != SecretBaseUsers.CURRENT_USER_ID) return
+        if (message.authorId != currentUserId) return
         _uiState.update {
             it.copy(
                 editingMessageId = messageId,
@@ -272,7 +272,7 @@ class MessageWallViewModel(
             state.copy(
                 isLoading = false,
                 unreadCount = latestMessages.sumOf { message ->
-                    message.unreadCountFor(SecretBaseUsers.CURRENT_USER_ID)
+                    message.unreadCountFor(currentUserId)
                 },
                 draftText = latestDraft.content,
                 selectedImages = latestDraft.imagePaths,
@@ -281,6 +281,7 @@ class MessageWallViewModel(
                     message.toUiModel(
                         visuals = visuals,
                         expanded = expandedIds.contains(message.id),
+                        currentUserId = currentUserId,
                     )
                 },
             )
@@ -302,12 +303,14 @@ class MessageWallViewModel(
         fun factory(
             homeRepository: HomeRepository,
             messageRepository: MessageRepository,
+            currentUserId: String,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
                 MessageWallViewModel(
                     homeRepository = homeRepository,
                     messageRepository = messageRepository,
+                    currentUserId = currentUserId,
                 ) as T
         }
     }
@@ -316,8 +319,9 @@ class MessageWallViewModel(
 private fun Message.toUiModel(
     visuals: HomeVisuals,
     expanded: Boolean,
+    currentUserId: String,
 ): MessageUiModel {
-    val isMine = authorId == SecretBaseUsers.CURRENT_USER_ID
+    val isMine = authorId == currentUserId
     val repliesToShow = if (expanded || replies.size <= DEFAULT_VISIBLE_REPLIES) {
         replies
     } else {
@@ -344,7 +348,7 @@ private fun Message.toUiModel(
                 avatarRes = visuals.avatar(reply.authorId),
                 content = reply.content,
                 timeText = reply.createdAt.toFriendlyTime(),
-                canDelete = reply.authorId == SecretBaseUsers.CURRENT_USER_ID,
+                canDelete = reply.authorId == currentUserId,
             )
         },
         hiddenReplyCount = (replies.size - repliesToShow.size).coerceAtLeast(0),

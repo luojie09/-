@@ -6,7 +6,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.util.UUID
 
-class FakeMessageRepository : MessageRepository {
+class FakeMessageRepository(
+    private val currentUserId: String,
+) : MessageRepository {
 
     private val messages = MutableStateFlow(seedMessages())
     private val draft = MutableStateFlow(seedDraft())
@@ -41,8 +43,8 @@ class FakeMessageRepository : MessageRepository {
         val timestamp = now()
         val message = Message(
             id = "message-${UUID.randomUUID()}",
-            authorId = SecretBaseUsers.CURRENT_USER_ID,
-            authorName = SecretBaseUsers.nameFor(SecretBaseUsers.CURRENT_USER_ID),
+            authorId = currentUserId,
+            authorName = SecretBaseUsers.nameFor(currentUserId),
             content = safeContent,
             imagePaths = safeImages,
             createdAt = timestamp,
@@ -65,7 +67,7 @@ class FakeMessageRepository : MessageRepository {
 
         messages.update { current ->
             current.map { message ->
-                if (message.id == messageId && message.authorId == SecretBaseUsers.CURRENT_USER_ID) {
+                if (message.id == messageId && message.authorId == currentUserId) {
                     message.copy(
                         content = safeContent,
                         updatedAt = now(),
@@ -82,7 +84,7 @@ class FakeMessageRepository : MessageRepository {
     ): Result<Unit> = runCatching {
         messages.update { current ->
             current.filterNot { message ->
-                message.id == messageId && message.authorId == SecretBaseUsers.CURRENT_USER_ID
+                message.id == messageId && message.authorId == currentUserId
             }
         }
     }
@@ -97,8 +99,8 @@ class FakeMessageRepository : MessageRepository {
         val reply = MessageReply(
             id = "reply-${UUID.randomUUID()}",
             messageId = messageId,
-            authorId = SecretBaseUsers.CURRENT_USER_ID,
-            authorName = SecretBaseUsers.nameFor(SecretBaseUsers.CURRENT_USER_ID),
+            authorId = currentUserId,
+            authorName = SecretBaseUsers.nameFor(currentUserId),
             content = safeContent,
             createdAt = now(),
             isRead = true,
@@ -127,7 +129,7 @@ class FakeMessageRepository : MessageRepository {
             current.map { message ->
                 message.copy(
                     replies = message.replies.filterNot { reply ->
-                        reply.id == replyId && reply.authorId == SecretBaseUsers.CURRENT_USER_ID
+                        reply.id == replyId && reply.authorId == currentUserId
                     },
                 )
             }
@@ -142,18 +144,18 @@ class FakeMessageRepository : MessageRepository {
             current.map { message ->
                 if (message.id == messageId) {
                     message.copy(
-                        isRead = if (message.authorId == SecretBaseUsers.CURRENT_USER_ID) {
+                        isRead = if (message.authorId == currentUserId) {
                             message.isRead
                         } else {
                             true
                         },
-                        readAt = if (message.authorId == SecretBaseUsers.CURRENT_USER_ID) {
+                        readAt = if (message.authorId == currentUserId) {
                             message.readAt
                         } else {
                             readAt
                         },
                         replies = message.replies.map { reply ->
-                            if (reply.authorId == SecretBaseUsers.CURRENT_USER_ID || reply.isRead) {
+                            if (reply.authorId == currentUserId || reply.isRead) {
                                 reply
                             } else {
                                 reply.copy(

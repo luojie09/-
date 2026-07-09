@@ -2,7 +2,26 @@ package com.secretbase.app
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -10,9 +29,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.secretbase.app.data.message.SecretBaseUsers
+import com.secretbase.app.data.user.UserIdentityStore
 import com.secretbase.app.data.wish.WishStatus
 import com.secretbase.app.ui.anniversary.AnniversaryScreen
 import com.secretbase.app.ui.anniversary.AnniversaryViewModel
@@ -30,8 +61,27 @@ import com.secretbase.app.ui.wishlist.WishListViewModel
 @Composable
 fun SecretBaseApp() {
     val appContext = LocalContext.current.applicationContext
-    val dependencies = remember(appContext) {
-        runCatching { SecretBaseDependencies(appContext) }
+    val userIdentityStore = remember(appContext) { UserIdentityStore(appContext) }
+    var currentUserId by rememberSaveable { mutableStateOf(userIdentityStore.currentUserId()) }
+
+    if (currentUserId == null) {
+        IdentitySelectionGate(
+            onIdentitySelected = { selectedUserId ->
+                userIdentityStore.saveCurrentUserId(selectedUserId)
+                currentUserId = selectedUserId
+            },
+        )
+        return
+    }
+
+    val selectedUserId = currentUserId ?: return
+    val dependencies = remember(appContext, selectedUserId) {
+        runCatching {
+            SecretBaseDependencies(
+                context = appContext,
+                currentUserId = selectedUserId,
+            )
+        }
             .getOrElse { error ->
                 Log.e(
                     "SecretBaseApp",
@@ -40,6 +90,7 @@ fun SecretBaseApp() {
                 )
                 SecretBaseDependencies(
                     context = appContext,
+                    currentUserId = selectedUserId,
                     enableRemoteModules = false,
                 )
             }
@@ -103,6 +154,7 @@ fun SecretBaseApp() {
 
         is AppRoute.WishDetail -> {
             val wishListViewModel: WishListViewModel = viewModel(
+                key = "wish-list-${dependencies.currentUserId}",
                 factory = WishListViewModel.factory(
                     homeRepository = dependencies.homeRepository,
                     wishRepository = dependencies.wishRepository,
@@ -132,6 +184,7 @@ fun SecretBaseApp() {
 
         is AppRoute.WishCompletion -> {
             val wishListViewModel: WishListViewModel = viewModel(
+                key = "wish-list-${dependencies.currentUserId}",
                 factory = WishListViewModel.factory(
                     homeRepository = dependencies.homeRepository,
                     wishRepository = dependencies.wishRepository,
@@ -169,6 +222,7 @@ fun SecretBaseApp() {
 
         is AppRoute.WishCompletionDetail -> {
             val wishListViewModel: WishListViewModel = viewModel(
+                key = "wish-list-${dependencies.currentUserId}",
                 factory = WishListViewModel.factory(
                     homeRepository = dependencies.homeRepository,
                     wishRepository = dependencies.wishRepository,
@@ -203,10 +257,12 @@ private fun HomeRoute(
     onNavigate: (String) -> Unit,
 ) {
     val homeViewModel: HomeViewModel = viewModel(
+        key = "home-${dependencies.currentUserId}",
         factory = HomeViewModel.factory(
             homeRepository = dependencies.homeRepository,
             messageRepository = dependencies.messageRepository,
             wishRepository = dependencies.wishRepository,
+            currentUserId = dependencies.currentUserId,
         ),
     )
     val homeState = homeViewModel.uiState.collectAsStateWithLifecycle()
@@ -240,9 +296,11 @@ private fun MessageWallRoute(
     onNavigate: (String) -> Unit,
 ) {
     val messageWallViewModel: MessageWallViewModel = viewModel(
+        key = "message-wall-${dependencies.currentUserId}",
         factory = MessageWallViewModel.factory(
             homeRepository = dependencies.homeRepository,
             messageRepository = dependencies.messageRepository,
+            currentUserId = dependencies.currentUserId,
         ),
     )
     val messageWallState = messageWallViewModel.uiState.collectAsStateWithLifecycle()
@@ -275,9 +333,11 @@ private fun MessageWallEditorRoute(
     onBack: () -> Unit,
 ) {
     val messageWallViewModel: MessageWallViewModel = viewModel(
+        key = "message-wall-${dependencies.currentUserId}",
         factory = MessageWallViewModel.factory(
             homeRepository = dependencies.homeRepository,
             messageRepository = dependencies.messageRepository,
+            currentUserId = dependencies.currentUserId,
         ),
     )
     val messageWallState = messageWallViewModel.uiState.collectAsStateWithLifecycle()
@@ -302,6 +362,7 @@ private fun WishListRoute(
     onNavigate: (String) -> Unit,
 ) {
     val wishListViewModel: WishListViewModel = viewModel(
+        key = "wish-list-${dependencies.currentUserId}",
         factory = WishListViewModel.factory(
             homeRepository = dependencies.homeRepository,
             wishRepository = dependencies.wishRepository,
@@ -345,6 +406,7 @@ private fun AnniversaryRoute(
     onBack: () -> Unit,
 ) {
     val anniversaryViewModel: AnniversaryViewModel = viewModel(
+        key = "anniversary-${dependencies.currentUserId}",
         factory = AnniversaryViewModel.factory(
             homeRepository = dependencies.homeRepository,
             anniversaryRepository = dependencies.anniversaryRepository,
@@ -439,5 +501,140 @@ private sealed class AppRoute(val route: String) {
             route.startsWith("wish-completion-detail/") -> WishCompletionDetail(route.substringAfter("wish-completion-detail/"))
             else -> Home
         }
+    }
+}
+
+@Composable
+private fun IdentitySelectionGate(
+    onIdentitySelected: (String) -> Unit,
+) {
+    var pendingSelection by rememberSaveable { mutableStateOf<String?>(null) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFFFF3F6),
+                        Color(0xFFFFFAFB),
+                    ),
+                ),
+            ),
+    )
+
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(30.dp),
+            color = Color.White,
+            shadowElevation = 22.dp,
+        ) {
+            Column(
+                modifier = Modifier
+                    .width(320.dp)
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
+            ) {
+                Text(
+                    text = "\u8bf7\u9009\u62e9\u5f53\u524d\u8eab\u4efd",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "\u8fd9\u6837\u7559\u8a00\u3001\u56de\u590d\u548c\u5fc3\u60c5\u624d\u4f1a\u5199\u5165\u6b63\u786e\u7684\u6570\u636e\u5e93\u8eab\u4efd\u3002",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF8C8690),
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                IdentityOptionCard(
+                    userId = SecretBaseUsers.SHEEP_ID,
+                    selected = pendingSelection == SecretBaseUsers.SHEEP_ID,
+                    onClick = { pendingSelection = SecretBaseUsers.SHEEP_ID },
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                IdentityOptionCard(
+                    userId = SecretBaseUsers.CHICK_ID,
+                    selected = pendingSelection == SecretBaseUsers.CHICK_ID,
+                    onClick = { pendingSelection = SecretBaseUsers.CHICK_ID },
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = { pendingSelection?.let(onIdentitySelected) },
+                    enabled = pendingSelection != null,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(text = "\u8fdb\u5165\u79d8\u5bc6\u57fa\u5730")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IdentityOptionCard(
+    userId: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val borderColor = if (selected) Color(0xFFFF91AF) else Color(0xFFEAE5E9)
+    val backgroundColor = if (selected) Color(0xFFFFF4F7) else Color.White
+    val accentColor = if (selected) Color(0xFFFF7FA2) else Color(0xFFB9B2BA)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(22.dp))
+            .background(backgroundColor)
+            .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(22.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .background(if (selected) Color(0xFFFFE6EE) else Color(0xFFF6F4F6)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = SecretBaseUsers.nameFor(userId).take(1),
+                style = MaterialTheme.typography.titleMedium,
+                color = accentColor,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = SecretBaseUsers.nameFor(userId),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF2B2630),
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = if (userId == SecretBaseUsers.SHEEP_ID) {
+                    "\u4ee5\u5c0f\u7f8a\u7684\u8eab\u4efd\u8fdb\u5165"
+                } else {
+                    "\u4ee5\u5c0f\u8036\u7684\u8eab\u4efd\u8fdb\u5165"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF8C8690),
+            )
+        }
+        Box(
+            modifier = Modifier
+                .size(18.dp)
+                .clip(CircleShape)
+                .background(if (selected) Color(0xFFFF86A8) else Color(0xFFF2EDF0)),
+        )
     }
 }

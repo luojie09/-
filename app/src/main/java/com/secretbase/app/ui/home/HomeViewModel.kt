@@ -11,7 +11,6 @@ import com.secretbase.app.data.HomeSnapshot
 import com.secretbase.app.data.MoodOption
 import com.secretbase.app.data.message.Message
 import com.secretbase.app.data.message.MessageRepository
-import com.secretbase.app.data.message.SecretBaseUsers
 import com.secretbase.app.data.wish.Wish
 import com.secretbase.app.data.wish.WishRepository
 import com.secretbase.app.data.wish.WishStatus
@@ -31,6 +30,7 @@ class HomeViewModel(
     private val homeRepository: HomeRepository,
     private val messageRepository: MessageRepository,
     private val wishRepository: WishRepository,
+    private val currentUserId: String,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -159,6 +159,7 @@ class HomeViewModel(
         val enriched = snapshot.withLiveModules(
             messages = latestMessageWall,
             wishes = latestWishes,
+            currentUserId = currentUserId,
         )
         _uiState.value = enriched.toUiState(
             now = ZonedDateTime.now(),
@@ -181,6 +182,7 @@ class HomeViewModel(
             homeRepository: HomeRepository,
             messageRepository: MessageRepository,
             wishRepository: WishRepository,
+            currentUserId: String,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
@@ -188,6 +190,7 @@ class HomeViewModel(
                     homeRepository = homeRepository,
                     messageRepository = messageRepository,
                     wishRepository = wishRepository,
+                    currentUserId = currentUserId,
                 ) as T
         }
     }
@@ -196,9 +199,10 @@ class HomeViewModel(
 private fun HomeSnapshot.withLiveModules(
     messages: List<Message>,
     wishes: List<Wish>,
+    currentUserId: String,
 ): HomeSnapshot {
-    val unreadCount = messages.sumOf { it.unreadCountFor(SecretBaseUsers.CURRENT_USER_ID) }
-    val messageActivities = messages.toActivityRecords(SecretBaseUsers.CURRENT_USER_ID)
+    val unreadCount = messages.sumOf { it.unreadCountFor(currentUserId) }
+    val messageActivities = messages.toActivityRecords(currentUserId)
     val wishActivities = wishes.toActivityRecords()
     return copy(
         stats = stats.copy(

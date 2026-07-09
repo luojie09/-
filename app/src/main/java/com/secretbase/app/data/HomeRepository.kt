@@ -21,6 +21,7 @@ import java.util.UUID
 
 class HomeRepository(
     private val context: Context,
+    private val currentUserId: String,
     private val client: SupabaseClient? = null,
 ) {
 
@@ -36,7 +37,7 @@ class HomeRepository(
         val couple = CoupleConfig(
             leftName = coupleJson.getString("leftName"),
             rightName = coupleJson.getString("rightName"),
-            currentUserId = coupleJson.getString("currentUserId"),
+            currentUserId = currentUserId,
             relationshipLabel = coupleJson.getString("relationshipLabel"),
             relationshipStartDate = LocalDate.parse(coupleJson.getString("relationshipStartDate")),
         )
@@ -76,7 +77,7 @@ class HomeRepository(
             UserMoodState(
                 id = json.getString("id"),
                 name = json.getString("name"),
-                editable = json.getBoolean("editable"),
+                editable = json.getString("id") == currentUserId,
                 currentMood = if (hasRecordedToday) {
                     MoodOption.fromLabel(persisted?.label.orEmpty()) ?: defaultMood
                 } else {

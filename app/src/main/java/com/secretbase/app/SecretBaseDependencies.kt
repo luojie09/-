@@ -17,6 +17,7 @@ import com.secretbase.app.data.wish.WishRepository
 
 class SecretBaseDependencies(
     context: Context,
+    val currentUserId: String,
     enableRemoteModules: Boolean = true,
 ) {
     private val supabaseClient =
@@ -34,11 +35,20 @@ class SecretBaseDependencies(
             null
         }
 
-    val homeRepository = HomeRepository(context, supabaseClient)
+    val homeRepository = HomeRepository(
+        context = context,
+        currentUserId = currentUserId,
+        client = supabaseClient,
+    )
     val messageRepository: MessageRepository =
         supabaseClient
             ?.let { client ->
-                runCatching { SupabaseMessageRepository(client) }
+                runCatching {
+                    SupabaseMessageRepository(
+                        client = client,
+                        currentUserId = currentUserId,
+                    )
+                }
                     .onFailure { error ->
                         Log.e(
                             TAG,
@@ -48,7 +58,7 @@ class SecretBaseDependencies(
                     }
                     .getOrNull()
             }
-            ?: FakeMessageRepository()
+            ?: FakeMessageRepository(currentUserId = currentUserId)
     val wishRepository: WishRepository =
         supabaseClient
             ?.let { client ->

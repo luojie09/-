@@ -19,6 +19,7 @@ import java.util.UUID
 
 class SupabaseMessageRepository(
     private val client: SupabaseClient,
+    private val currentUserId: String,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : MessageRepository {
 
@@ -43,7 +44,7 @@ class SupabaseMessageRepository(
         imagePaths: List<String>,
     ) {
         val row = DraftRow(
-            userId = SecretBaseUsers.CURRENT_USER_ID,
+            userId = currentUserId,
             content = content.take(MAX_MESSAGE_LENGTH),
             imagePaths = imagePaths.take(MAX_IMAGES),
             updatedAt = millisToIsoInstant(now()),
@@ -51,7 +52,7 @@ class SupabaseMessageRepository(
         runCatching {
             client.from(DRAFTS_TABLE).delete {
                 filter {
-                    eq("user_id", SecretBaseUsers.CURRENT_USER_ID)
+                    eq("user_id", currentUserId)
                 }
             }
             client.from(DRAFTS_TABLE).insert(row)
@@ -66,7 +67,7 @@ class SupabaseMessageRepository(
         runCatching {
             client.from(DRAFTS_TABLE).delete {
                 filter {
-                    eq("user_id", SecretBaseUsers.CURRENT_USER_ID)
+                    eq("user_id", currentUserId)
                 }
             }
         }.onFailure { error ->
@@ -86,8 +87,8 @@ class SupabaseMessageRepository(
         val timestamp = now()
         val message = Message(
             id = "message-${UUID.randomUUID()}",
-            authorId = SecretBaseUsers.CURRENT_USER_ID,
-            authorName = SecretBaseUsers.nameFor(SecretBaseUsers.CURRENT_USER_ID),
+            authorId = currentUserId,
+            authorName = SecretBaseUsers.nameFor(currentUserId),
             content = safeContent,
             imagePaths = safeImages,
             createdAt = timestamp,
@@ -116,7 +117,7 @@ class SupabaseMessageRepository(
         ) {
             filter {
                 eq("id", messageId)
-                eq("author_id", SecretBaseUsers.CURRENT_USER_ID)
+                eq("author_id", currentUserId)
             }
         }
         refreshMessages()
@@ -128,7 +129,7 @@ class SupabaseMessageRepository(
         client.from(MESSAGES_TABLE).delete {
             filter {
                 eq("id", messageId)
-                eq("author_id", SecretBaseUsers.CURRENT_USER_ID)
+                eq("author_id", currentUserId)
             }
         }
         refreshMessages()
@@ -145,8 +146,8 @@ class SupabaseMessageRepository(
         val reply = MessageReply(
             id = "reply-${UUID.randomUUID()}",
             messageId = messageId,
-            authorId = SecretBaseUsers.CURRENT_USER_ID,
-            authorName = SecretBaseUsers.nameFor(SecretBaseUsers.CURRENT_USER_ID),
+            authorId = currentUserId,
+            authorName = SecretBaseUsers.nameFor(currentUserId),
             content = safeContent,
             createdAt = timestamp,
             isRead = true,
@@ -163,7 +164,7 @@ class SupabaseMessageRepository(
         client.from(REPLIES_TABLE).delete {
             filter {
                 eq("id", replyId)
-                eq("author_id", SecretBaseUsers.CURRENT_USER_ID)
+                eq("author_id", currentUserId)
             }
         }
         refreshMessages()
@@ -175,7 +176,7 @@ class SupabaseMessageRepository(
         val readAt = now()
         val message = messages.value.firstOrNull { it.id == messageId } ?: return@runCatching
 
-        if (message.authorId != SecretBaseUsers.CURRENT_USER_ID && !message.isRead) {
+        if (message.authorId != currentUserId && !message.isRead) {
             client.from(MESSAGES_TABLE).update(
                 message.copy(
                     isRead = true,
@@ -189,7 +190,7 @@ class SupabaseMessageRepository(
         }
 
         message.replies
-            .filter { reply -> reply.authorId != SecretBaseUsers.CURRENT_USER_ID && !reply.isRead }
+            .filter { reply -> reply.authorId != currentUserId && !reply.isRead }
             .forEach { reply ->
                 client.from(REPLIES_TABLE).update(
                     reply.copy(
@@ -236,7 +237,7 @@ class SupabaseMessageRepository(
         val rows = client.from(DRAFTS_TABLE)
             .select {
                 filter {
-                    eq("user_id", SecretBaseUsers.CURRENT_USER_ID)
+                    eq("user_id", currentUserId)
                 }
             }
             .decodeList<DraftRow>()

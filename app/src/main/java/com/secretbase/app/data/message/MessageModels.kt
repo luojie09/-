@@ -34,12 +34,15 @@ data class MessageDraft(
 object SecretBaseUsers {
     const val SHEEP_ID = "sheep"
     const val CHICK_ID = "chick"
-    const val CURRENT_USER_ID = SHEEP_ID
+
+    val supportedUserIds = listOf(SHEEP_ID, CHICK_ID)
+
+    fun isSupported(userId: String): Boolean = userId in supportedUserIds
 
     fun nameFor(userId: String): String =
         when (userId) {
-            SHEEP_ID -> "小羊"
-            CHICK_ID -> "小耶"
-            else -> "我们"
+            SHEEP_ID -> "\u5c0f\u7f8a"
+            CHICK_ID -> "\u5c0f\u8036"
+            else -> "\u6211\u4eec"
         }
 }
