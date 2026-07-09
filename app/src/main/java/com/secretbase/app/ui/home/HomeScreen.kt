@@ -1,8 +1,8 @@
 package com.secretbase.app.ui.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,9 +26,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,39 +39,31 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.secretbase.app.R
 import com.secretbase.app.data.HeroVisualConfig
 import com.secretbase.app.data.HomeVisuals
 import com.secretbase.app.data.MoodOption
+import com.secretbase.app.data.TopActionMessages
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
-import com.secretbase.app.ui.theme.SecretBaseTheme
 import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SoftPinkStrong
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmBackground
-import com.secretbase.app.ui.theme.WarmBackgroundTop
 import com.secretbase.app.ui.theme.WarmGray
 
 @Composable
@@ -97,7 +86,7 @@ fun HomeScreen(
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier.padding(bottom = 96.dp),
+                modifier = Modifier.padding(bottom = 92.dp),
             )
         },
         bottomBar = {
@@ -122,19 +111,15 @@ fun HomeScreen(
 
                 payload != null -> HomeContent(
                     payload = payload,
-                    quickNoteText = uiState.quickNoteText,
                     innerPadding = innerPadding,
-                    onMoodCardClick = onMoodCardClick,
-                    onQuickNoteChange = onQuickNoteChange,
-                    onQuickNoteSubmit = onQuickNoteSubmit,
                     onAction = onPlaceholderAction,
                 )
 
                 else -> ErrorContent(
                     modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize(),
-                    message = uiState.errorMessage ?: "加载失败，点击重试",
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    message = uiState.errorMessage ?: "\u52a0\u8f7d\u5931\u8d25\uff0c\u70b9\u51fb\u91cd\u8bd5",
                     onRetry = onRetry,
                 )
             }
@@ -153,19 +138,15 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     payload: HomePayload,
-    quickNoteText: String,
     innerPadding: PaddingValues,
-    onMoodCardClick: (String) -> Unit,
-    onQuickNoteChange: (String) -> Unit,
-    onQuickNoteSubmit: () -> Unit,
     onAction: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
-        contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         item {
             HomeHeroSection(
@@ -176,7 +157,10 @@ private fun HomeContent(
 
         item {
             PaddedSection {
-                SectionTitle(title = "来玩呀！", trailing = null)
+                SectionTitle(
+                    title = "\u5e38\u7528\u529f\u80fd",
+                    trailing = null,
+                )
             }
         }
 
@@ -192,8 +176,8 @@ private fun HomeContent(
         item {
             PaddedSection {
                 SectionTitle(
-                    title = "最近动态",
-                    trailing = "查看全部",
+                    title = "\u6700\u8fd1\u52a8\u6001",
+                    trailing = "\u67e5\u770b\u5168\u90e8",
                     onTrailingClick = { onAction(payload.recentActivityListMessage) },
                 )
             }
@@ -223,7 +207,7 @@ private fun HomeContent(
 
 @Composable
 private fun PaddedSection(content: @Composable () -> Unit) {
-    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Box(modifier = Modifier.padding(horizontal = 20.dp)) {
         content()
     }
 }
@@ -245,7 +229,7 @@ private fun HomeHeroSection(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 20.dp),
             ) {
                 RelationshipCard(
                     relationship = payload.relationship,
@@ -311,34 +295,30 @@ private fun HomeHeader(
     coupleDisplayName: String,
     visuals: HomeVisuals,
     messageDotVisible: Boolean,
-    topActionMessages: com.secretbase.app.data.TopActionMessages,
+    topActionMessages: TopActionMessages,
     onAction: (String) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp),
+            .padding(start = 20.dp, end = 20.dp, top = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top,
     ) {
         Column(
             modifier = Modifier.padding(top = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 text = greeting,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontFamily = FontFamily.Serif,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.2.sp,
-                ),
+                style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.Greeting),
                 color = WarmGray,
             )
             CoupleNameTitle(coupleDisplayName = coupleDisplayName)
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TopActionButton(
                 iconRes = visuals.icon("message"),
                 showDot = messageDotVisible,
@@ -355,11 +335,9 @@ private fun HomeHeader(
 
 @Composable
 private fun CoupleIllustration(hero: HeroVisualConfig) {
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxSize(),
-    ) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val horizontalPadding = when {
-            maxWidth <= 320.dp -> 8.dp
+            maxWidth <= 320.dp -> 10.dp
             maxWidth <= 360.dp -> 14.dp
             maxWidth <= 393.dp -> 18.dp
             else -> 24.dp
@@ -369,8 +347,12 @@ private fun CoupleIllustration(hero: HeroVisualConfig) {
             resId = hero.imageRes,
             modifier = Modifier
                 .fillMaxSize()
-                .scale(1.06f)
-                .padding(start = horizontalPadding, end = horizontalPadding, bottom = 2.dp),
+                .padding(
+                    start = horizontalPadding,
+                    end = horizontalPadding,
+                    top = 6.dp,
+                    bottom = 2.dp,
+                ),
             contentScale = ContentScale.Fit,
             alignment = Alignment.BottomCenter,
         )
@@ -401,18 +383,24 @@ private fun TopActionButton(
     showDot: Boolean,
     onClick: () -> Unit,
 ) {
-    Box {
+    Box(
+        modifier = Modifier.size(40.dp),
+        contentAlignment = Alignment.Center,
+    ) {
         Surface(
             onClick = onClick,
             shape = CircleShape,
-            color = SurfaceWhite.copy(alpha = 0.92f),
-            shadowElevation = 10.dp,
-            modifier = Modifier.size(48.dp),
+            color = SurfaceWhite.copy(alpha = 0.58f),
+            shadowElevation = 0.dp,
+            border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.18f)),
+            modifier = Modifier.size(34.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {
                 DrawableOrFallback(
                     resId = iconRes,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier
+                        .size(17.dp)
+                        .alpha(0.78f),
                 )
             }
         }
@@ -421,10 +409,9 @@ private fun TopActionButton(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 2.dp, end = 2.dp)
-                    .size(12.dp)
-                    .background(CherryPink, CircleShape)
-                    .border(2.dp, SurfaceWhite, CircleShape),
+                    .padding(top = 6.dp, end = 6.dp)
+                    .size(6.dp)
+                    .background(CherryPink.copy(alpha = 0.5f), CircleShape),
             )
         }
     }
@@ -436,127 +423,113 @@ private fun RelationshipCard(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.shadow(20.dp, RoundedCornerShape(28.dp), clip = false),
-        shape = RoundedCornerShape(28.dp),
+        modifier = modifier,
+        shape = RoundedCornerShape(26.dp),
         color = SurfaceWhite.copy(alpha = 0.98f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
+        shadowElevation = 2.dp,
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.4f)),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 2.dp),
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
                     text = relationship.label,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    ),
+                    style = MaterialTheme.typography.bodySmall.homeToken(HomeTypographyScale.RelationshipLabel),
                     color = WarmGray,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .background(
-                            color = Color(0xFFEAF4FF),
-                            shape = RoundedCornerShape(999.dp),
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
                 )
 
                 Row(
-                    modifier = Modifier
-                        .align(Alignment.Center),
                     verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
                         text = relationship.daysTogether.toString(),
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            fontFamily = FontFamily.Cursive,
-                            fontSize = 68.sp,
-                            lineHeight = 68.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = (-1).sp,
-                        ),
+                        style = MaterialTheme.typography.displaySmall.homeToken(HomeTypographyScale.DaysValue),
                         color = InkBlack,
-                        modifier = Modifier.padding(top = 24.dp),
                     )
                     Text(
-                        text = "天",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = "\u5929",
+                        style = MaterialTheme.typography.titleMedium.homeToken(HomeTypographyScale.DaysUnit),
                         color = InkBlack,
-                        modifier = Modifier.padding(top = 24.dp, bottom = 8.dp),
+                        modifier = Modifier.padding(bottom = 7.dp),
                     )
                 }
+
+                Text(
+                    text = "\u4ece ${relationship.startDateText} \u5f00\u59cb",
+                    style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.Meta),
+                    color = WarmGray,
+                )
             }
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = SurfaceWhite.copy(alpha = 0.72f),
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 13.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = "下个纪念日",
-                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                                color = WarmGray,
-                            )
-                            Text(
-                                text = relationship.anniversaryTitle,
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                                color = InkBlack,
-                            )
-                        }
-                        Surface(
-                            shape = RoundedCornerShape(999.dp),
-                            color = SoftPink.copy(alpha = 0.34f),
-                        ) {
-                            Text(
-                                text = relationship.anniversaryCountdownLabel,
-                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                                color = InkBlack,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            )
-                        }
-                    }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(OutlinePink.copy(alpha = 0.46f)),
+            )
 
-                    Box(
-                        modifier = Modifier
-                            .height(6.dp)
-                            .fillMaxWidth()
-                            .background(SoftPink.copy(alpha = 0.3f), RoundedCornerShape(100.dp)),
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(relationship.anniversaryProgress)
-                                .height(6.dp)
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(
-                                            CherryPink.copy(alpha = 0.78f),
-                                            SoftPinkStrong.copy(alpha = 0.72f),
-                                        ),
-                                    ),
-                                    RoundedCornerShape(100.dp),
-                                ),
+                        Text(
+                            text = "\u4e0b\u4e2a\u7eaa\u5ff5\u65e5",
+                            style = MaterialTheme.typography.bodySmall.homeToken(HomeTypographyScale.Eyebrow),
+                            color = WarmGray,
+                        )
+                        Text(
+                            text = relationship.anniversaryTitle,
+                            style = MaterialTheme.typography.bodyLarge.homeToken(HomeTypographyScale.AnniversaryTitle),
+                            color = InkBlack,
                         )
                     }
+
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = SoftPink.copy(alpha = 0.22f),
+                    ) {
+                        Text(
+                            text = relationship.anniversaryCountdownLabel,
+                            style = MaterialTheme.typography.bodySmall.homeToken(HomeTypographyScale.Capsule),
+                            color = InkBlack,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .background(SoftPink.copy(alpha = 0.22f), RoundedCornerShape(999.dp)),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(relationship.anniversaryProgress)
+                            .height(6.dp)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        CherryPink.copy(alpha = 0.72f),
+                                        SoftPinkStrong.copy(alpha = 0.66f),
+                                    ),
+                                ),
+                                RoundedCornerShape(999.dp),
+                            ),
+                    )
                 }
             }
         }
@@ -565,229 +538,42 @@ private fun RelationshipCard(
 
 @Composable
 private fun CoupleNameTitle(coupleDisplayName: String) {
-    val names = coupleDisplayName.split(" & ")
+    val heartToken = "\u2764\uFE0F"
+    val names = when {
+        coupleDisplayName.contains(heartToken) -> coupleDisplayName.split(heartToken)
+        coupleDisplayName.contains(" & ") -> coupleDisplayName.split(" & ")
+        else -> emptyList()
+    }.map { it.trim() }
+
     if (names.size == 2) {
         Row(
             verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             Text(
                 text = names[0],
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 34.sp,
-                    lineHeight = 38.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.sp,
-                ),
+                style = MaterialTheme.typography.headlineMedium.homeToken(HomeTypographyScale.HeroName),
                 color = InkBlack,
             )
             Text(
-                text = "&",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontSize = 24.sp,
-                    lineHeight = 30.sp,
-                    fontWeight = FontWeight.Medium,
-                ),
-                color = InkBlack.copy(alpha = 0.82f),
+                text = heartToken,
+                style = MaterialTheme.typography.titleMedium.homeToken(HomeTypographyScale.HeroHeart),
+                color = CherryPink.copy(alpha = 0.9f),
                 modifier = Modifier.padding(bottom = 3.dp),
             )
             Text(
                 text = names[1],
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 34.sp,
-                    lineHeight = 38.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.sp,
-                ),
+                style = MaterialTheme.typography.headlineMedium.homeToken(HomeTypographyScale.HeroName),
                 color = InkBlack,
             )
         }
     } else {
         Text(
             text = coupleDisplayName,
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontFamily = FontFamily.Serif,
-                fontSize = 34.sp,
-                lineHeight = 38.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.sp,
-            ),
+            style = MaterialTheme.typography.headlineMedium.homeToken(HomeTypographyScale.HeroName),
             color = InkBlack,
             maxLines = 2,
         )
-    }
-}
-
-@Composable
-private fun MoodSection(
-    moods: List<MoodCardUiModel>,
-    onMoodCardClick: (String) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        moods.forEach { mood ->
-            Surface(
-                onClick = { onMoodCardClick(mood.userId) },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(22.dp),
-                color = SurfaceWhite.copy(alpha = 0.96f),
-                shadowElevation = 10.dp,
-                border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    AvatarImage(
-                        resId = mood.avatarRes,
-                        modifier = Modifier.size(54.dp),
-                    )
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            text = mood.displayName,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                            color = WarmGray,
-                        )
-                        Text(
-                            text = mood.moodLabel,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = InkBlack,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    Text(
-                        text = mood.moodEmoji,
-                        style = MaterialTheme.typography.headlineLarge.copy(fontSize = 28.sp, lineHeight = 28.sp),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun QuickRecordSection(
-    placeholder: String,
-    note: String,
-    visuals: HomeVisuals,
-    onNoteChange: (String) -> Unit,
-    onNoteSubmit: () -> Unit,
-    onAction: (String) -> Unit,
-    galleryMessage: String,
-    cameraMessage: String,
-    calendarMessage: String,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
-        color = SurfaceWhite.copy(alpha = 0.96f),
-        shadowElevation = 10.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "快速记录",
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                    color = WarmGray,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    QuickActionIcon(
-                        iconRes = visuals.icon("quickGallery"),
-                        onClick = { onAction(galleryMessage) },
-                    )
-                    QuickActionIcon(
-                        iconRes = visuals.icon("quickCamera"),
-                        onClick = { onAction(cameraMessage) },
-                    )
-                    QuickActionIcon(
-                        iconRes = visuals.icon("quickCalendar"),
-                        onClick = { onAction(calendarMessage) },
-                    )
-                }
-            }
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = WarmBackgroundTop,
-                border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.85f)),
-            ) {
-                BasicTextField(
-                    value = note,
-                    onValueChange = onNoteChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 15.dp),
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = InkBlack),
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        imeAction = ImeAction.Done,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onNoteSubmit() },
-                    ),
-                    decorationBox = { innerTextField ->
-                        Box {
-                            if (note.isBlank()) {
-                                Text(
-                                    text = placeholder,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = WarmGray,
-                                )
-                            }
-                            innerTextField()
-                        }
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun QuickActionIcon(
-    iconRes: Int?,
-    onClick: () -> Unit,
-) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
-        color = WarmBackgroundTop,
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.8f)),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .padding(6.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            DrawableOrFallback(
-                resId = iconRes,
-                modifier = Modifier.size(22.dp),
-            )
-        }
     }
 }
 
@@ -804,23 +590,17 @@ private fun SectionTitle(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+            style = MaterialTheme.typography.titleLarge.homeToken(HomeTypographyScale.SectionTitle),
             color = InkBlack,
         )
+
         if (trailing != null && onTrailingClick != null) {
-            Surface(
-                onClick = onTrailingClick,
-                shape = RoundedCornerShape(999.dp),
-                color = SurfaceWhite.copy(alpha = 0.82f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.76f)),
-            ) {
-                Text(
-                    text = trailing,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = WarmGray,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                )
-            }
+            Text(
+                text = trailing,
+                style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.SectionAction),
+                color = WarmGray,
+                modifier = Modifier.clickable(onClick = onTrailingClick),
+            )
         }
     }
 }
@@ -862,90 +642,50 @@ private fun FeatureGridCard(
     Surface(
         onClick = { onAction(feature.clickMessage) },
         modifier = modifier,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(22.dp),
         color = accentBackground,
-        shadowElevation = 12.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
+        shadowElevation = 1.dp,
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.38f)),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 152.dp)
+                .heightIn(min = 118.dp)
                 .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = SurfaceWhite.copy(alpha = 0.78f),
             ) {
-                Surface(
-                    shape = RoundedCornerShape(18.dp),
-                    color = SurfaceWhite.copy(alpha = 0.88f),
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        DrawableOrFallback(
-                            resId = feature.iconRes,
-                            modifier = Modifier.size(36.dp),
-                        )
-                    }
-                }
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = SurfaceWhite.copy(alpha = 0.72f),
-                ) {
-                    Text(
-                        text = feature.featureBadgeText(),
-                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                        color = WarmGray,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    DrawableOrFallback(
+                        resId = feature.iconRes,
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = feature.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = InkBlack,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = feature.summary,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        color = WarmGray,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = SurfaceWhite.copy(alpha = 0.88f),
-                    ) {
-                        Box(
-                            modifier = Modifier.size(28.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = "›",
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                color = WarmGray,
-                            )
-                        }
-                    }
-                }
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = feature.title,
+                    style = MaterialTheme.typography.titleMedium.homeToken(HomeTypographyScale.FeatureTitle),
+                    color = InkBlack,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = feature.summary,
+                    style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.FeatureSummary),
+                    color = WarmGray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
@@ -953,24 +693,13 @@ private fun FeatureGridCard(
 
 private fun FeatureCardUiModel.featureAccentBackground(): Color =
     when (id) {
-        "anniversary" -> Color(0xFFFFF5F7)
+        "anniversary" -> Color(0xFFFFF9FB)
         "album" -> Color(0xFFFFFFFF)
-        "wishlist" -> Color(0xFFFFFCF4)
-        "messageWall" -> Color(0xFFFFF7FB)
-        "diary" -> Color(0xFFFFFBFC)
-        "tasks" -> Color(0xFFFBFFF8)
+        "wishlist" -> Color(0xFFFFFDF8)
+        "messageWall" -> Color(0xFFFFFAFC)
+        "diary" -> Color(0xFFFFFCFD)
+        "tasks" -> Color(0xFFFCFFFB)
         else -> SurfaceWhite.copy(alpha = 0.98f)
-    }
-
-private fun FeatureCardUiModel.featureBadgeText(): String =
-    when (id) {
-        "anniversary" -> "倒数中"
-        "album" -> "回忆簿"
-        "wishlist" -> "想去做"
-        "messageWall" -> "有留言"
-        "diary" -> "今天份"
-        "tasks" -> "一起冲"
-        else -> "看看"
     }
 
 @Composable
@@ -982,11 +711,11 @@ private fun ActivityCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = SurfaceWhite.copy(alpha = 0.98f),
-        shadowElevation = 12.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
+        shadowElevation = 1.dp,
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.38f)),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
         ) {
             activities.forEachIndexed { index, activity ->
                 ActivityRow(
@@ -1005,25 +734,22 @@ private fun ActivityRow(
     showDivider: Boolean,
     onClick: () -> Unit,
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
+            .padding(vertical = 12.dp),
     ) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(CherryPink, CircleShape),
-            )
             Surface(
-                modifier = Modifier.size(54.dp),
+                modifier = Modifier.size(52.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = SurfaceWhite,
+                border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.34f)),
             ) {
                 DrawableOrFallback(
                     resId = activity.iconRes,
@@ -1031,34 +757,36 @@ private fun ActivityRow(
                     contentScale = ContentScale.Crop,
                 )
             }
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = activity.title,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.bodyLarge.homeToken(HomeTypographyScale.ActivityTitle),
                     color = InkBlack,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = activity.relativeTime,
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.bodySmall.homeToken(HomeTypographyScale.ActivityMeta),
                     color = WarmGray,
                 )
             }
+
             Text(
-                text = "›",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                text = "\u203a",
+                style = MaterialTheme.typography.titleLarge.homeToken(HomeTypographyScale.FeatureTitle),
                 color = WarmGray,
             )
         }
 
         if (showDivider) {
-            Spacer(modifier = Modifier.height(10.dp))
             Box(
                 modifier = Modifier
+                    .align(Alignment.BottomEnd)
                     .fillMaxWidth()
                     .height(1.dp)
-                    .background(OutlinePink),
+                    .background(OutlinePink.copy(alpha = 0.42f)),
             )
         }
     }
@@ -1073,27 +801,27 @@ private fun EmptyActivityCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = SurfaceWhite.copy(alpha = 0.98f),
-        shadowElevation = 12.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
+        shadowElevation = 1.dp,
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.38f)),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 22.dp),
+                .padding(horizontal = 20.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             DrawableOrFallback(
                 resId = heroRes,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(20.dp)),
+                    .height(112.dp)
+                    .clip(RoundedCornerShape(18.dp)),
                 contentScale = ContentScale.Fit,
             )
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.EmptyState),
                 color = WarmGray,
                 textAlign = TextAlign.Center,
             )
@@ -1111,36 +839,36 @@ private fun HomeBottomBar(
             .fillMaxWidth()
             .navigationBarsPadding(),
         color = SurfaceWhite.copy(alpha = 0.96f),
-        shadowElevation = 18.dp,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.52f)),
+        shadowElevation = 3.dp,
+        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.4f)),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 10.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             BottomNavItem(
-                label = "首页",
+                label = "\u9996\u9875",
                 iconRes = payload.visuals.icon("navHome"),
                 active = true,
                 onClick = {},
             )
             BottomNavItem(
-                label = "纪念日",
+                label = "\u7eaa\u5ff5\u65e5",
                 iconRes = payload.visuals.icon("navAnniversary"),
                 active = false,
                 onClick = { onAction(payload.bottomNavMessages.anniversary) },
             )
             BottomNavItem(
-                label = "相册",
+                label = "\u76f8\u518c",
                 iconRes = payload.visuals.icon("navAlbum"),
                 active = false,
                 onClick = { onAction(payload.bottomNavMessages.album) },
             )
             BottomNavItem(
-                label = "我的",
+                label = "\u6211\u7684",
                 iconRes = payload.visuals.icon("navProfile"),
                 active = false,
                 onClick = { onAction(payload.bottomNavMessages.profile) },
@@ -1158,22 +886,22 @@ private fun BottomNavItem(
 ) {
     Surface(
         onClick = onClick,
-        color = if (active) Color(0xFFFFF2F6) else Color.Transparent,
-        shape = RoundedCornerShape(18.dp),
+        color = Color.Transparent,
+        shape = RoundedCornerShape(16.dp),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             DrawableOrFallback(
                 resId = iconRes,
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(24.dp),
             )
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                style = MaterialTheme.typography.bodySmall.homeToken(
+                    if (active) HomeTypographyScale.SectionAction else HomeTypographyScale.NavLabel,
                 ),
                 color = if (active) CherryPink else WarmGray,
             )
@@ -1188,14 +916,14 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+            .padding(horizontal = 20.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SkeletonBlock(height = 36.dp, width = 72.dp)
-        SkeletonBlock(height = 48.dp, width = 220.dp)
-        SkeletonBlock(height = 420.dp, modifier = Modifier.fillMaxWidth())
-        repeat(4) {
-            SkeletonBlock(height = 110.dp, modifier = Modifier.fillMaxWidth())
+        SkeletonBlock(height = 28.dp, width = 84.dp)
+        SkeletonBlock(height = 42.dp, width = 220.dp)
+        SkeletonBlock(height = 360.dp, modifier = Modifier.fillMaxWidth())
+        repeat(3) {
+            SkeletonBlock(height = 120.dp, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -1222,15 +950,15 @@ private fun ErrorContent(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(containerColor = CherryPink),
         ) {
-            Text(text = "点击重试")
+            Text(text = "\u70b9\u51fb\u91cd\u8bd5")
         }
     }
 }
 
 @Composable
 private fun SkeletonBlock(
-    height: androidx.compose.ui.unit.Dp,
-    width: androidx.compose.ui.unit.Dp? = null,
+    height: Dp,
+    width: Dp? = null,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -1238,26 +966,8 @@ private fun SkeletonBlock(
             .then(if (width != null) Modifier.width(width) else Modifier.fillMaxWidth())
             .height(height)
             .clip(RoundedCornerShape(24.dp))
-            .background(SoftPink.copy(alpha = 0.45f)),
+            .background(SoftPink.copy(alpha = 0.36f)),
     )
-}
-
-@Composable
-private fun AvatarImage(
-    resId: Int?,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier,
-        shape = CircleShape,
-        color = SurfaceWhite,
-    ) {
-        DrawableOrFallback(
-            resId = resId,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-        )
-    }
 }
 
 @Composable
@@ -1279,7 +989,7 @@ private fun DrawableOrFallback(
             Box(
                 modifier = modifier
                     .align(alignment)
-                    .background(SoftPink.copy(alpha = 0.6f), RoundedCornerShape(16.dp)),
+                    .background(SoftPink.copy(alpha = 0.42f), RoundedCornerShape(16.dp)),
             )
         }
     }
@@ -1305,8 +1015,8 @@ private fun MoodPickerSheet(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                text = "选择今天的心情",
-                style = MaterialTheme.typography.titleLarge,
+                text = "\u9009\u62e9\u4eca\u5929\u7684\u5fc3\u60c5",
+                style = MaterialTheme.typography.titleLarge.homeToken(HomeTypographyScale.PickerTitle),
                 color = InkBlack,
             )
 
@@ -1321,8 +1031,8 @@ private fun MoodPickerSheet(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(20.dp),
                             color = SurfaceWhite,
-                            shadowElevation = 8.dp,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink),
+                            shadowElevation = 4.dp,
+                            border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.5f)),
                         ) {
                             Column(
                                 modifier = Modifier
@@ -1337,7 +1047,7 @@ private fun MoodPickerSheet(
                                 )
                                 Text(
                                     text = option.label,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    style = MaterialTheme.typography.bodyLarge.homeToken(HomeTypographyScale.FeatureTitle),
                                     color = InkBlack,
                                 )
                             }
@@ -1367,161 +1077,3 @@ private fun String.toColorOrDefault(default: Color): Color =
         }
         Color(argb)
     }.getOrDefault(default)
-
-@Preview(showBackground = true, widthDp = 320, heightDp = 852, name = "Home 320dp")
-@Composable
-private fun HomeScreenPreview320() {
-    PreviewHomeScreen()
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 852, name = "Home 360dp")
-@Composable
-private fun HomeScreenPreview360() {
-    PreviewHomeScreen()
-}
-
-@Preview(showBackground = true, widthDp = 393, heightDp = 852, name = "Home 393dp")
-@Composable
-private fun HomeScreenPreview393() {
-    PreviewHomeScreen()
-}
-
-@Preview(showBackground = true, widthDp = 430, heightDp = 852, name = "Home 430dp")
-@Composable
-private fun HomeScreenPreview430() {
-    PreviewHomeScreen()
-}
-
-@Composable
-private fun PreviewHomeScreen() {
-    SecretBaseTheme {
-        HomeScreen(
-            uiState = previewHomeUiState(),
-            snackbarHostState = remember { SnackbarHostState() },
-            onRetry = {},
-            onMoodCardClick = {},
-            onMoodSelected = {},
-            onDismissMoodPicker = {},
-            onQuickNoteChange = {},
-            onQuickNoteSubmit = {},
-            onPlaceholderAction = {},
-        )
-    }
-}
-
-private fun previewHomeUiState(): HomeUiState {
-    val visuals = HomeVisuals(
-        hero = HeroVisualConfig(
-            imageRes = R.drawable.home_couple_hero,
-            gradientStartHex = "#FFEEF3",
-            gradientMiddleHex = "#FFF7F8",
-            gradientEndHex = "#FFFBFA",
-            heightDp = 262,
-            bottomFadeHeightDp = 72,
-            relationshipCardOverlapDp = 24,
-        ),
-        backgroundOverlayRes = null,
-        avatarResByUserId = mapOf(
-            "sheep" to R.drawable.avatar_sheep,
-            "chick" to R.drawable.avatar_chick,
-        ),
-        iconResBySlot = mapOf(
-            "message" to R.drawable.ic_message_bubble,
-            "settings" to R.drawable.ic_settings_gear,
-            "quickGallery" to R.drawable.ic_gallery_stack,
-            "quickCamera" to R.drawable.ic_camera,
-            "quickCalendar" to R.drawable.ic_calendar_outline_pink,
-            "anniversaryFeature" to R.drawable.ic_anniversary_card,
-            "albumFeature" to R.drawable.ic_album_card,
-            "wishlistFeature" to R.drawable.ic_wishlist_card,
-            "messageWallFeature" to R.drawable.ic_message_wall_card,
-            "diaryFeature" to R.drawable.ic_diary_card,
-            "taskFeature" to R.drawable.ic_task_card,
-            "navHome" to R.drawable.ic_home_nav_active,
-            "navAnniversary" to R.drawable.ic_calendar_nav,
-            "navAlbum" to R.drawable.ic_album_nav,
-            "navProfile" to R.drawable.ic_profile_nav,
-            "activityPhoto" to R.drawable.ic_activity_photo,
-            "activityChecklist" to R.drawable.ic_activity_checklist,
-            "activityNote" to R.drawable.ic_message_bubble,
-        ),
-    )
-
-    return HomeUiState(
-        isLoading = false,
-        payload = HomePayload(
-            greeting = "Good morning",
-            coupleDisplayName = "小羊 & 小耶",
-            relationship = RelationshipUiModel(
-                label = "我们已经在一起",
-                daysTogether = 48,
-                startDateText = "2026.05.06",
-                anniversaryTitle = "恋爱一周年",
-                daysUntilAnniversary = 318,
-                anniversaryCountdownLabel = "还有 318 天",
-                anniversaryProgress = 0.14f,
-            ),
-            visuals = visuals,
-            quickRecord = com.secretbase.app.data.QuickRecordConfig(
-                placeholder = "今天想说点什么……",
-                entryMessage = "待接入快捷发布页",
-                galleryMessage = "待接入从相册选择图片",
-                cameraMessage = "待接入拍照",
-                calendarMessage = "待接入日期 / 纪念记录",
-            ),
-            topActionMessages = com.secretbase.app.data.TopActionMessages(
-                message = "待接入消息页",
-                settings = "待接入设置页",
-            ),
-            bottomNavMessages = com.secretbase.app.data.BottomNavMessages(
-                anniversary = "待接入纪念日页",
-                album = "待接入相册页",
-                profile = "待接入我的页",
-            ),
-            moodOptions = MoodOption.defaults,
-            moodCards = listOf(
-                MoodCardUiModel(
-                    userId = "sheep",
-                    displayName = "小羊",
-                    moodLabel = "开心",
-                    moodEmoji = "😊",
-                    editable = true,
-                    avatarRes = R.drawable.avatar_sheep,
-                ),
-                MoodCardUiModel(
-                    userId = "chick",
-                    displayName = "小耶",
-                    moodLabel = "平静",
-                    moodEmoji = "🙂",
-                    editable = false,
-                    avatarRes = R.drawable.avatar_chick,
-                ),
-            ),
-            featureCards = listOf(
-                FeatureCardUiModel("messageWall", "留言墙", "9条新消息", "待接入留言墙", R.drawable.ic_message_wall_card),
-                FeatureCardUiModel("wishlist", "愿望清单", "3 / 8 完成", "待接入愿望清单", R.drawable.ic_wishlist_card),
-                FeatureCardUiModel("anniversary", "纪念日", "318天后", "待接入纪念日", R.drawable.ic_anniversary_card),
-                FeatureCardUiModel("tasks", "挑战任务", "2项进行中", "待接入挑战任务", R.drawable.ic_task_card),
-            ),
-            activities = listOf(
-                ActivityUiModel(
-                    id = "photo",
-                    title = "小耶上传了 3 张新照",
-                    relativeTime = "2小时前",
-                    clickMessage = "待接入相册详情",
-                    iconRes = R.drawable.ic_activity_photo,
-                ),
-                ActivityUiModel(
-                    id = "wish",
-                    title = "完成了愿望清单中的「看海」",
-                    relativeTime = "昨天",
-                    clickMessage = "待接入愿望详情",
-                    iconRes = R.drawable.ic_activity_checklist,
-                ),
-            ),
-            recentActivityEmptyText = "还没有新的记录，去留下属于我们的回忆吧",
-            recentActivityListMessage = "待接入完整动态列表",
-            messageDotVisible = true,
-        ),
-    )
-}

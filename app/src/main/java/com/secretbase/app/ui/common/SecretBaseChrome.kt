@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,13 +30,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secretbase.app.ui.messagewall.WallCircleButton
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmBackground
-import com.secretbase.app.ui.theme.WarmBackgroundTop
 import com.secretbase.app.ui.theme.WarmGray
 
 @Composable
@@ -49,7 +48,7 @@ fun SecretBasePageBackground(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        WarmBackgroundTop,
+                        Color(0xFFFFF7F8),
                         WarmBackground,
                     ),
                 ),
@@ -57,24 +56,17 @@ fun SecretBasePageBackground(
     ) {
         Box(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 18.dp, top = 54.dp)
-                .size(168.dp)
-                .background(Color(0x22FFD8E4), CircleShape),
-        )
-        Box(
-            modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(end = 8.dp, top = 132.dp)
-                .size(124.dp)
-                .background(Color(0x18FFF0F5), CircleShape),
+                .padding(end = 18.dp, top = 72.dp)
+                .size(132.dp)
+                .background(Color(0x10FFD9E4), CircleShape),
         )
         Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 72.dp)
-                .size(140.dp)
-                .background(Color(0x16FFEAF1), CircleShape),
+                .align(Alignment.BottomStart)
+                .padding(start = 8.dp, bottom = 88.dp)
+                .size(112.dp)
+                .background(Color(0x0CFFF1F5), CircleShape),
         )
 
         content()
@@ -95,10 +87,10 @@ fun SecretBasePageTopBar(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(start = 10.dp, end = 10.dp, top = 12.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        WallCircleButton(
+        SecretBaseTopBarButton(
             icon = Icons.AutoMirrored.Outlined.ArrowBack,
             contentDescription = "返回",
             tint = InkBlack,
@@ -108,21 +100,21 @@ fun SecretBasePageTopBar(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-0.3).sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.15).sp,
             ),
             color = InkBlack,
         )
         Spacer(modifier = Modifier.weight(1f))
         if (actionIcon != null && actionDescription != null && onActionClick != null) {
-            WallCircleButton(
+            SecretBaseTopBarButton(
                 icon = actionIcon,
                 contentDescription = actionDescription,
                 tint = actionTint,
                 onClick = onActionClick,
             )
         } else {
-            Spacer(modifier = Modifier.size(48.dp))
+            Spacer(modifier = Modifier.size(40.dp))
         }
     }
 }
@@ -136,30 +128,173 @@ fun SecretBaseSectionIntro(
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Surface(
-            shape = RoundedCornerShape(999.dp),
-            color = SurfaceWhite.copy(alpha = 0.78f),
-            border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.72f)),
-        ) {
+        if (eyebrow.isNotBlank()) {
             Text(
                 text = eyebrow,
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                color = CherryPink,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.1.sp,
+                ),
+                color = CherryPink.copy(alpha = 0.84f),
             )
         }
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.25).sp,
+                ),
                 color = InkBlack,
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = WarmGray,
+            )
+        }
+    }
+}
+
+@Composable
+fun SecretBaseCardSurface(
+    modifier: Modifier = Modifier,
+    shape: RoundedCornerShape = RoundedCornerShape(28.dp),
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = modifier,
+        color = SurfaceWhite.copy(alpha = 0.94f),
+        shadowElevation = 2.dp,
+        tonalElevation = 0.dp,
+        shape = shape,
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.72f)),
+        content = content,
+    )
+}
+
+@Composable
+fun SecretBasePrimaryButton(
+    text: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        onClick = onClick,
+        enabled = enabled,
+        color = if (enabled) CherryPink else Color(0xFFECE6E8),
+        shadowElevation = if (enabled) 1.dp else 0.dp,
+        shape = RoundedCornerShape(999.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = if (enabled) CherryPink.copy(alpha = 0.14f) else OutlinePink.copy(alpha = 0.7f),
+        ),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+            color = if (enabled) SurfaceWhite else WarmGray,
+        )
+    }
+}
+
+@Composable
+fun SecretBaseSecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        onClick = onClick,
+        color = SurfaceWhite.copy(alpha = 0.8f),
+        shadowElevation = 0.dp,
+        shape = RoundedCornerShape(999.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.82f)),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+            color = InkBlack,
+        )
+    }
+}
+
+@Composable
+fun SecretBaseInputSurface(
+    modifier: Modifier = Modifier,
+    shape: RoundedCornerShape = RoundedCornerShape(18.dp),
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = modifier,
+        color = Color(0xFFFDF9FA),
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp,
+        shape = shape,
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.78f)),
+        content = content,
+    )
+}
+
+@Composable
+fun SecretBaseTopBarButton(
+    icon: ImageVector,
+    contentDescription: String,
+    tint: Color,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.size(40.dp),
+        color = SurfaceWhite.copy(alpha = 0.82f),
+        shape = CircleShape,
+        shadowElevation = 1.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.62f)),
+        onClick = onClick,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = tint,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
+}
+
+@Composable
+fun SecretBaseMiniActionButton(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    tint: Color = WarmGray,
+) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = tint,
+                modifier = Modifier.size(14.dp),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = tint,
             )
         }
     }

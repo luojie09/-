@@ -42,7 +42,7 @@ fun buildHomePreviewUiState(
 ): HomeUiState {
     val payload = HomePayload(
         greeting = "Good morning",
-        coupleDisplayName = "\u5c0f\u7f8a & \u5c0f\u8036",
+        coupleDisplayName = "\u5c0f\u7f8a\u2764\uFE0F\u5c0f\u8036",
         relationship = RelationshipUiModel(
             label = "\u6211\u4eec\u5df2\u7ecf\u5728\u4e00\u8d77",
             daysTogether = 48,
@@ -178,9 +178,9 @@ private fun previewHomeVisuals(): HomeVisuals =
             gradientStartHex = "#FFEEF3",
             gradientMiddleHex = "#FFF7F8",
             gradientEndHex = "#FFFBFA",
-            heightDp = 262,
-            bottomFadeHeightDp = 72,
-            relationshipCardOverlapDp = 24,
+            heightDp = 220,
+            bottomFadeHeightDp = 64,
+            relationshipCardOverlapDp = 20,
         ),
         backgroundOverlayRes = null,
         avatarResByUserId = mapOf(

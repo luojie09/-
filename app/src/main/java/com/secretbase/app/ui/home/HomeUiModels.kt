@@ -92,7 +92,7 @@ fun HomeSnapshot.toUiState(
         editingMoodUserId = editingMoodUserId,
         payload = HomePayload(
             greeting = greetingAt(now.hour),
-            coupleDisplayName = "${couple.leftName} & ${couple.rightName}",
+            coupleDisplayName = "${couple.leftName}\u2764\uFE0F${couple.rightName}",
             relationship = relationship,
             visuals = visuals,
             quickRecord = quickRecord,

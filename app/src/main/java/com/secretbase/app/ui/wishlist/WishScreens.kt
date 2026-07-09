@@ -62,15 +62,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.secretbase.app.ui.common.SecretBaseCardSurface
+import com.secretbase.app.ui.common.SecretBaseInputSurface
 import com.secretbase.app.ui.common.SecretBasePageBackground
 import com.secretbase.app.ui.common.SecretBasePageTopBar
+import com.secretbase.app.ui.common.SecretBasePrimaryButton
+import com.secretbase.app.ui.common.SecretBaseSecondaryButton
 import com.secretbase.app.ui.common.SecretBaseSectionIntro
 import com.secretbase.app.ui.messagewall.ComposerImageAction
 import com.secretbase.app.ui.messagewall.DraftInputCard
 import com.secretbase.app.ui.messagewall.MessageMedia
-import com.secretbase.app.ui.messagewall.PublishPillButton
 import com.secretbase.app.ui.messagewall.SelectedImageStrip
-import com.secretbase.app.ui.messagewall.WallCircleButton
 import com.secretbase.app.ui.messagewall.WallIllustration
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
@@ -126,6 +128,7 @@ fun WishListScreen(
     }
 
     val visibleWishes = uiState.wishes.filter { it.status == uiState.selectedStatus }
+    val canSaveWish = !uiState.isSaving && uiState.editorTitle.isNotBlank()
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -223,12 +226,12 @@ fun WishListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(horizontal = 18.dp, vertical = 12.dp),
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
                     text = if (uiState.editorWishId == null) "新增愿望" else "编辑愿望",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = InkBlack,
                 )
                 FieldLabel("愿望标题 *")
@@ -273,10 +276,11 @@ fun WishListScreen(
                 } else {
                     CoverPickerCard(onClick = { coverPicker.launch("image/*") })
                 }
-                PublishPillButton(
+                SecretBasePrimaryButton(
                     text = if (uiState.isSaving) "保存中…" else "保存",
-                    enabled = !uiState.isSaving,
+                    enabled = canSaveWish,
                     onClick = onSaveWish,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -316,12 +320,8 @@ fun WishDetailScreen(
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Surface(
-                    color = SurfaceWhite.copy(alpha = 0.98f),
-                    shadowElevation = 16.dp,
-                    tonalElevation = 0.dp,
+                SecretBaseCardSurface(
                     shape = RoundedCornerShape(28.dp),
-                    border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
                 ) {
                     Column(
                         modifier = Modifier
@@ -347,7 +347,7 @@ fun WishDetailScreen(
                         }
                         Text(
                             text = wish.title,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = InkBlack,
                         )
                         Text(
@@ -368,10 +368,11 @@ fun WishDetailScreen(
                         modifier = Modifier.weight(1f),
                         onClick = onEdit,
                     )
-                    PublishPillButton(
+                    SecretBasePrimaryButton(
                         text = "完成愿望",
                         enabled = true,
                         onClick = onComplete,
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -395,6 +396,7 @@ fun WishCompletionScreen(
     onSave: () -> Unit,
 ) {
     val context = LocalContext.current
+    val canSaveCompletion = !isSaving && (completionText.isNotBlank() || completionImages.isNotEmpty())
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         if (uris.isNotEmpty()) onAddImages(uris.map(Uri::toString))
     }
@@ -442,12 +444,8 @@ fun WishCompletionScreen(
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Surface(
-                    color = SurfaceWhite.copy(alpha = 0.98f),
-                    shadowElevation = 16.dp,
-                    tonalElevation = 0.dp,
+                SecretBaseCardSurface(
                     shape = RoundedCornerShape(28.dp),
-                    border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
                 ) {
                     Column(
                         modifier = Modifier
@@ -464,7 +462,7 @@ fun WishCompletionScreen(
                         )
                         Text(
                             text = "太棒了！",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = InkBlack,
                         )
                         Text(
@@ -501,10 +499,11 @@ fun WishCompletionScreen(
                     placeholder = "选择完成日期",
                     onClick = { datePicker(completionDate) },
                 )
-                PublishPillButton(
+                SecretBasePrimaryButton(
                     text = if (isSaving) "保存中…" else "保存完成记录",
-                    enabled = !isSaving,
+                    enabled = canSaveCompletion,
                     onClick = onSave,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -542,12 +541,8 @@ fun WishCompletionDetailScreen(
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Surface(
-                    color = SurfaceWhite.copy(alpha = 0.98f),
-                    shadowElevation = 16.dp,
-                    tonalElevation = 0.dp,
+                SecretBaseCardSurface(
                     shape = RoundedCornerShape(28.dp),
-                    border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
                 ) {
                     Column(
                         modifier = Modifier
@@ -564,7 +559,7 @@ fun WishCompletionDetailScreen(
                         Text(
                             text = wish.title,
                             modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = InkBlack,
                         )
                         InfoBlock("原始愿望", wish.description.ifBlank { "没有额外说明" })
@@ -607,20 +602,16 @@ private fun WishHeroCard(
     unrealizedCount: Int,
     realizedCount: Int,
 ) {
-    Surface(
+    SecretBaseCardSurface(
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceWhite.copy(alpha = 0.97f),
-        shadowElevation = 14.dp,
-        tonalElevation = 0.dp,
         shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Surface(
                 shape = RoundedCornerShape(999.dp),
@@ -635,12 +626,12 @@ private fun WishHeroCard(
             }
             Text(
                 text = "有你在身边",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = CherryPink,
             )
             Text(
                 text = "愿望都会慢慢实现",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.bodyLarge,
                 color = InkBlack,
             )
             WallIllustration(
@@ -671,7 +662,7 @@ private fun StatCard(
         modifier = modifier,
         color = cardColor,
         shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.7f)),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.58f)),
     ) {
         Column(
             modifier = Modifier.padding(vertical = 12.dp),
@@ -679,7 +670,7 @@ private fun StatCard(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = WarmGray)
-            Text("$count", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold), color = CherryPink)
+            Text("$count", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = InkBlack)
         }
     }
 }
@@ -691,9 +682,9 @@ private fun WishStatusTabs(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceWhite.copy(alpha = 0.95f),
+        color = SurfaceWhite.copy(alpha = 0.9f),
         shape = RoundedCornerShape(999.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.8f)),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.66f)),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(4.dp),
@@ -724,15 +715,15 @@ private fun WishTabChip(
 ) {
     Surface(
         modifier = modifier.clickable(onClick = onClick),
-        color = if (selected) CherryPink else Color(0xFFF7F2F4),
+        color = if (selected) Color(0xFFFFEEF4) else Color.Transparent,
         shape = RoundedCornerShape(999.dp),
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(vertical = 10.dp),
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            color = if (selected) SurfaceWhite else WarmGray,
+            color = if (selected) CherryPink else WarmGray,
         )
     }
 }
@@ -748,13 +739,9 @@ private fun WishCard(
     var showMenu by remember(wish.id) { mutableStateOf(false) }
     var showDeleteConfirm by remember(wish.id) { mutableStateOf(false) }
 
-    Surface(
+    SecretBaseCardSurface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        color = SurfaceWhite.copy(alpha = 0.98f),
-        shadowElevation = 14.dp,
-        tonalElevation = 0.dp,
         shape = RoundedCornerShape(26.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.9f)),
     ) {
         Row(
             modifier = Modifier
@@ -780,7 +767,7 @@ private fun WishCard(
                     Text(
                         text = wish.title,
                         modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = InkBlack,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -796,7 +783,7 @@ private fun WishCard(
                         Text(
                             text = if (wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED) "待实现" else "已实现",
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
                             color = if (wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED) CherryPink else Color(0xFF4DAA74),
                         )
                     }
@@ -877,13 +864,9 @@ private fun WishEmptyState(
     isRealized: Boolean,
     onCreateWish: () -> Unit,
 ) {
-    Surface(
+    SecretBaseCardSurface(
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceWhite.copy(alpha = 0.97f),
-        shadowElevation = 12.dp,
-        tonalElevation = 0.dp,
         shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.95f)),
     ) {
         Column(
             modifier = Modifier
@@ -900,7 +883,7 @@ private fun WishEmptyState(
             )
             Text(
                 text = if (isRealized) "这里还没有实现记录" else "这里还没有新的愿望",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = InkBlack,
             )
             Text(
@@ -909,7 +892,7 @@ private fun WishEmptyState(
                 color = WarmGray,
             )
             if (!isRealized) {
-                PublishPillButton(text = "新增愿望", enabled = true, onClick = onCreateWish)
+                SecretBasePrimaryButton(text = "新增愿望", enabled = true, onClick = onCreateWish)
             }
         }
     }
@@ -919,7 +902,7 @@ private fun WishEmptyState(
 private fun FieldLabel(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
         color = InkBlack,
     )
 }
@@ -941,11 +924,8 @@ private fun DateField(
     placeholder: String,
     onClick: () -> Unit,
 ) {
-    Surface(
+    SecretBaseInputSurface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        color = Color(0xFFFFFBFD),
-        shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.82f)),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
@@ -989,21 +969,11 @@ private fun SecondaryActionButton(
     modifier: Modifier = Modifier.wrapContentWidth(),
     onClick: () -> Unit,
 ) {
-    Surface(
-        modifier = modifier,
+    SecretBaseSecondaryButton(
+        text = text,
         onClick = onClick,
-        color = SurfaceWhite,
-        shape = RoundedCornerShape(999.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.85f)),
-        shadowElevation = 6.dp,
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 13.dp),
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-            color = InkBlack,
-        )
-    }
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -1016,11 +986,7 @@ private fun WishMetaLine(label: String, value: String) {
 
 @Composable
 private fun InfoBlock(label: String, value: String) {
-    Surface(
-        color = Color(0xFFFFFBFD),
-        shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.75f)),
-    ) {
+    SecretBaseInputSurface(shape = RoundedCornerShape(20.dp)) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>写留言预览</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+    :root{
+      --bg:#fffdfd;
+      --bg-top:#fff7f8;
+      --surface:rgba(255,255,255,.94);
+      --line:#f2eaee;
+      --ink:#1d1d1f;
+      --muted:#8f8991;
+      --pink:#ff6f95;
+      --pink-soft:#ece6e8;
+      --phone-width:393px;
+      --phone-height:852px;
+      --font-body:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+      --font-heading:"Playfair Display","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      background:#f6f1f3;
+      font-family:var(--font-body);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+      font-kerning:normal;
+    }
+    body{min-height:100vh;padding:24px 12px;display:flex;justify-content:center}
+
+    .phone{
+      width:min(100%,var(--phone-width));
+      min-height:var(--phone-height);
+      background:linear-gradient(180deg,var(--bg-top) 0%, var(--bg) 100%);
+      border-radius:38px;
+      border:1px solid rgba(255,255,255,.9);
+      overflow:hidden;
+      box-shadow:0 12px 28px rgba(42,26,35,.08);
+    }
+
+    .scroll{
+      min-height:100%;
+      padding:calc(18px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));
+    }
+
+    .topbar{
+      display:grid;
+      grid-template-columns:40px 1fr 40px;
+      align-items:center;
+      margin-bottom:18px;
+    }
+
+    .topbar h1{
+      margin:0;
+      text-align:center;
+      font-size:21px;
+      font-family:var(--font-heading);
+      font-weight:700;
+      letter-spacing:0;
+    }
+
+    .icon-circle{
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      border:1px solid rgba(236,230,234,.9);
+      background:rgba(255,255,255,.82);
+      display:grid;
+      place-items:center;
+      box-shadow:0 1px 4px rgba(53,37,45,.03);
+      color:var(--ink);
+      cursor:pointer;
+      backdrop-filter:blur(12px);
+    }
+
+    .icon-circle svg{width:20px;height:20px;display:block}
+
+    .editor-card{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:0 1px 6px rgba(40,24,32,.04);
+      padding:20px;
+    }
+
+    textarea{
+      width:100%;
+      min-height:320px;
+      border:none;
+      outline:none;
+      resize:none;
+      background:transparent;
+      padding:0;
+      color:var(--ink);
+      font:500 16px/1.65 var(--font-body);
+    }
+
+    textarea::placeholder{color:var(--muted)}
+
+    .images{
+      display:flex;
+      gap:10px;
+      overflow:auto;
+      margin-top:16px;
+    }
+
+    .thumb{
+      width:82px;
+      height:82px;
+      border-radius:16px;
+      overflow:hidden;
+      flex:none;
+      position:relative;
+      border:1px solid #f3ecef;
+      background:#faf7f8;
+    }
+
+    .thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .thumb button{
+      position:absolute;
+      top:6px;
+      right:6px;
+      width:22px;
+      height:22px;
+      border:none;
+      border-radius:999px;
+      background:rgba(255,255,255,.92);
+      color:var(--pink);
+      cursor:pointer;
+    }
+
+    .divider{
+      height:1px;
+      background:#f3edef;
+      margin:16px 0 0;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .ghost-action{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:15px;
+      font-weight:500;
+      cursor:pointer;
+    }
+
+    .ghost-action svg{width:18px;height:18px}
+
+    .primary-btn{
+      border:1px solid rgba(255,111,149,.14);
+      background:var(--pink);
+      color:#fff;
+      font:600 15px/1 var(--font-body);
+      padding:12px 20px;
+      border-radius:999px;
+      cursor:pointer;
+    }
+
+    .primary-btn:disabled{
+      background:var(--pink-soft);
+      color:var(--muted);
+      cursor:not-allowed;
+    }
+
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="scroll">
+      <div class="topbar">
+        <button class="icon-circle" id="backBtn" type="button" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L7.5 12L14.5 19"/></svg>
+        </button>
+        <h1>写留言</h1>
+        <div></div>
+      </div>
+
+      <section class="editor-card">
+        <textarea id="draftInput" maxlength="500" placeholder="写点想对 TA 说的话..."></textarea>
+        <div class="images hidden" id="imageStrip"></div>
+        <div class="divider"></div>
+        <div class="actions">
+          <label class="ghost-action" for="imagePicker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2.2"/><path d="M21 15L16 10L6 20"/></svg>
+            <span>照片</span>
+          </label>
+          <input id="imagePicker" class="hidden" type="file" accept="image/*" multiple />
+          <button class="primary-btn" id="publishBtn" type="button" disabled>发布</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const imagePickerEl = document.getElementById("imagePicker");
+    const imageStripEl = document.getElementById("imageStrip");
+    const draftInputEl = document.getElementById("draftInput");
+    const publishBtnEl = document.getElementById("publishBtn");
+    let selectedImages = [];
+
+    function syncPublishState() {
+      const canPublish = draftInputEl.value.trim().length > 0 || selectedImages.length > 0;
+      publishBtnEl.disabled = !canPublish;
+    }
+
+    function renderImages() {
+      if (!selectedImages.length) {
+        imageStripEl.classList.add("hidden");
+        imageStripEl.innerHTML = "";
+        syncPublishState();
+        return;
+      }
+      imageStripEl.classList.remove("hidden");
+      imageStripEl.innerHTML = selectedImages.map((src, index) => `
+        <div class="thumb">
+          <img src="${src}" alt="已选图片">
+          <button type="button" data-remove-index="${index}">×</button>
+        </div>
+      `).join("");
+      syncPublishState();
+    }
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = "./message_wall_preview.html";
+    });
+
+    imagePickerEl.addEventListener("change", event => {
+      const files = Array.from(event.target.files || []).slice(0, 9 - selectedImages.length);
+      files.forEach(file => selectedImages.push(URL.createObjectURL(file)));
+      renderImages();
+    });
+
+    draftInputEl.addEventListener("input", syncPublishState);
+
+    imageStripEl.addEventListener("click", event => {
+      const button = event.target.closest("button[data-remove-index]");
+      if (!button) return;
+      selectedImages.splice(Number(button.dataset.removeIndex), 1);
+      renderImages();
+    });
+
+    publishBtnEl.addEventListener("click", () => {
+      if (publishBtnEl.disabled) return;
+      alert("这是静态编辑页预览，当前会模拟发布后返回留言墙。");
+      window.location.href = "./message_wall_preview.html";
+    });
+
+    syncPublishState();
+  </script>
+</body>
+</html>

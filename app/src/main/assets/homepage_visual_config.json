@@ -3,9 +3,9 @@
   "heroGradientStart": "#FFEEF3",
   "heroGradientMiddle": "#FFF7F8",
   "heroGradientEnd": "#FFFBFA",
-  "heroHeightDp": 250,
-  "heroBottomFadeHeightDp": 72,
-  "relationshipCardOverlapDp": 24,
+  "heroHeightDp": 220,
+  "heroBottomFadeHeightDp": 64,
+  "relationshipCardOverlapDp": 20,
   "backgroundOverlay": "",
   "avatarSlots": {
     "sheep": "avatar_sheep",

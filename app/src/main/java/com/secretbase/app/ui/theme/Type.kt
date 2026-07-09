@@ -7,24 +7,26 @@ import androidx.compose.ui.unit.sp
 
 val SecretBaseTypography = Typography(
     headlineLarge = TextStyle(
-        fontSize = 40.sp,
-        lineHeight = 44.sp,
-        fontWeight = FontWeight.ExtraBold,
-        letterSpacing = (-1).sp,
+        fontSize = 38.sp,
+        lineHeight = 42.sp,
+        fontWeight = FontWeight.Black,
+        letterSpacing = (-0.9).sp,
     ),
     titleLarge = TextStyle(
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = (-0.2).sp,
     ),
     titleMedium = TextStyle(
-        fontSize = 18.sp,
-        lineHeight = 24.sp,
-        fontWeight = FontWeight.Bold,
+        fontSize = 17.sp,
+        lineHeight = 22.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = (-0.1).sp,
     ),
     bodyLarge = TextStyle(
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
+        fontSize = 15.sp,
+        lineHeight = 22.sp,
         fontWeight = FontWeight.Medium,
     ),
     bodyMedium = TextStyle(
@@ -33,9 +35,23 @@ val SecretBaseTypography = Typography(
         fontWeight = FontWeight.Medium,
     ),
     bodySmall = TextStyle(
+        fontSize = 12.sp,
+        lineHeight = 18.sp,
+        fontWeight = FontWeight.Medium,
+    ),
+    labelLarge = TextStyle(
         fontSize = 13.sp,
         lineHeight = 18.sp,
         fontWeight = FontWeight.Medium,
     ),
+    labelMedium = TextStyle(
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        fontWeight = FontWeight.Medium,
+    ),
+    labelSmall = TextStyle(
+        fontSize = 11.sp,
+        lineHeight = 14.sp,
+        fontWeight = FontWeight.Medium,
+    ),
 )
-

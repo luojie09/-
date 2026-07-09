@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>字体预览对比</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Varela+Round&family=Nunito+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root{
+      --bg:#f6f1f3;
+      --panel:#ffffffcc;
+      --line:#efe4e8;
+      --ink:#1f1f24;
+      --muted:#7d7985;
+      --pink:#ff6f95;
+      --pink-soft:#fff1f5;
+      --shadow:0 24px 60px rgba(74,48,58,.08);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;background:radial-gradient(circle at top, #fff8fa 0%, var(--bg) 48%, #f4eef0 100%);color:var(--ink)}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+      padding:32px 18px 56px;
+    }
+
+    .page{
+      max-width:1440px;
+      margin:0 auto;
+    }
+
+    .hero{
+      text-align:center;
+      margin-bottom:28px;
+    }
+
+    .hero .eyebrow{
+      margin:0 0 10px;
+      font-size:13px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#a29299;
+    }
+
+    .hero h1{
+      margin:0;
+      font-size:clamp(28px, 4vw, 44px);
+      line-height:1.08;
+      font-weight:800;
+      letter-spacing:-.03em;
+    }
+
+    .hero p{
+      max-width:680px;
+      margin:12px auto 0;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:15px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:18px;
+    }
+
+    .option{
+      border:1px solid rgba(255,255,255,.78);
+      background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.66));
+      backdrop-filter:blur(14px);
+      border-radius:30px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .option-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .option-title{
+      margin:0;
+      font-size:20px;
+      line-height:1.2;
+      font-weight:800;
+    }
+
+    .option-sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .badge{
+      flex:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:28px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid #f1dde4;
+      background:rgba(255,255,255,.74);
+      color:#9a7f89;
+      font-size:12px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .font-stack{
+      margin:0 0 16px;
+      padding:10px 12px;
+      border-radius:18px;
+      background:rgba(255,255,255,.52);
+      border:1px solid #f2e6ea;
+      color:#8d7f86;
+      font-size:12px;
+      line-height:1.55;
+    }
+
+    .phone{
+      width:min(100%, 392px);
+      margin:0 auto;
+      min-height:700px;
+      padding:16px 16px 18px;
+      border-radius:34px;
+      border:1px solid rgba(255,255,255,.86);
+      background:linear-gradient(180deg, #fff4f7 0%, #fffafa 38%, #fffdfd 100%);
+      box-shadow:0 24px 52px rgba(70,46,56,.08);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .phone::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at top right, rgba(255,170,194,.14), transparent 34%);
+      pointer-events:none;
+    }
+
+    .sample{
+      position:relative;
+      z-index:1;
+      --sample-heading:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-accent:var(--sample-heading);
+      font-family:var(--sample-body);
+      color:var(--ink);
+    }
+
+    .sample.option-1{
+      --sample-heading:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-body:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-accent:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;
+    }
+
+    .sample.option-2{
+      --sample-heading:"Plus Jakarta Sans","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-body:"Plus Jakarta Sans","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-accent:"Plus Jakarta Sans","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    }
+
+    .sample.option-3{
+      --sample-heading:"Varela Round","Nunito Sans","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-body:"Nunito Sans","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-accent:"Varela Round","Nunito Sans","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    }
+
+    .sample.option-4{
+      --sample-heading:"Playfair Display","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
+      --sample-body:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+      --sample-accent:"Playfair Display","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
+    }
+
+    .topbar{
+      display:grid;
+      grid-template-columns:40px 1fr 40px;
+      align-items:center;
+      margin-bottom:14px;
+    }
+
+    .circle{
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      border:1px solid #f1e5e8;
+      background:rgba(255,255,255,.78);
+      display:grid;
+      place-items:center;
+      color:#a08d95;
+      font-size:18px;
+      font-weight:700;
+    }
+
+    .screen-title{
+      margin:0;
+      text-align:center;
+      font-family:var(--sample-heading);
+      font-size:20px;
+      font-weight:780;
+      letter-spacing:-.02em;
+    }
+
+    .preview-card{
+      border-radius:28px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.88);
+      box-shadow:0 10px 24px rgba(76,54,62,.05);
+    }
+
+    .home-hero{
+      padding:18px 18px 16px;
+      margin-bottom:12px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 100px;
+      gap:14px;
+      align-items:center;
+    }
+
+    .kicker{
+      margin:0 0 4px;
+      font-size:12px;
+      color:#a0949a;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-family:var(--sample-accent);
+    }
+
+    .headline{
+      margin:0;
+      font-family:var(--sample-heading);
+      font-size:30px;
+      line-height:1.06;
+      font-weight:780;
+      letter-spacing:-.05em;
+    }
+
+    .subline{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    .hero-ill{
+      width:100px;
+      height:92px;
+      border-radius:24px;
+      background:linear-gradient(180deg,#fff8fb,#fffdfd);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+
+    .hero-ill img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .stat-card{
+      padding:16px 18px;
+      margin-bottom:12px;
+    }
+
+    .stat-label{
+      margin:0;
+      color:#9d9298;
+      font-size:13px;
+    }
+
+    .stat-row{
+      display:flex;
+      align-items:flex-end;
+      gap:8px;
+      margin-top:8px;
+    }
+
+    .stat-number{
+      font-family:var(--sample-accent);
+      font-size:56px;
+      font-weight:780;
+      line-height:1;
+      letter-spacing:-.04em;
+      color:var(--pink);
+    }
+
+    .stat-unit{
+      font-family:var(--sample-heading);
+      font-size:22px;
+      font-weight:760;
+      padding-bottom:6px;
+    }
+
+    .segment{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:4px;
+      padding:3px;
+      margin-bottom:12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.52);
+      border:1px solid #f2e6ea;
+    }
+
+    .segment span{
+      height:38px;
+      display:grid;
+      place-items:center;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:700;
+      color:#8d7f86;
+    }
+
+    .segment span.active{
+      background:rgba(255,255,255,.85);
+      color:var(--pink);
+      border:1px solid #f1e5e9;
+    }
+
+    .wish-card{
+      padding:12px 14px;
+      display:grid;
+      grid-template-columns:74px 1fr auto;
+      gap:12px;
+      align-items:start;
+    }
+
+    .thumb{
+      height:74px;
+      border-radius:18px;
+      background:linear-gradient(135deg,#93c8f3,#ffcfe0);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .thumb span{
+      position:absolute;
+      left:10px;
+      bottom:10px;
+      color:#fff;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.08em;
+    }
+
+    .wish-title{
+      margin:1px 0 4px;
+      font-family:var(--sample-heading);
+      font-size:18px;
+      font-weight:760;
+      line-height:1.34;
+    }
+
+    .wish-desc{
+      margin:0 0 8px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.56;
+    }
+
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      min-height:24px;
+      padding:0 8px;
+      border-radius:999px;
+      border:1px solid #efe0e5;
+      background:rgba(255,255,255,.62);
+      color:#8b8088;
+      font-size:11px;
+      font-weight:650;
+      line-height:1.2;
+    }
+
+    .pill.status{
+      background:rgba(243,248,253,.72);
+      border-color:#dde7ee;
+      color:#667a8a;
+    }
+
+    .wish-side{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px;
+    }
+
+    .menu{
+      color:#a4979d;
+      font-size:18px;
+      line-height:1;
+    }
+
+    .tiny{
+      display:inline-flex;
+      align-items:center;
+      min-height:24px;
+      padding:0 8px;
+      border-radius:999px;
+      border:1px solid #f1e3e8;
+      background:rgba(255,255,255,.44);
+      color:var(--pink);
+      font-size:11px;
+      font-weight:680;
+    }
+
+    .note{
+      margin-top:18px;
+      padding:14px 16px;
+      border-radius:20px;
+      border:1px solid #f1e5e8;
+      background:rgba(255,255,255,.58);
+      color:#867c83;
+      font-size:13px;
+      line-height:1.7;
+    }
+
+    @media (max-width: 1080px){
+      .grid{grid-template-columns:1fr}
+      .option{padding:16px}
+    }
+
+    @media (max-width: 640px){
+      body{padding:20px 12px 40px}
+      .hero p{font-size:14px}
+      .option-head{flex-direction:column}
+      .phone{min-height:auto}
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Font Dressing Room</p>
+      <h1>给你 4 组直接可感知的字体预览</h1>
+      <p>同一套页面内容、同一套排版，只替换字体系统。你可以重点看 4 个地方：大标题、数字、正文可读性、胶囊和小按钮的气质。</p>
+    </section>
+
+    <section class="grid">
+      <article class="option">
+        <div class="option-head">
+          <div>
+            <h2 class="option-title">方案 A · 苹果系统极简</h2>
+            <p class="option-sub">最稳，最像 iOS 原生。清爽、克制、通用性最强。</p>
+          </div>
+          <span class="badge">推荐：全站通用</span>
+        </div>
+        <p class="font-stack">`SF Pro / PingFang SC / Microsoft YaHei`</p>
+        <div class="phone">
+          <div class="sample option-1">
+            <div class="topbar">
+              <div class="circle">‹</div>
+              <h3 class="screen-title">首页</h3>
+              <div class="circle">+</div>
+            </div>
+            <section class="preview-card home-hero">
+              <div>
+                <p class="kicker">Secret Base</p>
+                <h4 class="headline">小羊 &amp; 小耶</h4>
+                <p class="subline">柔和、清透、像原生 App 一样自然。</p>
+              </div>
+              <div class="hero-ill"><img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp" alt="插画"></div>
+            </section>
+            <section class="preview-card stat-card">
+              <p class="stat-label">我们已经一起走过的日子</p>
+              <div class="stat-row">
+                <span class="stat-number">53</span>
+                <span class="stat-unit">天</span>
+              </div>
+            </section>
+            <div class="segment">
+              <span class="active">未实现</span>
+              <span>已实现</span>
+            </div>
+            <section class="preview-card wish-card">
+              <div class="thumb"><span>旅程</span></div>
+              <div>
+                <div class="wish-title">一起去旅行</div>
+                <p class="wish-desc">去看海，去看日出日落，去我们从未去过的城市。</p>
+                <div class="meta">
+                  <span class="pill status">未实现</span>
+                  <span class="pill">计划日期 2026.12.31</span>
+                </div>
+              </div>
+              <div class="wish-side">
+                <div class="menu">···</div>
+                <span class="tiny">完成</span>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="option">
+        <div class="option-head">
+          <div>
+            <h2 class="option-title">方案 B · 现代柔和感</h2>
+            <p class="option-sub">更时髦一点，标题更精致，整体仍然很干净。</p>
+          </div>
+          <span class="badge">推荐：首页 / 愿望清单</span>
+        </div>
+        <p class="font-stack">`Plus Jakarta Sans + Noto Sans SC`</p>
+        <div class="phone">
+          <div class="sample option-2">
+            <div class="topbar">
+              <div class="circle">‹</div>
+              <h3 class="screen-title">首页</h3>
+              <div class="circle">+</div>
+            </div>
+            <section class="preview-card home-hero">
+              <div>
+                <p class="kicker">Secret Base</p>
+                <h4 class="headline">小羊 &amp; 小耶</h4>
+                <p class="subline">字形更有设计感，数字和英文会更高级。</p>
+              </div>
+              <div class="hero-ill"><img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp" alt="插画"></div>
+            </section>
+            <section class="preview-card stat-card">
+              <p class="stat-label">我们已经一起走过的日子</p>
+              <div class="stat-row">
+                <span class="stat-number">53</span>
+                <span class="stat-unit">天</span>
+              </div>
+            </section>
+            <div class="segment">
+              <span class="active">未实现</span>
+              <span>已实现</span>
+            </div>
+            <section class="preview-card wish-card">
+              <div class="thumb"><span>旅程</span></div>
+              <div>
+                <div class="wish-title">一起去旅行</div>
+                <p class="wish-desc">去看海，去看日出日落，去我们从未去过的城市。</p>
+                <div class="meta">
+                  <span class="pill status">未实现</span>
+                  <span class="pill">计划日期 2026.12.31</span>
+                </div>
+              </div>
+              <div class="wish-side">
+                <div class="menu">···</div>
+                <span class="tiny">完成</span>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="option">
+        <div class="option-head">
+          <div>
+            <h2 class="option-title">方案 C · 圆润治愈系</h2>
+            <p class="option-sub">更软、更可爱、更像情侣陪伴类产品。</p>
+          </div>
+          <span class="badge">推荐：留言墙 / 心情页</span>
+        </div>
+        <p class="font-stack">`Varela Round + Nunito Sans + Noto Sans SC`</p>
+        <div class="phone">
+          <div class="sample option-3">
+            <div class="topbar">
+              <div class="circle">‹</div>
+              <h3 class="screen-title">首页</h3>
+              <div class="circle">+</div>
+            </div>
+            <section class="preview-card home-hero">
+              <div>
+                <p class="kicker">Secret Base</p>
+                <h4 class="headline">小羊 &amp; 小耶</h4>
+                <p class="subline">会让页面更亲和，读起来也更软萌一点。</p>
+              </div>
+              <div class="hero-ill"><img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp" alt="插画"></div>
+            </section>
+            <section class="preview-card stat-card">
+              <p class="stat-label">我们已经一起走过的日子</p>
+              <div class="stat-row">
+                <span class="stat-number">53</span>
+                <span class="stat-unit">天</span>
+              </div>
+            </section>
+            <div class="segment">
+              <span class="active">未实现</span>
+              <span>已实现</span>
+            </div>
+            <section class="preview-card wish-card">
+              <div class="thumb"><span>旅程</span></div>
+              <div>
+                <div class="wish-title">一起去旅行</div>
+                <p class="wish-desc">去看海，去看日出日落，去我们从未去过的城市。</p>
+                <div class="meta">
+                  <span class="pill status">未实现</span>
+                  <span class="pill">计划日期 2026.12.31</span>
+                </div>
+              </div>
+              <div class="wish-side">
+                <div class="menu">···</div>
+                <span class="tiny">完成</span>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="option">
+        <div class="option-head">
+          <div>
+            <h2 class="option-title">方案 D · 浪漫纪念感</h2>
+            <p class="option-sub">更有氛围和纪念感，适合首页标题或纪念日页。</p>
+          </div>
+          <span class="badge">推荐：仅标题使用</span>
+        </div>
+        <p class="font-stack">`Playfair Display / Noto Serif SC + Inter`</p>
+        <div class="phone">
+          <div class="sample option-4">
+            <div class="topbar">
+              <div class="circle">‹</div>
+              <h3 class="screen-title">首页</h3>
+              <div class="circle">+</div>
+            </div>
+            <section class="preview-card home-hero">
+              <div>
+                <p class="kicker">Secret Base</p>
+                <h4 class="headline">小羊 &amp; 小耶</h4>
+                <p class="subline">标题最有气质，但正文不建议全站都这么用。</p>
+              </div>
+              <div class="hero-ill"><img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp" alt="插画"></div>
+            </section>
+            <section class="preview-card stat-card">
+              <p class="stat-label">我们已经一起走过的日子</p>
+              <div class="stat-row">
+                <span class="stat-number">53</span>
+                <span class="stat-unit">天</span>
+              </div>
+            </section>
+            <div class="segment">
+              <span class="active">未实现</span>
+              <span>已实现</span>
+            </div>
+            <section class="preview-card wish-card">
+              <div class="thumb"><span>旅程</span></div>
+              <div>
+                <div class="wish-title">一起去旅行</div>
+                <p class="wish-desc">去看海，去看日出日落，去我们从未去过的城市。</p>
+                <div class="meta">
+                  <span class="pill status">未实现</span>
+                  <span class="pill">计划日期 2026.12.31</span>
+                </div>
+              </div>
+              <div class="wish-side">
+                <div class="menu">···</div>
+                <span class="tiny">完成</span>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="note">
+      直接告诉我你更喜欢哪一组：`A / B / C / D`。如果你想，我下一步可以把你选中的那组直接替换到首页、愿望清单、纪念日、留言墙，并保留一版前后对比。
+    </div>
+  </main>
+</body>
+</html>

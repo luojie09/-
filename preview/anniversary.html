@@ -5,25 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>纪念日预览</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
     :root{
-      --bg:#fffaf9;
-      --bg-top:#fff1f5;
-      --surface:rgba(255,255,255,.98);
-      --line:#f6dce5;
+      --bg:#fbf8f9;
+      --bg-top:#fdf3f6;
+      --surface:rgba(255,255,255,.92);
+      --line:#f2e7eb;
       --ink:#202128;
-      --muted:#8d8896;
+      --muted:#8b8792;
       --pink:#ff6f95;
       --pink-strong:#ff5a8b;
-      --pink-soft:#ffe2eb;
-      --blue:#edf6ff;
-      --gold:#fff3d7;
-      --mint:#ecfbf5;
-      --gray:#f3f1f3;
-      --shadow:0 18px 44px rgba(116,61,78,.12);
+      --pink-soft:#fff0f4;
+      --blue:#f3f8fd;
+      --gold:#fff6e4;
+      --mint:#eff9f3;
+      --gray:#f5f4f6;
+      --shadow:0 10px 28px rgba(89,61,72,.07);
+      --font-body:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+      --font-heading:"Playfair Display","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
+      --font-number:var(--font-body);
     }
 
     *{box-sizing:border-box}
-    html,body{margin:0;background:#f3eef1;color:var(--ink);font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif}
+    html,body{
+      margin:0;
+      background:#f6f2f4;
+      color:var(--ink);
+      font-family:var(--font-body);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+      font-kerning:normal;
+    }
     body{min-height:100vh;padding:24px 12px;display:flex;justify-content:center}
 
     .phone{
@@ -31,8 +44,8 @@
       min-height:calc(100vh - 48px);
       background:linear-gradient(180deg,var(--bg-top),var(--bg));
       border-radius:38px;
-      border:1px solid rgba(255,255,255,.88);
-      box-shadow:0 28px 72px rgba(49,34,41,.16);
+      border:1px solid rgba(255,255,255,.84);
+      box-shadow:0 20px 56px rgba(49,34,41,.12);
       overflow:hidden;
     }
 
@@ -51,18 +64,20 @@
     .title{
       margin:0;
       text-align:center;
-      font-size:22px;
-      font-weight:800;
+      font-size:21px;
+      font-family:var(--font-heading);
+      font-weight:700;
+      letter-spacing:0;
     }
 
     .circle-btn{
-      width:44px;
-      height:44px;
+      width:40px;
+      height:40px;
       border:none;
       border-radius:50%;
-      background:rgba(255,255,255,.96);
-      border:1px solid rgba(246,220,229,.9);
-      box-shadow:0 10px 20px rgba(116,61,78,.08);
+      background:rgba(255,255,255,.82);
+      border:1px solid rgba(242,231,235,.96);
+      box-shadow:0 8px 18px rgba(116,61,78,.06);
       display:grid;
       place-items:center;
       color:var(--ink);
@@ -81,21 +96,29 @@
     }
 
     .hero{
-      border-radius:30px;
-      padding:18px 16px 16px;
-      margin-bottom:16px;
-      text-align:center;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 108px;
+      align-items:center;
+      gap:14px;
+      border-radius:28px;
+      padding:16px 18px;
+      margin-bottom:14px;
     }
 
+    .hero-copy{min-width:0}
+
     .hero-ill{
-      height:152px;
-      border-radius:24px;
+      grid-column:2;
+      grid-row:1 / span 3;
+      width:108px;
+      height:96px;
+      border-radius:22px;
       overflow:hidden;
-      background:linear-gradient(180deg,#fff6fa,#fffdfd);
+      background:linear-gradient(180deg,#fff8fb,#fffdfd);
       display:flex;
       align-items:center;
       justify-content:center;
-      margin-bottom:14px;
+      margin:0 0 0 auto;
     }
 
     .hero-ill img{
@@ -105,42 +128,51 @@
     }
 
     .hero-label{
+      grid-column:1;
       margin:0;
       color:var(--muted);
-      font-size:14px;
+      font-size:13px;
       font-weight:700;
+      letter-spacing:.01em;
     }
 
     .hero-days{
+      grid-column:1;
       display:flex;
       align-items:flex-end;
-      justify-content:center;
+      justify-content:flex-start;
       gap:8px;
-      margin:10px 0 6px;
+      margin:8px 0 4px;
     }
 
     .hero-days strong{
-      font-size:60px;
+      font-size:52px;
       line-height:1;
-      font-weight:800;
+      font-family:var(--font-number);
+      font-weight:700;
       color:var(--pink-strong);
+      letter-spacing:-.035em;
+      font-variant-numeric:tabular-nums;
     }
 
     .hero-days span{
-      padding-bottom:7px;
-      font-size:24px;
-      font-weight:800;
+      padding-bottom:6px;
+      font-size:22px;
+      font-weight:760;
     }
 
     .hero-sub{
+      grid-column:1;
       margin:0;
-      font-size:15px;
+      font-size:14px;
       color:var(--muted);
       line-height:1.6;
+      font-family:var(--font-number);
+      font-variant-numeric:tabular-nums;
     }
 
     .legend{
-      display:grid;
+      display:none;
       gap:8px;
       margin:0 0 16px;
       padding:14px 16px;
@@ -168,90 +200,140 @@
     .list{
       display:flex;
       flex-direction:column;
-      gap:14px;
+      gap:12px;
     }
 
     .card{
-      border-radius:26px;
-      padding:14px 14px 12px;
+      border-radius:24px;
+      padding:14px 16px;
     }
 
     .card-head{
       display:flex;
       align-items:flex-start;
       gap:12px;
-      margin-bottom:10px;
     }
 
     .icon-box{
-      width:48px;
-      height:48px;
-      border-radius:18px;
+      width:42px;
+      height:42px;
+      border-radius:16px;
       display:grid;
       place-items:center;
-      font-size:22px;
+      font-size:20px;
       flex:none;
-      background:#fff7fb;
-      border:1px solid rgba(246,220,229,.9);
+      background:#fffafb;
+      border:1px solid rgba(242,231,235,.9);
     }
 
     .card-main{min-width:0;flex:1}
+    .card-title-row{
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+    }
+
     .card-title{
-      margin:2px 0 4px;
+      margin:0;
       font-size:18px;
-      font-weight:800;
+      font-family:var(--font-heading);
+      font-weight:700;
       line-height:1.35;
+      flex:1;
+      letter-spacing:-.008em;
     }
 
     .card-date{
       color:var(--muted);
       font-size:13px;
-      font-weight:700;
-      margin-bottom:8px;
+      font-weight:680;
+      margin:4px 0 0;
+      font-family:var(--font-number);
+      font-variant-numeric:tabular-nums;
     }
 
+    .meta-row,
     .chip-row{
       display:flex;
       flex-wrap:wrap;
       gap:8px;
+      align-items:center;
+      font-size:12px;
+      margin-top:10px;
+      font-family:var(--font-number);
+      font-variant-numeric:tabular-nums;
     }
 
+    .status-badge,
+    .meta-copy,
     .pill{
       display:inline-flex;
       align-items:center;
+      min-height:26px;
+    }
+
+    .status-badge{
       border-radius:999px;
-      padding:7px 11px;
-      font-size:12px;
-      font-weight:800;
+      padding:0 10px;
+      font-weight:760;
+    }
+
+    .status-badge.today{background:var(--pink-soft);color:var(--pink-strong)}
+    .status-badge.upcoming{background:var(--gold);color:#a87711}
+    .status-badge.past{background:var(--mint);color:#40856e}
+    .status-badge.expired{background:var(--gray);color:#767682}
+
+    .meta-copy{
+      color:var(--muted);
+      font-weight:640;
+    }
+
+    .pill{
+      border-radius:999px;
+      padding:0 10px;
+      font-weight:700;
     }
 
     .pill.today{background:var(--pink-soft);color:var(--pink-strong)}
-    .pill.upcoming{background:var(--gold);color:#b07400}
-    .pill.past{background:var(--mint);color:#3a8f75}
-    .pill.expired{background:var(--gray);color:#7a7a83}
-    .pill.repeat{background:var(--blue);color:#5a7794}
+    .pill.upcoming{background:var(--gold);color:#a87711}
+    .pill.past{background:var(--mint);color:#40856e}
+    .pill.expired{background:var(--gray);color:#767682}
+    .pill.repeat{
+      padding:0;
+      background:transparent;
+      color:var(--muted);
+      font-weight:640;
+    }
+
+    .meta-sep{
+      width:3px;
+      height:3px;
+      border-radius:50%;
+      background:#d4ced5;
+      flex:none;
+    }
 
     .text-icon{
       border:none;
       background:none;
       color:var(--muted);
-      font-size:20px;
+      font-size:18px;
       line-height:1;
       cursor:pointer;
-      padding:4px 2px;
+      padding:2px 0 0;
       flex:none;
     }
 
-    .menu-wrap{position:relative}
+    .menu-wrap{position:relative;margin-left:auto}
     .menu{
       position:absolute;
       right:0;
-      top:32px;
+      top:28px;
       width:118px;
-      border-radius:18px;
-      border:1px solid rgba(245,220,229,.9);
+      border-radius:16px;
+      border:1px solid rgba(242,231,235,.94);
       background:#fff;
-      box-shadow:0 18px 40px rgba(52,30,39,.14);
+      box-shadow:0 14px 28px rgba(52,30,39,.1);
       padding:8px;
       display:none;
       z-index:10;
@@ -274,12 +356,24 @@
     .menu button.danger{color:var(--pink)}
 
     .empty-card{
-      border-radius:28px;
-      padding:24px 20px;
+      border-radius:24px;
+      padding:22px 18px;
       text-align:center;
     }
 
-    .empty-card h3{margin:10px 0 6px;font-size:22px}
+    .empty-card .hero-ill{
+      width:100%;
+      height:132px;
+      margin:0 auto 12px;
+    }
+
+    .empty-card h3{
+      margin:10px 0 6px;
+      font-size:22px;
+      font-family:var(--font-heading);
+      font-weight:700;
+      letter-spacing:-.01em;
+    }
     .empty-card p{margin:0 0 16px;color:var(--muted);line-height:1.7}
 
     .overlay{
@@ -308,6 +402,9 @@
     .sheet h3{
       margin:0 0 16px;
       font-size:22px;
+      font-family:var(--font-heading);
+      font-weight:700;
+      letter-spacing:-.01em;
     }
 
     .field{margin-bottom:14px}
@@ -322,8 +419,9 @@
       background:#fffafc;
       border:1px solid rgba(245,220,229,.95);
       padding:14px 16px;
-      font:600 15px/1.6 "PingFang SC","Microsoft YaHei",sans-serif;
+      font:600 15px/1.6 var(--font-body);
       color:var(--ink);
+      font-variant-numeric:tabular-nums;
     }
 
     .switch-row{
@@ -773,6 +871,8 @@
 
       const { action, id, value } = actionEl.dataset;
       if (action === "back-home") {
+        window.location.href = "./homepage_preview.html";
+        return;
         alert("这里是可独立浏览的预览页，Android 端已经预留从首页进入纪念日页面的跳转。");
         return;
       }

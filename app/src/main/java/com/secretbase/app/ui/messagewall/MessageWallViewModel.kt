@@ -321,7 +321,7 @@ private fun Message.toUiModel(
     val repliesToShow = if (expanded || replies.size <= DEFAULT_VISIBLE_REPLIES) {
         replies
     } else {
-        replies.takeLast(DEFAULT_VISIBLE_REPLIES)
+        replies.take(DEFAULT_VISIBLE_REPLIES)
     }
 
     return MessageUiModel(
@@ -332,13 +332,6 @@ private fun Message.toUiModel(
         content = content,
         imagePaths = imagePaths,
         timeText = createdAt.toFriendlyTime(),
-        statusText = when {
-            isMine && counterpartReadAt == null -> "对方未读"
-            isMine && counterpartReadAt != null -> "对方已读"
-            !isMine && !isRead -> "未读"
-            else -> "已读"
-        },
-        statusHighlight = if (isMine) counterpartReadAt == null else !isRead,
         isMine = isMine,
         isEdited = updatedAt != null,
         replyCount = replies.size,
@@ -347,6 +340,7 @@ private fun Message.toUiModel(
                 id = reply.id,
                 authorId = reply.authorId,
                 authorName = reply.authorName,
+                replyToAuthorName = replyTargetName(reply),
                 avatarRes = visuals.avatar(reply.authorId),
                 content = reply.content,
                 timeText = reply.createdAt.toFriendlyTime(),
@@ -355,6 +349,19 @@ private fun Message.toUiModel(
         },
         hiddenReplyCount = (replies.size - repliesToShow.size).coerceAtLeast(0),
     )
+}
+
+private fun Message.replyTargetName(reply: com.secretbase.app.data.message.MessageReply): String? {
+    val replyIndex = replies.indexOfFirst { it.id == reply.id }
+    if (replyIndex < 0) return null
+
+    val mostRecentDifferentSpeaker = replies
+        .take(replyIndex)
+        .asReversed()
+        .firstOrNull { previousReply -> previousReply.authorId != reply.authorId }
+
+    return mostRecentDifferentSpeaker?.authorName
+        ?: authorName.takeIf { authorId != reply.authorId }
 }
 
 private fun Message.unreadCountFor(currentUserId: String): Int {

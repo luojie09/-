@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Close
@@ -42,7 +43,6 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.RemoveCircle
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -115,179 +115,156 @@ fun MessageCard(
                 indication = null,
                 onClick = onCardOpened,
             ),
-        color = SurfaceWhite.copy(alpha = 0.985f),
-        shadowElevation = 20.dp,
+        color = Color(0xFFFFFDFC),
+        shadowElevation = 2.dp,
         tonalElevation = 0.dp,
-        shape = RoundedCornerShape(34.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.84f)),
+        shape = RoundedCornerShape(22.dp),
+        border = BorderStroke(1.dp, Color(0xFFF3ECEF)),
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 20.dp),
-            verticalAlignment = Alignment.Top,
+                .padding(horizontal = 18.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(top = 44.dp, end = 14.dp)
-                    .size(12.dp)
-                    .background(
-                        color = if (message.statusHighlight) CherryPink else Color.Transparent,
-                        shape = CircleShape,
-                    ),
-            )
-
-            AvatarBubble(
-                avatarRes = message.avatarRes,
-                modifier = Modifier.size(76.dp),
-            )
-            Spacer(modifier = Modifier.width(14.dp))
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
             ) {
+                AvatarBubble(
+                    avatarRes = message.avatarRes,
+                    modifier = Modifier.size(42.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.Top,
                 ) {
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                text = message.authorName,
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.ExtraBold,
-                                ),
-                                color = InkBlack,
-                            )
-                            if (message.isEdited) {
-                                Text(
-                                    text = "已编辑",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = WarmGray,
+                        Text(
+                            text = message.authorName,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 18.sp,
+                                lineHeight = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            color = InkBlack,
+                        )
+                        Text(
+                            text = buildString {
+                                append(message.timeText)
+                                if (message.isEdited) {
+                                    append(" · 已编辑")
+                                }
+                            },
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Medium,
+                            ),
+                            color = WarmGray,
+                        )
+                    }
+
+                    if (message.isMine) {
+                        Box {
+                            IconButton(
+                                modifier = Modifier.size(32.dp),
+                                onClick = { showActions = true },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.MoreHoriz,
+                                    contentDescription = "更多操作",
+                                    tint = WarmGray,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showActions,
+                                onDismissRequest = { showActions = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("编辑留言") },
+                                    onClick = {
+                                        showActions = false
+                                        onStartEditing()
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("删除留言", color = CherryPink) },
+                                    onClick = {
+                                        showActions = false
+                                        confirmDeleteMessage = true
+                                    },
                                 )
                             }
                         }
-                        Text(
-                            text = message.timeText,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = WarmGray,
-                        )
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        MessageStatusPill(
-                            text = message.statusText,
-                            highlight = message.statusHighlight,
-                        )
-                        if (message.isMine) {
-                            Box {
-                                IconButton(onClick = { showActions = true }) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.MoreHoriz,
-                                        contentDescription = "更多操作",
-                                        tint = WarmGray,
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                }
-                                DropdownMenu(
-                                    expanded = showActions,
-                                    onDismissRequest = { showActions = false },
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("编辑留言") },
-                                        onClick = {
-                                            showActions = false
-                                            onStartEditing()
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("删除留言", color = CherryPink) },
-                                        onClick = {
-                                            showActions = false
-                                            confirmDeleteMessage = true
-                                        },
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
+            }
 
-                if (message.content.isNotBlank()) {
-                    Text(
-                        text = message.content,
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 28.sp,
-                        ),
-                        color = InkBlack,
-                    )
-                }
-
-                if (message.imagePaths.isNotEmpty()) {
-                    MessageImageGrid(
-                        imagePaths = message.imagePaths,
-                        onImageClick = { index ->
-                            viewerIndex = index
-                            onImageClick()
-                        },
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(24.dp),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.FavoriteBorder,
-                            contentDescription = null,
-                            tint = CherryPink,
-                            modifier = Modifier.size(28.dp),
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.clickable(onClick = onReplyClick),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.ChatBubbleOutline,
-                            contentDescription = "回复留言",
-                            tint = WarmGray,
-                            modifier = Modifier.size(27.dp),
-                        )
-                        Text(
-                            text = if (message.replyCount > 0) "回复 ${message.replyCount}" else "回复",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = WarmGray,
-                        )
-                    }
-                }
-
-                ReplySection(
-                    message = message,
-                    isReplyActive = isReplyActive,
-                    replyText = replyText,
-                    onReplyTextChange = onReplyTextChange,
-                    onSendReply = onSendReply,
-                    onCancelReply = onCancelReply,
-                    onDeleteReply = { confirmDeleteReplyId = it },
-                    onToggleReplies = onToggleReplies,
+            if (message.content.isNotBlank()) {
+                Text(
+                    text = message.content,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontSize = 15.sp,
+                        lineHeight = 25.sp,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                    color = InkBlack,
                 )
             }
+
+            if (message.imagePaths.isNotEmpty()) {
+                MessageImageGrid(
+                    imagePaths = message.imagePaths,
+                    modifier = Modifier.fillMaxWidth(),
+                    onImageClick = { index ->
+                        viewerIndex = index
+                        onImageClick()
+                    },
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color(0xFFF3EDEF)),
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                MessageAction(
+                    icon = Icons.Outlined.FavoriteBorder,
+                    label = "赞",
+                    tint = CherryPink,
+                    onClick = onCardOpened,
+                )
+                MessageAction(
+                    icon = Icons.Outlined.ChatBubbleOutline,
+                    label = if (message.replyCount > 0) "评论 ${message.replyCount}" else "评论",
+                    tint = WarmGray,
+                    onClick = onReplyClick,
+                )
+            }
+
+            ReplySection(
+                message = message,
+                isReplyActive = isReplyActive,
+                replyText = replyText,
+                onReplyTextChange = onReplyTextChange,
+                onSendReply = onSendReply,
+                onCancelReply = onCancelReply,
+                onDeleteReply = { confirmDeleteReplyId = it },
+                onToggleReplies = onToggleReplies,
+            )
         }
     }
 
@@ -327,6 +304,32 @@ fun MessageCard(
 }
 
 @Composable
+private fun MessageAction(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    tint: Color,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = tint,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+            color = WarmGray,
+        )
+    }
+}
+
+@Composable
 private fun ReplySection(
     message: MessageUiModel,
     isReplyActive: Boolean,
@@ -337,40 +340,38 @@ private fun ReplySection(
     onDeleteReply: (String) -> Unit,
     onToggleReplies: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         if (message.replyCount > 0) {
-            Surface(
-                color = Color(0xFFFFFBFD),
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.68f)),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    message.visibleReplies.forEach { reply ->
-                        ReplyItem(
-                            reply = reply,
-                            onDelete = { onDeleteReply(reply.id) },
-                        )
-                    }
-                    if (message.hiddenReplyCount > 0) {
-                        Text(
-                            text = "查看全部 ${message.replyCount} 条回复",
-                            modifier = Modifier.clickable(onClick = onToggleReplies),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = CherryPink,
-                        )
-                    } else if (message.replyCount > 3) {
-                        Text(
-                            text = "收起回复",
-                            modifier = Modifier.clickable(onClick = onToggleReplies),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = WarmGray,
-                        )
-                    }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color(0xFFF2EEF1)),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                message.visibleReplies.forEach { reply ->
+                    ReplyItem(
+                        reply = reply,
+                        onDelete = { onDeleteReply(reply.id) },
+                    )
+                }
+                if (message.hiddenReplyCount > 0) {
+                    Text(
+                        text = "查看全部 ${message.replyCount} 条评论",
+                        modifier = Modifier.clickable(onClick = onToggleReplies),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = WarmGray,
+                    )
+                } else if (message.replyCount > 3) {
+                    Text(
+                        text = "收起评论",
+                        modifier = Modifier.clickable(onClick = onToggleReplies),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = WarmGray,
+                    )
                 }
             }
         }
@@ -391,65 +392,40 @@ private fun ReplyItem(
     reply: MessageReplyUiModel,
     onDelete: () -> Unit,
 ) {
-    Surface(
-        color = SurfaceWhite.copy(alpha = 0.98f),
-        shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.56f)),
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            AvatarBubble(
-                avatarRes = reply.avatarRes,
-                modifier = Modifier.size(44.dp),
+            Text(
+                text = reply.authorName,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                color = InkBlack,
             )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = reply.authorName,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = InkBlack,
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = reply.timeText,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = WarmGray,
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (reply.canDelete) {
-                        IconButton(
-                            modifier = Modifier.size(28.dp),
-                            onClick = onDelete,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.DeleteOutline,
-                                contentDescription = "删除回复",
-                                tint = WarmGray,
-                            )
-                        }
-                    }
-                }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = reply.timeText,
+                style = MaterialTheme.typography.bodySmall,
+                color = WarmGray,
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            if (reply.canDelete) {
                 Text(
-                    text = reply.content,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        lineHeight = 26.sp,
-                    ),
-                    color = InkBlack,
+                    text = "删除",
+                    modifier = Modifier.clickable(onClick = onDelete),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                    color = WarmGray,
                 )
             }
         }
+        Text(
+            text = reply.content,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Medium,
+                lineHeight = 25.sp,
+            ),
+            color = InkBlack,
+        )
     }
 }
 
@@ -461,35 +437,59 @@ private fun ReplyComposer(
     onSend: () -> Unit,
 ) {
     Surface(
-        color = Color(0xFFFFFBFD),
-        shape = RoundedCornerShape(22.dp),
-        border = BorderStroke(1.dp, SoftPink.copy(alpha = 0.72f)),
+        color = SurfaceWhite,
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, Color(0xFFF0EAEE)),
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            DraftInputCard(
+            BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = "回复一句温柔的话吧…",
-                minHeight = 88.dp,
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(onClick = onCancel) {
-                    Text("取消", color = WarmGray)
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    color = InkBlack,
+                    fontWeight = FontWeight.Medium,
+                ),
+                decorationBox = { innerTextField ->
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        if (value.isEmpty()) {
+                            Text(
+                                text = "回复…",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = WarmGray,
+                            )
+                        }
+                        innerTextField()
+                    }
                 }
-                PublishPillButton(
-                    text = "发送",
-                    enabled = value.isNotBlank(),
-                    onClick = onSend,
+            )
+            TextButton(onClick = onCancel) {
+                Text("取消", color = WarmGray)
+            }
+            Surface(
+                onClick = onSend,
+                enabled = value.isNotBlank(),
+                shape = CircleShape,
+                color = if (value.isNotBlank()) CherryPink else Color(0xFFF1EBEE),
+            ) {
+                Box(
+                    modifier = Modifier.size(34.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.Send,
+                    contentDescription = "发送回复",
+                    tint = if (value.isNotBlank()) SurfaceWhite else WarmGray.copy(alpha = 0.62f),
+                    modifier = Modifier.size(16.dp),
                 )
+                }
             }
         }
     }
@@ -503,9 +503,9 @@ fun DraftInputCard(
     minHeight: androidx.compose.ui.unit.Dp = 116.dp,
 ) {
     Surface(
-        color = Color(0xFFFFFBFC),
-        shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.75f)),
+        color = Color(0xFFFDF9FA),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.66f)),
     ) {
         BasicTextField(
             value = value,
@@ -517,7 +517,7 @@ fun DraftInputCard(
             textStyle = MaterialTheme.typography.titleMedium.copy(
                 color = InkBlack,
                 fontWeight = FontWeight.SemiBold,
-                lineHeight = 28.sp,
+                lineHeight = 26.sp,
             ),
             decorationBox = { innerTextField ->
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -578,9 +578,9 @@ fun ComposerImageAction(onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(999.dp),
-        color = SurfaceWhite.copy(alpha = 0.94f),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.76f)),
-        shadowElevation = 6.dp,
+        color = SurfaceWhite.copy(alpha = 0.82f),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.68f)),
+        shadowElevation = 0.dp,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
@@ -589,20 +589,20 @@ fun ComposerImageAction(onClick: () -> Unit) {
         ) {
             Box(
                 modifier = Modifier
-                    .size(28.dp)
-                    .background(SoftPink.copy(alpha = 0.68f), CircleShape),
+                    .size(24.dp)
+                    .background(SoftPink.copy(alpha = 0.42f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.AddPhotoAlternate,
                     contentDescription = "添加图片",
                     tint = CherryPink,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(16.dp),
                 )
             }
             Text(
                 text = "添加照片",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                 color = InkBlack,
             )
         }
@@ -618,41 +618,19 @@ fun PublishPillButton(
     Surface(
         onClick = onClick,
         enabled = enabled,
-        color = if (enabled) CherryPink else SoftPinkStrong,
-        shadowElevation = if (enabled) 10.dp else 0.dp,
+        color = if (enabled) CherryPink else Color(0xFFECE6E8),
+        shadowElevation = if (enabled) 1.dp else 0.dp,
         shape = RoundedCornerShape(999.dp),
         border = BorderStroke(
             width = 1.dp,
-            color = if (enabled) CherryPink.copy(alpha = 0.22f) else OutlinePink.copy(alpha = 0.72f),
+            color = if (enabled) CherryPink.copy(alpha = 0.14f) else OutlinePink.copy(alpha = 0.7f),
         ),
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 13.dp),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-            color = SurfaceWhite,
-        )
-    }
-}
-
-@Composable
-private fun MessageStatusPill(
-    text: String,
-    highlight: Boolean,
-) {
-    Surface(
-        color = if (highlight) Color(0xFFFFF1F6) else Color(0xFFF8F4F5),
-        shape = RoundedCornerShape(999.dp),
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (highlight) CherryPink.copy(alpha = 0.14f) else OutlinePink.copy(alpha = 0.32f),
-        ),
-    ) {
-        Text(
-            text = text.ifBlank { "已送达" },
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = if (highlight) CherryPink else WarmGray,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+            color = if (enabled) SurfaceWhite else WarmGray,
         )
     }
 }
@@ -665,11 +643,11 @@ fun WallCircleButton(
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.size(48.dp),
-        color = SurfaceWhite.copy(alpha = 0.96f),
+        modifier = Modifier.size(40.dp),
+        color = SurfaceWhite.copy(alpha = 0.82f),
         shape = CircleShape,
-        shadowElevation = 10.dp,
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.72f)),
+        shadowElevation = 1.dp,
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.62f)),
         onClick = onClick,
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -677,7 +655,7 @@ fun WallCircleButton(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 tint = tint,
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(18.dp),
             )
         }
     }
@@ -690,12 +668,12 @@ fun WallIllustration(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .border(1.dp, OutlinePink.copy(alpha = 0.45f), RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(22.dp))
+            .border(1.dp, OutlinePink.copy(alpha = 0.28f), RoundedCornerShape(22.dp))
             .background(
                 Brush.linearGradient(
                     listOf(
-                        Color(0xFFFFF6F9),
+                        Color(0xFFFFF8FA),
                         Color(0xFFFFFCFC),
                     ),
                 ),
@@ -721,8 +699,8 @@ fun AvatarBubble(
         modifier = modifier,
         color = SurfaceWhite,
         shape = CircleShape,
-        shadowElevation = 8.dp,
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.48f)),
+        shadowElevation = 1.dp,
+        border = BorderStroke(1.dp, Color(0xFFF4EEF1)),
     ) {
         if (avatarRes != null) {
             Image(
@@ -738,26 +716,30 @@ fun AvatarBubble(
 @Composable
 fun MessageImageGrid(
     imagePaths: List<String>,
+    modifier: Modifier = Modifier,
     onImageClick: (Int) -> Unit,
 ) {
     if (imagePaths.size == 1) {
         MessageMedia(
             imagePath = imagePaths.first(),
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
-                .aspectRatio(1.72f)
-                .clip(RoundedCornerShape(30.dp))
+                .aspectRatio(1.5f)
+                .clip(RoundedCornerShape(20.dp))
                 .clickable { onImageClick(0) },
         )
     } else {
         val columns = when (imagePaths.size) {
             2 -> 2
-            4 -> 2
+            3, 4 -> 2
             else -> 3
         }
         val rows = imagePaths.chunked(columns)
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             rows.forEachIndexed { rowIndex, row ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -768,14 +750,14 @@ fun MessageImageGrid(
                         MessageMedia(
                             imagePath = imagePath,
                             modifier = Modifier
-                                .weight(1f)
+                                .weight(1f, fill = true)
                                 .aspectRatio(1f)
-                                .clip(RoundedCornerShape(22.dp))
+                                .clip(RoundedCornerShape(14.dp))
                                 .clickable { onImageClick(imageIndex) },
                         )
                     }
                     repeat(columns - row.size) {
-                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.weight(1f, fill = true))
                     }
                 }
             }

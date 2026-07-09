@@ -18,6 +18,7 @@ import com.secretbase.app.ui.anniversary.AnniversaryScreen
 import com.secretbase.app.ui.anniversary.AnniversaryViewModel
 import com.secretbase.app.ui.home.HomeScreen
 import com.secretbase.app.ui.home.HomeViewModel
+import com.secretbase.app.ui.messagewall.MessageWallEditorScreen
 import com.secretbase.app.ui.messagewall.MessageWallScreen
 import com.secretbase.app.ui.messagewall.MessageWallViewModel
 import com.secretbase.app.ui.wishlist.WishCompletionDetailScreen
@@ -81,6 +82,13 @@ fun SecretBaseApp() {
         )
 
         AppRoute.MessageWall -> MessageWallRoute(
+            dependencies = dependencies,
+            snackbarHostState = snackbarHostState,
+            onBack = ::popBack,
+            onNavigate = { route -> navigate(route) },
+        )
+
+        AppRoute.MessageWallEditor -> MessageWallEditorRoute(
             dependencies = dependencies,
             snackbarHostState = snackbarHostState,
             onBack = ::popBack,
@@ -229,6 +237,7 @@ private fun MessageWallRoute(
     dependencies: SecretBaseDependencies,
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
+    onNavigate: (String) -> Unit,
 ) {
     val messageWallViewModel: MessageWallViewModel = viewModel(
         factory = MessageWallViewModel.factory(
@@ -243,10 +252,7 @@ private fun MessageWallRoute(
         uiState = messageWallState.value,
         snackbarHostState = snackbarHostState,
         onBack = onBack,
-        onDraftTextChange = messageWallViewModel::updateDraftText,
-        onAddImages = messageWallViewModel::addSelectedImages,
-        onRemoveSelectedImage = messageWallViewModel::removeSelectedImage,
-        onPublish = messageWallViewModel::publishMessage,
+        onOpenEditor = { onNavigate(AppRoute.MessageWallEditor.route) },
         onReplyClick = messageWallViewModel::openReplyComposer,
         onReplyTextChange = messageWallViewModel::updateReplyText,
         onSendReply = messageWallViewModel::sendReply,
@@ -259,6 +265,32 @@ private fun MessageWallRoute(
         onUpdateEditingText = messageWallViewModel::updateEditingText,
         onCancelEditing = messageWallViewModel::cancelEditing,
         onSaveEditing = messageWallViewModel::saveEditing,
+    )
+}
+
+@Composable
+private fun MessageWallEditorRoute(
+    dependencies: SecretBaseDependencies,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+) {
+    val messageWallViewModel: MessageWallViewModel = viewModel(
+        factory = MessageWallViewModel.factory(
+            homeRepository = dependencies.homeRepository,
+            messageRepository = dependencies.messageRepository,
+        ),
+    )
+    val messageWallState = messageWallViewModel.uiState.collectAsStateWithLifecycle()
+    CollectSnackbarMessages(messageWallViewModel, snackbarHostState)
+
+    MessageWallEditorScreen(
+        uiState = messageWallState.value,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onDraftTextChange = messageWallViewModel::updateDraftText,
+        onAddImages = messageWallViewModel::addSelectedImages,
+        onRemoveSelectedImage = messageWallViewModel::removeSelectedImage,
+        onPublish = messageWallViewModel::publishMessage,
     )
 }
 
@@ -388,6 +420,7 @@ private fun CollectSnackbarMessages(
 private sealed class AppRoute(val route: String) {
     data object Home : AppRoute("home")
     data object MessageWall : AppRoute("message-wall")
+    data object MessageWallEditor : AppRoute("message-wall/editor")
     data object WishList : AppRoute("wish-list")
     data object Anniversary : AppRoute("anniversary")
     data class WishDetail(val wishId: String) : AppRoute("wish-detail/$wishId")
@@ -398,6 +431,7 @@ private sealed class AppRoute(val route: String) {
         fun parse(route: String): AppRoute = when {
             route == Home.route -> Home
             route == MessageWall.route -> MessageWall
+            route == MessageWallEditor.route -> MessageWallEditor
             route == WishList.route -> WishList
             route == Anniversary.route -> Anniversary
             route.startsWith("wish-detail/") -> WishDetail(route.substringAfter("wish-detail/"))
