@@ -61,6 +61,12 @@ jobs:
         id: assemble
         run: ./gradlew :app:assembleDebug --stacktrace
 
+      - name: Verify APK Supabase build config
+        if: ${{ steps.assemble.outcome == 'success' }}
+        run: |
+          grep -q 'SUPABASE_URL = "https://rcdcfvlvjxkeipysxbjt.supabase.co"' app/build/generated/source/buildConfig/debug/com/secretbase/app/BuildConfig.java
+          grep -q 'SUPABASE_PUBLISHABLE_KEY = "sb_publishable_' app/build/generated/source/buildConfig/debug/com/secretbase/app/BuildConfig.java
+
       - name: Generate Compose preview screenshots
         if: ${{ steps.assemble.outcome == 'success' }}
         run: ./gradlew :app:updateDebugScreenshotTest --stacktrace

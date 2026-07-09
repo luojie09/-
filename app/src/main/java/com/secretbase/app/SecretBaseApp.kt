@@ -43,6 +43,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.secretbase.app.data.message.SecretBaseUsers
+import com.secretbase.app.data.supabase.SupabaseConfig
 import com.secretbase.app.data.user.UserIdentityStore
 import com.secretbase.app.data.wish.WishStatus
 import com.secretbase.app.ui.anniversary.AnniversaryScreen
@@ -75,25 +76,33 @@ fun SecretBaseApp() {
     }
 
     val selectedUserId = currentUserId ?: return
-    val dependencies = remember(appContext, selectedUserId) {
+    val dependencyResult = remember(appContext, selectedUserId) {
         runCatching {
             SecretBaseDependencies(
                 context = appContext,
                 currentUserId = selectedUserId,
             )
         }
-            .getOrElse { error ->
+            .recoverCatching { error ->
                 Log.e(
                     "SecretBaseApp",
-                    "Failed to create app dependencies. Falling back to local-only dependencies.",
+                    "Failed to create app dependencies.",
                     error,
                 )
+                if (SupabaseConfig.isConfigured) {
+                    throw error
+                }
                 SecretBaseDependencies(
                     context = appContext,
                     currentUserId = selectedUserId,
                     enableRemoteModules = false,
                 )
             }
+    }
+    val dependencies = dependencyResult.getOrNull()
+    if (dependencies == null) {
+        StartupErrorScreen()
+        return
     }
     val snackbarHostState = remember { SnackbarHostState() }
     var backStack by rememberSaveable { mutableStateOf(listOf(AppRoute.Home.route)) }
@@ -571,6 +580,42 @@ private fun IdentitySelectionGate(
                 ) {
                     Text(text = "\u8fdb\u5165\u79d8\u5bc6\u57fa\u5730")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StartupErrorScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFFF8FA))
+            .padding(28.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = Color.White,
+            shadowElevation = 14.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "\u4e91\u7aef\u8fde\u63a5\u5931\u8d25",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF242128),
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "\u8fd9\u4e2a\u5b89\u88c5\u5305\u5df2\u914d\u7f6e Supabase\uff0c\u4f46\u542f\u52a8\u65f6\u6ca1\u80fd\u521d\u59cb\u5316\u4e91\u7aef\u8fde\u63a5\u3002\u8bf7\u786e\u8ba4\u7f51\u7edc\u540e\u91cd\u65b0\u6253\u5f00\u5e94\u7528\u3002",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF7B747E),
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
