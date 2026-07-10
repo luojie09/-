@@ -101,7 +101,7 @@ fun SecretBaseApp() {
     }
     val dependencies = dependencyResult.getOrNull()
     if (dependencies == null) {
-        StartupErrorScreen()
+        StartupErrorScreen(error = dependencyResult.exceptionOrNull())
         return
     }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -586,7 +586,35 @@ private fun IdentitySelectionGate(
 }
 
 @Composable
-private fun StartupErrorScreen() {
+private fun StartupErrorScreen(error: Throwable?) {
+    val rootCause = remember(error) { error?.rootCause() }
+    val diagnosticText = remember(rootCause) {
+        buildString {
+            append("\u7248\u672c\uff1a")
+            append(BuildConfig.VERSION_NAME)
+            append(" (")
+            append(BuildConfig.VERSION_CODE)
+            appendLine(")")
+            append("\u4e91\u7aef\uff1a")
+            appendLine(if (SupabaseConfig.isConfigured) "\u5df2\u914d\u7f6e" else "\u672a\u914d\u7f6e")
+            if (SupabaseConfig.url.isNotBlank()) {
+                append("URL\uff1a")
+                appendLine(SupabaseConfig.url)
+            }
+            if (rootCause != null) {
+                append("\u9519\u8bef\uff1a")
+                appendLine(rootCause.javaClass.simpleName)
+                rootCause.message
+                    ?.take(260)
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { message ->
+                        append("\u4fe1\u606f\uff1a")
+                        append(message)
+                    }
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -616,9 +644,29 @@ private fun StartupErrorScreen() {
                     color = Color(0xFF7B747E),
                     textAlign = TextAlign.Center,
                 )
+                Spacer(modifier = Modifier.height(14.dp))
+                Text(
+                    text = diagnosticText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF9A929B),
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFFFF7F9))
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                )
             }
         }
     }
+}
+
+private fun Throwable.rootCause(): Throwable {
+    var current = this
+    while (current.cause != null && current.cause !== current) {
+        current = current.cause ?: current
+    }
+    return current
 }
 
 @Composable
