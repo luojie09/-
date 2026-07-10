@@ -271,6 +271,7 @@ private fun HomeRoute(
             homeRepository = dependencies.homeRepository,
             messageRepository = dependencies.messageRepository,
             wishRepository = dependencies.wishRepository,
+            anniversaryRepository = dependencies.anniversaryRepository,
             currentUserId = dependencies.currentUserId,
         ),
     )

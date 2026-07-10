@@ -9,6 +9,8 @@ import com.secretbase.app.data.ActivityRecord
 import com.secretbase.app.data.HomeRepository
 import com.secretbase.app.data.HomeSnapshot
 import com.secretbase.app.data.MoodOption
+import com.secretbase.app.data.anniversary.Anniversary
+import com.secretbase.app.data.anniversary.AnniversaryRepository
 import com.secretbase.app.data.message.Message
 import com.secretbase.app.data.message.MessageRepository
 import com.secretbase.app.data.wish.Wish
@@ -24,12 +26,16 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 class HomeViewModel(
     private val homeRepository: HomeRepository,
     private val messageRepository: MessageRepository,
     private val wishRepository: WishRepository,
+    private val anniversaryRepository: AnniversaryRepository,
     private val currentUserId: String,
 ) : ViewModel() {
 
@@ -39,6 +45,7 @@ class HomeViewModel(
     private var latestBaseSnapshot: HomeSnapshot? = null
     private var latestMessageWall: List<Message> = emptyList()
     private var latestWishes: List<Wish> = emptyList()
+    private var latestAnniversaries: List<Anniversary> = emptyList()
 
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
     val messages: SharedFlow<String> = _messages.asSharedFlow()
@@ -46,6 +53,7 @@ class HomeViewModel(
     init {
         observeMessageWall()
         observeWishes()
+        observeAnniversaries()
         refresh()
     }
 
@@ -164,17 +172,36 @@ class HomeViewModel(
         }
     }
 
+    private fun observeAnniversaries() {
+        viewModelScope.launch {
+            anniversaryRepository.observeAnniversaries().collectLatest { anniversaries ->
+                runCatching {
+                    latestAnniversaries = anniversaries
+                    renderUi()
+                }.onFailure { error ->
+                    Log.e(TAG, "Failed to render home state from anniversary updates", error)
+                }
+            }
+        }
+    }
+
     private fun renderUi() {
         val snapshot = latestBaseSnapshot ?: return
+        val now = ZonedDateTime.now()
+        val upcomingAnniversary = latestAnniversaries.nearestUpcomingForHome(
+            today = now.toLocalDate(),
+            relationshipStart = snapshot.couple.relationshipStartDate,
+        )
         val enriched = snapshot.withLiveModules(
             messages = latestMessageWall,
             wishes = latestWishes,
             currentUserId = currentUserId,
         )
         _uiState.value = enriched.toUiState(
-            now = ZonedDateTime.now(),
+            now = now,
             quickNoteText = _uiState.value.quickNoteText,
             editingMoodUserId = _uiState.value.editingMoodUserId,
+            upcomingAnniversary = upcomingAnniversary,
         )
     }
 
@@ -192,6 +219,7 @@ class HomeViewModel(
             homeRepository: HomeRepository,
             messageRepository: MessageRepository,
             wishRepository: WishRepository,
+            anniversaryRepository: AnniversaryRepository,
             currentUserId: String,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -200,11 +228,44 @@ class HomeViewModel(
                     homeRepository = homeRepository,
                     messageRepository = messageRepository,
                     wishRepository = wishRepository,
+                    anniversaryRepository = anniversaryRepository,
                     currentUserId = currentUserId,
                 ) as T
         }
     }
 }
+
+private fun List<Anniversary>.nearestUpcomingForHome(
+    today: LocalDate,
+    relationshipStart: LocalDate,
+): HomeUpcomingAnniversary? =
+    mapNotNull { anniversary ->
+        val eventDate = Instant.ofEpochMilli(anniversary.date)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+        val effectiveDate = anniversary.nextEffectiveDate(today, eventDate) ?: return@mapNotNull null
+        val cycleStart = if (anniversary.repeatYearly) {
+            maxOf(relationshipStart, effectiveDate.minusYears(1))
+        } else {
+            maxOf(relationshipStart, eventDate)
+        }
+        HomeUpcomingAnniversary(
+            title = anniversary.title,
+            eventDate = effectiveDate,
+            cycleStartDate = cycleStart,
+        )
+    }.minByOrNull { ChronoUnit.DAYS.between(today, it.eventDate) }
+
+private fun Anniversary.nextEffectiveDate(
+    today: LocalDate,
+    eventDate: LocalDate,
+): LocalDate? =
+    if (repeatYearly) {
+        val thisYear = eventDate.withYear(today.year)
+        if (thisYear.isBefore(today)) thisYear.plusYears(1) else thisYear
+    } else {
+        eventDate.takeUnless { it.isBefore(today) }
+    }
 
 private fun HomeSnapshot.withLiveModules(
     messages: List<Message>,

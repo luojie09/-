@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -83,38 +83,37 @@ fun SecretBasePageTopBar(
     onActionClick: (() -> Unit)? = null,
     actionTint: Color = CherryPink,
 ) {
-    Row(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp)
+            .height(44.dp),
     ) {
-        SecretBaseTopBarButton(
-            icon = Icons.AutoMirrored.Outlined.ArrowBack,
-            contentDescription = "返回",
-            tint = InkBlack,
-            onClick = onBack,
-        )
-        Spacer(modifier = Modifier.weight(1f))
         Text(
             text = title,
+            modifier = Modifier.align(Alignment.Center),
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = (-0.15).sp,
             ),
             color = InkBlack,
         )
-        Spacer(modifier = Modifier.weight(1f))
+        SecretBaseTopBarButton(
+            icon = Icons.AutoMirrored.Outlined.ArrowBack,
+            contentDescription = "返回",
+            tint = InkBlack,
+            onClick = onBack,
+            modifier = Modifier.align(Alignment.CenterStart),
+        )
         if (actionIcon != null && actionDescription != null && onActionClick != null) {
             SecretBaseTopBarButton(
                 icon = actionIcon,
                 contentDescription = actionDescription,
                 tint = actionTint,
                 onClick = onActionClick,
+                modifier = Modifier.align(Alignment.CenterEnd),
             )
-        } else {
-            Spacer(modifier = Modifier.size(40.dp))
         }
     }
 }
@@ -249,9 +248,10 @@ fun SecretBaseTopBarButton(
     contentDescription: String,
     tint: Color,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier.size(40.dp),
+        modifier = modifier.size(40.dp),
         color = SurfaceWhite.copy(alpha = 0.82f),
         shape = CircleShape,
         shadowElevation = 1.dp,
@@ -275,13 +275,17 @@ fun SecretBaseMiniActionButton(
     label: String,
     onClick: () -> Unit,
     tint: Color = WarmGray,
+    showLabel: Boolean = true,
 ) {
     Surface(
         onClick = onClick,
         color = Color.Transparent,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            modifier = Modifier.padding(
+                horizontal = if (showLabel) 8.dp else 7.dp,
+                vertical = if (showLabel) 6.dp else 7.dp,
+            ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
@@ -291,11 +295,13 @@ fun SecretBaseMiniActionButton(
                 tint = tint,
                 modifier = Modifier.size(14.dp),
             )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = tint,
-            )
+            if (showLabel) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = tint,
+                )
+            }
         }
     }
 }

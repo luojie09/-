@@ -50,8 +50,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.secretbase.app.data.anniversary.AnniversaryReminder
 import com.secretbase.app.ui.common.SecretBaseCardSurface
 import com.secretbase.app.ui.common.SecretBaseInputSurface
@@ -59,7 +61,6 @@ import com.secretbase.app.ui.common.SecretBaseMiniActionButton
 import com.secretbase.app.ui.common.SecretBasePageBackground
 import com.secretbase.app.ui.common.SecretBasePageTopBar
 import com.secretbase.app.ui.common.SecretBasePrimaryButton
-import com.secretbase.app.ui.common.SecretBaseSectionIntro
 import com.secretbase.app.ui.messagewall.WallIllustration
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
@@ -131,28 +132,12 @@ fun AnniversaryScreen(
                     top = innerPadding.calculateTopPadding() + 10.dp,
                     bottom = 32.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
                     AnniversaryHero(
-                        illustrationRes = uiState.visuals.hero.imageRes,
                         relationshipDays = uiState.relationshipDays,
                         relationshipStartText = uiState.relationshipStartText,
-                    )
-                }
-                item {
-                    SecretBaseSectionIntro(
-                        eyebrow = "重要时刻",
-                        title = if (uiState.items.isEmpty()) {
-                            "先把属于你们的重要日子收进来"
-                        } else {
-                            "已经珍藏 ${uiState.items.size} 个纪念日"
-                        },
-                        subtitle = if (uiState.items.isEmpty()) {
-                            "生日、第一次见面、第一次旅行，都值得被温柔记住。"
-                        } else {
-                            "把会发光的回忆放进同一条时间线里，以后翻看会更有仪式感。"
-                        },
                     )
                 }
                 if (uiState.items.isEmpty()) {
@@ -270,54 +255,52 @@ fun AnniversaryScreen(
 
 @Composable
 private fun AnniversaryHero(
-    illustrationRes: Int?,
     relationshipDays: Int,
     relationshipStartText: String,
 ) {
     SecretBaseCardSurface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(30.dp),
+        shape = RoundedCornerShape(24.dp),
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(
-                text = "恋爱时间线",
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = CherryPink.copy(alpha = 0.82f),
-            )
-            WallIllustration(
-                illustrationRes = illustrationRes,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(148.dp),
-            )
-            Text(
-                text = "我们已经一起走过",
-                style = MaterialTheme.typography.bodyLarge,
-                color = WarmGray,
-            )
-            Row(verticalAlignment = Alignment.Bottom) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 Text(
-                    text = relationshipDays.toString(),
-                    style = MaterialTheme.typography.headlineLarge.copy(color = InkBlack),
+                    text = "我们已经一起走过",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                    color = CherryPink.copy(alpha = 0.82f),
                 )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "天",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                    text = "从 $relationshipStartText 开始",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = WarmGray,
                 )
             }
-            Text(
-                text = "从 $relationshipStartText 开始",
-                style = MaterialTheme.typography.bodyMedium,
-                color = WarmGray,
-            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = relationshipDays.toString(),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        color = InkBlack,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.SemiBold,
+                        lineHeight = 42.sp,
+                    ),
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "天",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = WarmGray,
+                )
+            }
         }
     }
 }
@@ -376,11 +359,13 @@ private fun AnniversaryCard(
                         icon = Icons.Outlined.Edit,
                         label = "编辑",
                         onClick = onEdit,
+                        showLabel = false,
                     )
                     SecretBaseMiniActionButton(
                         icon = Icons.Outlined.DeleteOutline,
                         label = "删除",
                         onClick = onDelete,
+                        showLabel = false,
                     )
                 }
             }
@@ -392,7 +377,7 @@ private fun AnniversaryCard(
 private fun AnniversaryIcon(tone: AnniversaryStatusTone) {
     val (icon, color) = when (tone) {
         AnniversaryStatusTone.TODAY -> Icons.Outlined.Favorite to Color(0xFFFF6F95)
-        AnniversaryStatusTone.UPCOMING -> Icons.Outlined.Flight to Color(0xFFFFA726)
+        AnniversaryStatusTone.UPCOMING -> Icons.Outlined.Flight to CherryPink
         AnniversaryStatusTone.PASSED -> Icons.Outlined.Groups to Color(0xFF4DB6AC)
         AnniversaryStatusTone.EXPIRED -> Icons.Outlined.Cake to Color(0xFFB0BEC5)
     }
@@ -411,18 +396,18 @@ private fun AnniversaryIcon(tone: AnniversaryStatusTone) {
 private fun AnniversaryStatusPill(item: AnniversaryUiModel) {
     val color = when (item.statusTone) {
         AnniversaryStatusTone.TODAY -> CherryPink
-        AnniversaryStatusTone.UPCOMING -> Color(0xFFFFA726)
+        AnniversaryStatusTone.UPCOMING -> CherryPink
         AnniversaryStatusTone.PASSED -> Color(0xFF4DB6AC)
         AnniversaryStatusTone.EXPIRED -> WarmGray
     }
     Surface(
-        color = color.copy(alpha = 0.1f),
+        color = color.copy(alpha = if (item.statusTone == AnniversaryStatusTone.UPCOMING) 0.12f else 0.1f),
         shape = RoundedCornerShape(999.dp),
     ) {
         Text(
             text = item.statusText,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
             color = color,
         )
     }

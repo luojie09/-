@@ -52,6 +52,12 @@ data class RelationshipUiModel(
     val anniversaryProgress: Float,
 )
 
+data class HomeUpcomingAnniversary(
+    val title: String,
+    val eventDate: LocalDate,
+    val cycleStartDate: LocalDate,
+)
+
 data class MoodCardUiModel(
     val userId: String,
     val displayName: String,
@@ -83,8 +89,12 @@ fun HomeSnapshot.toUiState(
     editingMoodUserId: String? = null,
     isLoading: Boolean = false,
     errorMessage: String? = null,
+    upcomingAnniversary: HomeUpcomingAnniversary? = null,
 ): HomeUiState {
-    val relationship = buildRelationshipUi(now.toLocalDate())
+    val relationship = buildRelationshipUi(
+        today = now.toLocalDate(),
+        upcomingAnniversary = upcomingAnniversary,
+    )
     return HomeUiState(
         isLoading = isLoading,
         errorMessage = errorMessage,
@@ -137,16 +147,23 @@ fun HomeSnapshot.toUiState(
     )
 }
 
-private fun HomeSnapshot.buildRelationshipUi(today: LocalDate): RelationshipUiModel {
+private fun HomeSnapshot.buildRelationshipUi(
+    today: LocalDate,
+    upcomingAnniversary: HomeUpcomingAnniversary?,
+): RelationshipUiModel {
     val startDate = couple.relationshipStartDate
     val anniversaryThisYear = startDate.withYear(today.year)
-    val nextAnniversary = when {
+    val fallbackAnniversary = when {
         today.isBefore(anniversaryThisYear) -> anniversaryThisYear
         today.isAfter(anniversaryThisYear) -> anniversaryThisYear.plusYears(1)
         today.year == startDate.year -> anniversaryThisYear.plusYears(1)
         else -> anniversaryThisYear
     }
-    val cycleStart = maxOf(startDate, nextAnniversary.minusYears(1))
+    val nextAnniversary = upcomingAnniversary?.eventDate ?: fallbackAnniversary
+    val cycleStart = maxOf(
+        startDate,
+        upcomingAnniversary?.cycleStartDate ?: nextAnniversary.minusYears(1),
+    )
     val daysTogether = max(1, ChronoUnit.DAYS.between(startDate, today).toInt() + 1)
     val totalCycleDays = max(1L, ChronoUnit.DAYS.between(cycleStart, nextAnniversary))
     val elapsedCycleDays = ChronoUnit.DAYS.between(cycleStart, today).coerceIn(0, totalCycleDays)
@@ -156,7 +173,7 @@ private fun HomeSnapshot.buildRelationshipUi(today: LocalDate): RelationshipUiMo
         label = couple.relationshipLabel,
         daysTogether = daysTogether,
         startDateText = startDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
-        anniversaryTitle = anniversaryTitle(startDate, nextAnniversary),
+        anniversaryTitle = upcomingAnniversary?.title ?: anniversaryTitle(startDate, nextAnniversary),
         daysUntilAnniversary = remainingDays,
         anniversaryCountdownLabel = if (remainingDays == 0) "就是今天" else "还有 $remainingDays 天",
         anniversaryProgress = (elapsedCycleDays.toFloat() / totalCycleDays.toFloat()).coerceIn(0f, 1f),
