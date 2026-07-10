@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,12 +26,15 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Photo
 import androidx.compose.material3.AlertDialog
@@ -55,6 +59,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -150,6 +156,7 @@ fun WishListScreen(
             ) {
                 item {
                     WishHeroCard(
+                        illustrationRes = uiState.visuals.hero.imageRes,
                         unrealizedCount = uiState.unrealizedCount,
                         realizedCount = uiState.realizedCount,
                     )
@@ -175,7 +182,6 @@ fun WishListScreen(
                             onClick = { onWishClick(wish.id) },
                             onEdit = { onEditWish(wish.id) },
                             onDelete = { onDeleteWish(wish.id) },
-                            onComplete = { onCompleteWish(wish.id) },
                         )
                     }
                 }
@@ -565,6 +571,7 @@ private fun WishTopBar(
 
 @Composable
 private fun WishHeroCard(
+    illustrationRes: Int?,
     unrealizedCount: Int,
     realizedCount: Int,
 ) {
@@ -575,28 +582,77 @@ private fun WishHeroCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(start = 18.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(
-                    text = "一起慢慢实现",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = CherryPink,
-                )
-                Text(
-                    text = "未实现 $unrealizedCount · 已实现 $realizedCount",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = InkBlack,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(
+                        text = "有你在身边",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = WarmGray,
+                    )
+                    Text(
+                        text = "愿望都会慢慢实现",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = InkBlack,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    WishHeroStat("未实现", unrealizedCount)
+                    WishHeroStat("已实现", realizedCount)
+                }
             }
-            StatCard("未实现", unrealizedCount, Color(0xFFFFF7FA))
-            StatCard("已实现", realizedCount, Color(0xFFFFF7FA))
+            WishTransparentIllustration(
+                illustrationRes = illustrationRes,
+                modifier = Modifier
+                    .width(164.dp)
+                    .height(132.dp),
+            )
         }
+    }
+}
+
+@Composable
+private fun WishTransparentIllustration(
+    illustrationRes: Int?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        if (illustrationRes != null) {
+            Image(
+                painter = painterResource(id = illustrationRes),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WishHeroStat(
+    label: String,
+    count: Int,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = WarmGray,
+        )
+        Text(
+            text = "$count",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = InkBlack,
+        )
     }
 }
 
@@ -604,9 +660,11 @@ private fun WishHeroCard(
 private fun StatCard(
     label: String,
     count: Int,
+    modifier: Modifier = Modifier,
     cardColor: Color = Color(0xFFFFFBFD),
 ) {
     Surface(
+        modifier = modifier,
         color = cardColor,
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.38f)),
@@ -683,10 +741,18 @@ private fun WishCard(
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onComplete: () -> Unit,
 ) {
     var showMenu by remember(wish.id) { mutableStateOf(false) }
     var showDeleteConfirm by remember(wish.id) { mutableStateOf(false) }
+    val isUnrealized = wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED
+    val descriptionText = when (wish.status) {
+        com.secretbase.app.data.wish.WishStatus.UNREALIZED -> wish.description.ifBlank { "把这个愿望轻轻放在未来吧" }
+        com.secretbase.app.data.wish.WishStatus.REALIZED -> wish.completionSummary ?: "完成时的欢喜，已经被悄悄留住啦。"
+    }
+    val metaText = when (wish.status) {
+        com.secretbase.app.data.wish.WishStatus.UNREALIZED -> wish.plannedDateText ?: wish.createdAtText
+        com.secretbase.app.data.wish.WishStatus.REALIZED -> "完成于 ${wish.completionDateText ?: wish.createdAtText}"
+    }
 
     SecretBaseCardSurface(
         modifier = Modifier
@@ -699,51 +765,33 @@ private fun WishCard(
                 .fillMaxWidth()
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            WishLeadingIcon(isUnrealized = isUnrealized)
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = wish.title,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = InkBlack,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    WishStatusPill(wish)
-                }
                 Text(
-                    text = when (wish.status) {
-                        com.secretbase.app.data.wish.WishStatus.UNREALIZED -> wish.description.ifBlank { "把这个愿望轻轻放在未来吧" }
-                        com.secretbase.app.data.wish.WishStatus.REALIZED -> wish.completionSummary ?: "完成时的欢喜，已经被悄悄留住啦。"
-                    },
+                    text = wish.title,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = InkBlack,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = descriptionText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = WarmGray,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = when (wish.status) {
-                        com.secretbase.app.data.wish.WishStatus.UNREALIZED -> wish.plannedDateText ?: wish.createdAtText
-                        com.secretbase.app.data.wish.WishStatus.REALIZED -> "完成于 ${wish.completionDateText ?: wish.createdAtText}"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = WarmGray.copy(alpha = 0.82f),
-                )
-                if (wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        SecondaryActionButton(text = "完成", onClick = onComplete)
-                    }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    WishMetaPill(metaText)
+                    WishStatusPill(wish)
                 }
             }
             Box {
@@ -789,18 +837,55 @@ private fun WishCard(
 }
 
 @Composable
-private fun WishStatusPill(wish: WishUiModel) {
-    val isUnrealized = wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED
+private fun WishLeadingIcon(isUnrealized: Boolean) {
+    val tint = if (isUnrealized) CherryPink else Color(0xFF4A8A68)
+    val icon = if (isUnrealized) Icons.Outlined.Favorite else Icons.Outlined.CheckCircle
+    Surface(
+        modifier = Modifier.size(42.dp),
+        shape = CircleShape,
+        color = tint.copy(alpha = 0.12f),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun WishMetaPill(text: String) {
     Surface(
         shape = RoundedCornerShape(999.dp),
-        color = Color(0xFFFFF2F6).copy(alpha = if (isUnrealized) 0.82f else 0.56f),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.28f)),
+        color = Color.White.copy(alpha = 0.58f),
+        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.22f)),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = WarmGray,
+        )
+    }
+}
+
+@Composable
+private fun WishStatusPill(wish: WishUiModel) {
+    val isUnrealized = wish.status == com.secretbase.app.data.wish.WishStatus.UNREALIZED
+    val textColor = if (isUnrealized) CherryPink else Color(0xFF4A8A68)
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = if (isUnrealized) Color(0xFFFFF2F6).copy(alpha = 0.82f) else Color(0xFFF1F9F4).copy(alpha = 0.72f),
+        border = BorderStroke(1.dp, if (isUnrealized) OutlinePink.copy(alpha = 0.28f) else Color(0xFFD6EADE)),
     ) {
         Text(
             text = if (isUnrealized) "待实现" else "已实现",
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = if (isUnrealized) CherryPink else WarmGray,
+            color = textColor,
         )
     }
 }

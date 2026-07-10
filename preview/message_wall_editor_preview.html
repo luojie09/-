@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content" />
   <title>写留言预览</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
@@ -36,7 +36,7 @@
 
     .phone{
       width:min(100%,var(--phone-width));
-      min-height:var(--phone-height);
+      height:var(--phone-height);
       background:linear-gradient(180deg,var(--bg-top) 0%, var(--bg) 100%);
       border-radius:38px;
       border:1px solid rgba(255,255,255,.9);
@@ -45,8 +45,10 @@
     }
 
     .scroll{
-      min-height:100%;
+      height:100%;
       padding:calc(18px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom));
+      display:flex;
+      flex-direction:column;
     }
 
     .topbar{
@@ -82,16 +84,21 @@
     .icon-circle svg{width:20px;height:20px;display:block}
 
     .editor-card{
+      flex:1;
+      min-height:0;
       background:var(--surface);
       border:1px solid var(--line);
       border-radius:24px;
       box-shadow:0 1px 6px rgba(40,24,32,.04);
       padding:20px;
+      display:flex;
+      flex-direction:column;
     }
 
     textarea{
       width:100%;
-      min-height:320px;
+      flex:1;
+      min-height:0;
       border:none;
       outline:none;
       resize:none;
@@ -184,6 +191,34 @@
     }
 
     .hidden{display:none!important}
+
+    @media (max-width:480px){
+      body{
+        min-height:100dvh;
+        padding:0;
+      }
+
+      .phone{
+        width:100%;
+        height:100dvh;
+        min-height:560px;
+        border-radius:0;
+        border:none;
+        box-shadow:none;
+      }
+
+      .scroll{
+        padding:calc(12px + env(safe-area-inset-top)) 20px calc(14px + env(safe-area-inset-bottom));
+      }
+
+      .topbar{
+        margin-bottom:14px;
+      }
+
+      .editor-card{
+        border-radius:22px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -198,7 +233,7 @@
       </div>
 
       <section class="editor-card">
-        <textarea id="draftInput" maxlength="500" placeholder="写点想对 TA 说的话..."></textarea>
+        <textarea id="draftInput" maxlength="500" placeholder="写下你想说的......"></textarea>
         <div class="images hidden" id="imageStrip"></div>
         <div class="divider"></div>
         <div class="actions">

@@ -345,6 +345,28 @@
 
     .message-actions svg{width:18px;height:18px}
     .message-actions .heart svg{color:var(--pink)}
+    .message-actions .heart{
+      transition:color .18s ease, transform .18s ease;
+    }
+    .message-actions .heart svg{
+      transition:transform .22s cubic-bezier(.2,1.4,.4,1), fill .18s ease;
+    }
+    .message-actions .heart.liked{
+      color:var(--pink);
+    }
+    .message-actions .heart.liked svg{
+      fill:currentColor;
+      transform:scale(1.16);
+    }
+    .message-actions .heart.pop svg{
+      animation:heart-pop .28s cubic-bezier(.2,1.45,.35,1);
+    }
+
+    @keyframes heart-pop{
+      0%{transform:scale(.86)}
+      58%{transform:scale(1.28)}
+      100%{transform:scale(1.08)}
+    }
 
     .reply-list{
       position:relative;
@@ -369,7 +391,12 @@
       display:flex;
       flex-direction:column;
       gap:4px;
+      padding:3px 0;
+      border-radius:10px;
+      cursor:pointer;
+      transition:background .16s ease;
     }
+    .reply-item:active{background:rgba(255,111,149,.05)}
 
     .reply-meta{
       display:flex;
@@ -411,6 +438,12 @@
       font-size:11px;
       cursor:pointer;
       padding:0;
+    }
+
+    .reply-toggle{
+      width:max-content;
+      padding:7px 2px;
+      border-radius:999px;
     }
 
     .reply-box{
@@ -584,7 +617,7 @@
 
       <section class="empty-state hidden" id="emptyState">
         <div class="empty-ill">
-          <img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp" alt="小羊和小耶插画" />
+          <img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero" alt="小羊和小耶插画" />
         </div>
         <h3>这里还没有留言</h3>
         <p>写下第一句只属于我们的悄悄话吧</p>
@@ -634,13 +667,15 @@
     const currentUserId = "sheep";
     const currentUserName = "小羊";
     const avatars = {
-      sheep: "../app/src/main/res/drawable-nodpi/avatar_sheep.png",
-      chick: "../app/src/main/res/drawable-nodpi/avatar_chick.png"
+      sheep: "../app/src/main/res/drawable-nodpi/avatar_sheep.png?v=20260710-new-avatar",
+      chick: "../app/src/main/res/drawable-nodpi/avatar_chick.png?v=20260710-new-avatar"
     };
 
     let activeReplyMessageId = null;
     let replyText = "";
     let expandedReplyIds = new Set();
+    let likedMessageIds = new Set();
+    let poppingLikeId = null;
     let editingMessageId = null;
     let viewerState = { open: false, messageId: null, index: 0 };
     let confirmState = null;
@@ -812,6 +847,7 @@
       emptyStateEl.classList.add("hidden");
       feedEl.innerHTML = messages.map(message => {
         const replies = visibleReplies(message);
+        const liked = likedMessageIds.has(message.id);
         const cols = imageCols(message.imagePaths.length);
         const metaBits = [
           formatTime(message.createdAt),
@@ -846,7 +882,7 @@
               </div>` : ""}
 
             <div class="message-actions">
-              <button class="heart" type="button" aria-label="赞">
+              <button class="heart ${liked ? "liked" : ""} ${poppingLikeId === message.id ? "pop" : ""}" type="button" data-like="${message.id}" aria-label="赞">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.3L4.7 13C2.4 10.7 2.4 6.9 4.7 4.7C7 2.4 10.8 2.4 13.1 4.7L12 5.8L10.9 4.7C8.6 2.4 4.8 2.4 2.5 4.7C.2 7 .2 10.8 2.5 13.1L12 22.6L21.5 13.1C23.8 10.8 23.8 7 21.5 4.7C19.2 2.4 15.4 2.4 13.1 4.7"/></svg>
                 <span>赞</span>
               </button>
@@ -859,7 +895,7 @@
             ${replies.length ? `
               <div class="reply-list">
                 ${replies.map(({ reply, index }) => `
-                  <div class="reply-item">
+                  <div class="reply-item" data-reply="${message.id}">
                     <div class="reply-meta">
                       <span class="reply-name">${reply.authorName}</span>
                       ${replyTargetName(message, index) ? `<span class="reply-target">回复 ${replyTargetName(message, index)}</span>` : ``}
@@ -983,10 +1019,29 @@
     });
 
     feedEl.addEventListener("click", event => {
-      const target = event.target.closest("[data-reply],[data-toggle-replies],[data-open-viewer],[data-delete-reply],[data-delete-message],[data-edit],[data-send-reply],[data-cancel-reply],[data-more]");
+      const target = event.target.closest("[data-like],[data-reply],[data-toggle-replies],[data-open-viewer],[data-delete-reply],[data-delete-message],[data-edit],[data-send-reply],[data-cancel-reply],[data-more]");
       if (!target) {
         const card = event.target.closest(".message-card");
         if (card) markMessageRead(card.dataset.messageId);
+        return;
+      }
+
+      if (target.dataset.like) {
+        const id = target.dataset.like;
+        if (likedMessageIds.has(id)) {
+          likedMessageIds.delete(id);
+        } else {
+          likedMessageIds.add(id);
+          poppingLikeId = id;
+          window.setTimeout(() => {
+            if (poppingLikeId === id) {
+              poppingLikeId = null;
+              render();
+            }
+          }, 300);
+        }
+        markMessageRead(id);
+        render();
         return;
       }
 

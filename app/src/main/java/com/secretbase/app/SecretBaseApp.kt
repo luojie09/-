@@ -434,6 +434,7 @@ private fun AnniversaryRoute(
         onDelete = anniversaryViewModel::deleteItem,
         onTitleChange = anniversaryViewModel::updateTitle,
         onDateChange = anniversaryViewModel::updateDate,
+        onIconChange = anniversaryViewModel::updateIconEmoji,
         onRepeatChange = anniversaryViewModel::toggleRepeat,
         onReminderChange = anniversaryViewModel::updateReminder,
         onDismissEditor = anniversaryViewModel::dismissEditor,

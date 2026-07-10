@@ -18,8 +18,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.MoreHoriz
@@ -40,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,6 +75,15 @@ fun MinimalMessageCard(
     var confirmDeleteMessage by remember(message.id) { mutableStateOf(false) }
     var confirmDeleteReplyId by remember(message.id) { mutableStateOf<String?>(null) }
     var viewerIndex by remember(message.id) { mutableIntStateOf(-1) }
+    var liked by remember(message.id) { mutableStateOf(false) }
+    val likeScale by animateFloatAsState(
+        targetValue = if (liked) 1.16f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
+        label = "message-like-scale",
+    )
 
     Surface(
         modifier = Modifier
@@ -200,10 +214,15 @@ fun MinimalMessageCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 MinimalMessageAction(
-                    icon = Icons.Outlined.FavoriteBorder,
+                    icon = if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                     label = "赞",
-                    tint = CherryPink,
-                    onClick = onCardOpened,
+                    tint = if (liked) CherryPink else WarmGray,
+                    selected = liked,
+                    iconScale = likeScale,
+                    onClick = {
+                        liked = !liked
+                        onCardOpened()
+                    },
                 )
                 MinimalMessageAction(
                     icon = Icons.Outlined.ChatBubbleOutline,
@@ -222,6 +241,7 @@ fun MinimalMessageCard(
                 onCancelReply = onCancelReply,
                 onDeleteReply = { confirmDeleteReplyId = it },
                 onToggleReplies = onToggleReplies,
+                onReplyClick = onReplyClick,
             )
         }
     }
@@ -264,10 +284,14 @@ private fun MinimalMessageAction(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     tint: Color,
+    selected: Boolean = false,
+    iconScale: Float = 1f,
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -275,12 +299,14 @@ private fun MinimalMessageAction(
             imageVector = icon,
             contentDescription = label,
             tint = tint,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier
+                .size(18.dp)
+                .scale(iconScale),
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
-            color = WarmGray,
+            color = if (selected) CherryPink else WarmGray,
         )
     }
 }
@@ -295,6 +321,7 @@ private fun MinimalReplySection(
     onCancelReply: () -> Unit,
     onDeleteReply: (String) -> Unit,
     onToggleReplies: () -> Unit,
+    onReplyClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -317,21 +344,18 @@ private fun MinimalReplySection(
                         MinimalReplyItem(
                             reply = reply,
                             onDelete = { onDeleteReply(reply.id) },
+                            onClick = onReplyClick,
                         )
                     }
                     if (message.hiddenReplyCount > 0) {
-                        Text(
+                        ReplyTogglePill(
                             text = "查看全部 ${message.replyCount} 条评论",
-                            modifier = Modifier.clickable(onClick = onToggleReplies),
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-                            color = WarmGray,
+                            onClick = onToggleReplies,
                         )
                     } else if (message.replyCount > 3) {
-                        Text(
+                        ReplyTogglePill(
                             text = "收起评论",
-                            modifier = Modifier.clickable(onClick = onToggleReplies),
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-                            color = WarmGray,
+                            onClick = onToggleReplies,
                         )
                     }
                 }
@@ -353,8 +377,15 @@ private fun MinimalReplySection(
 private fun MinimalReplyItem(
     reply: MessageReplyUiModel,
     onDelete: () -> Unit,
+    onClick: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -395,6 +426,25 @@ private fun MinimalReplyItem(
                 lineHeight = 22.sp,
             ),
             color = InkBlack,
+        )
+    }
+}
+
+@Composable
+private fun ReplyTogglePill(
+    text: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent,
+        shape = RoundedCornerShape(999.dp),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 2.dp, vertical = 7.dp),
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+            color = WarmGray,
         )
     }
 }

@@ -1,6 +1,7 @@
 package com.secretbase.app.ui.anniversary
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,13 +23,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.Celebration
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.Flight
-import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -49,8 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,6 +62,7 @@ import com.secretbase.app.ui.common.SecretBasePrimaryButton
 import com.secretbase.app.ui.messagewall.WallIllustration
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
+import com.secretbase.app.ui.theme.SecretBaseSansFontFamily
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
 import java.time.Instant
@@ -81,6 +80,7 @@ fun AnniversaryScreen(
     onDelete: (String) -> Unit,
     onTitleChange: (String) -> Unit,
     onDateChange: (Long) -> Unit,
+    onIconChange: (String) -> Unit,
     onRepeatChange: (Boolean) -> Unit,
     onReminderChange: (AnniversaryReminder) -> Unit,
     onDismissEditor: () -> Unit,
@@ -138,6 +138,7 @@ fun AnniversaryScreen(
                     AnniversaryHero(
                         relationshipDays = uiState.relationshipDays,
                         relationshipStartText = uiState.relationshipStartText,
+                        illustrationRes = uiState.visuals.hero.imageRes,
                     )
                 }
                 if (uiState.items.isEmpty()) {
@@ -183,6 +184,11 @@ fun AnniversaryScreen(
                     value = uiState.title,
                     placeholder = "请输入纪念日名称",
                     onValueChange = onTitleChange,
+                )
+                SheetLabel("图标")
+                AnniversaryEmojiPicker(
+                    selectedEmoji = uiState.iconEmoji,
+                    onSelect = onIconChange,
                 )
                 SheetLabel("日期 *")
                 AnniversaryDateField(
@@ -257,50 +263,77 @@ fun AnniversaryScreen(
 private fun AnniversaryHero(
     relationshipDays: Int,
     relationshipStartText: String,
+    illustrationRes: Int?,
 ) {
     SecretBaseCardSurface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(28.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 16.dp),
+                .padding(start = 18.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = "我们已经一起走过",
+                    text = "我们在一起已经",
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
                     color = CherryPink.copy(alpha = 0.82f),
                 )
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = relationshipDays.toString(),
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            color = InkBlack,
+                            fontFamily = SecretBaseSansFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 42.sp,
+                        ),
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "天",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = WarmGray,
+                    )
+                }
                 Text(
                     text = "从 $relationshipStartText 开始",
                     style = MaterialTheme.typography.bodyMedium,
                     color = WarmGray,
                 )
             }
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = relationshipDays.toString(),
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        color = InkBlack,
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.SemiBold,
-                        lineHeight = 42.sp,
-                    ),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "天",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = WarmGray,
-                )
-            }
+            AnniversaryHeroIllustration(
+                illustrationRes = illustrationRes,
+                modifier = Modifier
+                    .width(154.dp)
+                    .height(122.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnniversaryHeroIllustration(
+    illustrationRes: Int?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        if (illustrationRes != null) {
+            Image(
+                painter = painterResource(id = illustrationRes),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
         }
     }
 }
@@ -321,7 +354,10 @@ private fun AnniversaryCard(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.Top,
         ) {
-            AnniversaryIcon(item.statusTone)
+            AnniversaryIcon(
+                emoji = item.iconEmoji,
+                tone = item.statusTone,
+            )
             Spacer(modifier = Modifier.width(12.dp))
             Column(
                 modifier = Modifier.weight(1f),
@@ -374,12 +410,15 @@ private fun AnniversaryCard(
 }
 
 @Composable
-private fun AnniversaryIcon(tone: AnniversaryStatusTone) {
-    val (icon, color) = when (tone) {
-        AnniversaryStatusTone.TODAY -> Icons.Outlined.Favorite to Color(0xFFFF6F95)
-        AnniversaryStatusTone.UPCOMING -> Icons.Outlined.Flight to CherryPink
-        AnniversaryStatusTone.PASSED -> Icons.Outlined.Groups to Color(0xFF4DB6AC)
-        AnniversaryStatusTone.EXPIRED -> Icons.Outlined.Cake to Color(0xFFB0BEC5)
+private fun AnniversaryIcon(
+    emoji: String,
+    tone: AnniversaryStatusTone,
+) {
+    val color = when (tone) {
+        AnniversaryStatusTone.TODAY -> Color(0xFFFF6F95)
+        AnniversaryStatusTone.UPCOMING -> CherryPink
+        AnniversaryStatusTone.PASSED -> Color(0xFF4DB6AC)
+        AnniversaryStatusTone.EXPIRED -> Color(0xFFB0BEC5)
     }
     Surface(
         modifier = Modifier.size(42.dp),
@@ -387,7 +426,10 @@ private fun AnniversaryIcon(tone: AnniversaryStatusTone) {
         shape = CircleShape,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = color)
+            Text(
+                text = emoji,
+                fontSize = 20.sp,
+            )
         }
     }
 }
@@ -488,6 +530,47 @@ private fun AnniversaryInput(
                 inner()
             },
         )
+    }
+}
+
+@Composable
+private fun AnniversaryEmojiPicker(
+    selectedEmoji: String,
+    onSelect: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        AnniversaryEmojiOptions.chunked(6).forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                row.forEach { emoji ->
+                    val selected = emoji == selectedEmoji
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .clickable { onSelect(emoji) },
+                        shape = CircleShape,
+                        color = if (selected) Color(0xFFFFF0F4) else Color(0xFFFFFBFC),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (selected) CherryPink.copy(alpha = 0.34f) else Color(0xFFF1E5EA),
+                        ),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = emoji,
+                                fontSize = 21.sp,
+                            )
+                        }
+                    }
+                }
+                repeat(6 - row.size) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
     }
 }
 

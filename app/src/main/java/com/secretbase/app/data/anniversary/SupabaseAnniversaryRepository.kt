@@ -36,12 +36,12 @@ class SupabaseAnniversaryRepository(
     override fun observeAnniversaries(): Flow<List<Anniversary>> = anniversaries.asStateFlow()
 
     override suspend fun addAnniversary(item: Anniversary): Result<Unit> = runCatching {
-        client.insert(TABLE_NAME, item.toRow())
+        insertWithIconCompatibility(item)
         refreshAnniversaries()
     }
 
     override suspend fun updateAnniversary(item: Anniversary): Result<Unit> = runCatching {
-        client.update(TABLE_NAME, client.eq("id", item.id), item.toRow())
+        updateWithIconCompatibility(item)
         refreshAnniversaries()
     }
 
@@ -67,6 +67,17 @@ class SupabaseAnniversaryRepository(
             repeatYearly = repeatYearly,
             reminderType = reminderType.name,
             createdAt = millisToInstant(createdAt),
+            iconEmoji = iconEmoji,
+        )
+
+    private fun Anniversary.toLegacyRow(): LegacyAnniversaryRow =
+        LegacyAnniversaryRow(
+            id = id.ifBlank { "anniversary-${UUID.randomUUID()}" },
+            title = title,
+            date = millisToDate(date),
+            repeatYearly = repeatYearly,
+            reminderType = reminderType.name,
+            createdAt = millisToInstant(createdAt),
         )
 
     private fun AnniversaryRow.toDomain(): Anniversary =
@@ -77,7 +88,35 @@ class SupabaseAnniversaryRepository(
             repeatYearly = repeatYearly,
             reminderType = reminderType.toReminderType(),
             createdAt = instantToMillis(createdAt),
+            iconEmoji = iconEmoji,
         )
+
+    private suspend fun insertWithIconCompatibility(item: Anniversary) {
+        runCatching {
+            client.insert(TABLE_NAME, item.toRow())
+        }.getOrElse { error ->
+            if (error.isMissingIconEmojiColumn()) {
+                client.insert(TABLE_NAME, item.toLegacyRow())
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun updateWithIconCompatibility(item: Anniversary) {
+        runCatching {
+            client.update(TABLE_NAME, client.eq("id", item.id), item.toRow())
+        }.getOrElse { error ->
+            if (error.isMissingIconEmojiColumn()) {
+                client.update(TABLE_NAME, client.eq("id", item.id), item.toLegacyRow())
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private fun Throwable.isMissingIconEmojiColumn(): Boolean =
+        message?.contains("icon_emoji", ignoreCase = true) == true
 
     private fun String.toReminderType(): AnniversaryReminder =
         AnniversaryReminder.entries.firstOrNull { it.name == this } ?: AnniversaryReminder.NONE
@@ -102,6 +141,17 @@ class SupabaseAnniversaryRepository(
 
     @Serializable
     private data class AnniversaryRow(
+        val id: String,
+        val title: String,
+        val date: String,
+        @SerialName("repeat_yearly") val repeatYearly: Boolean,
+        @SerialName("reminder_type") val reminderType: String,
+        @SerialName("created_at") val createdAt: String,
+        @SerialName("icon_emoji") val iconEmoji: String? = null,
+    )
+
+    @Serializable
+    private data class LegacyAnniversaryRow(
         val id: String,
         val title: String,
         val date: String,

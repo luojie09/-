@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -42,7 +41,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -54,9 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.secretbase.app.data.HeroVisualConfig
-import com.secretbase.app.data.HomeVisuals
 import com.secretbase.app.data.MoodOption
-import com.secretbase.app.data.TopActionMessages
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
@@ -151,7 +147,6 @@ private fun HomeContent(
         item {
             HomeHeroSection(
                 payload = payload,
-                onAction = onAction,
             )
         }
 
@@ -215,7 +210,6 @@ private fun PaddedSection(content: @Composable () -> Unit) {
 @Composable
 private fun HomeHeroSection(
     payload: HomePayload,
-    onAction: (String) -> Unit,
 ) {
     val overlap = payload.visuals.hero.relationshipCardOverlapDp.dp
 
@@ -224,7 +218,6 @@ private fun HomeHeroSection(
         content = {
             HeroBackground(
                 payload = payload,
-                onAction = onAction,
             )
             Box(
                 modifier = Modifier
@@ -253,7 +246,6 @@ private fun HomeHeroSection(
 @Composable
 private fun HeroBackground(
     payload: HomePayload,
-    onAction: (String) -> Unit,
 ) {
     val hero = payload.visuals.hero
     val gradientBrush = Brush.verticalGradient(
@@ -272,10 +264,6 @@ private fun HeroBackground(
         HomeHeader(
             greeting = payload.greeting,
             coupleDisplayName = payload.coupleDisplayName,
-            visuals = payload.visuals,
-            messageDotVisible = payload.messageDotVisible,
-            topActionMessages = payload.topActionMessages,
-            onAction = onAction,
         )
 
         Box(
@@ -293,10 +281,6 @@ private fun HeroBackground(
 private fun HomeHeader(
     greeting: String,
     coupleDisplayName: String,
-    visuals: HomeVisuals,
-    messageDotVisible: Boolean,
-    topActionMessages: TopActionMessages,
-    onAction: (String) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -316,19 +300,6 @@ private fun HomeHeader(
                 color = WarmGray,
             )
             CoupleNameTitle(coupleDisplayName = coupleDisplayName)
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TopActionButton(
-                iconRes = visuals.icon("message"),
-                showDot = messageDotVisible,
-                onClick = { onAction(topActionMessages.message) },
-            )
-            TopActionButton(
-                iconRes = visuals.icon("settings"),
-                showDot = false,
-                onClick = { onAction(topActionMessages.settings) },
-            )
         }
     }
 }
@@ -375,46 +346,6 @@ private fun BoxScope.BottomFadeOverlay(hero: HeroVisualConfig) {
                 ),
             ),
     )
-}
-
-@Composable
-private fun TopActionButton(
-    iconRes: Int?,
-    showDot: Boolean,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier.size(40.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(
-            onClick = onClick,
-            shape = CircleShape,
-            color = SurfaceWhite.copy(alpha = 0.58f),
-            shadowElevation = 0.dp,
-            border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.18f)),
-            modifier = Modifier.size(34.dp),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                DrawableOrFallback(
-                    resId = iconRes,
-                    modifier = Modifier
-                        .size(17.dp)
-                        .alpha(0.78f),
-                )
-            }
-        }
-
-        if (showDot) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 6.dp, end = 6.dp)
-                    .size(6.dp)
-                    .background(CherryPink.copy(alpha = 0.5f), CircleShape),
-            )
-        }
-    }
 }
 
 @Composable
@@ -547,7 +478,7 @@ private fun CoupleNameTitle(coupleDisplayName: String) {
 
     if (names.size == 2) {
         Row(
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             Text(
@@ -559,7 +490,7 @@ private fun CoupleNameTitle(coupleDisplayName: String) {
                 text = heartToken,
                 style = MaterialTheme.typography.titleMedium.homeToken(HomeTypographyScale.HeroHeart),
                 color = CherryPink.copy(alpha = 0.9f),
-                modifier = Modifier.padding(bottom = 3.dp),
+                modifier = Modifier.padding(bottom = 5.dp),
             )
             Text(
                 text = names[1],

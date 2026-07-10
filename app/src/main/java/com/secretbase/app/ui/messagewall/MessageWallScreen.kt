@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -193,7 +194,9 @@ private fun QuickMessageComposer(
         border = BorderStroke(1.dp, Color(0xFFF3ECEF)),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             BasicTextField(
@@ -201,7 +204,8 @@ private fun QuickMessageComposer(
                 onValueChange = onDraftTextChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 300.dp),
+                    .weight(1f)
+                    .heightIn(min = 180.dp),
                 textStyle = MaterialTheme.typography.titleMedium.copy(
                     color = InkBlack,
                     fontWeight = FontWeight.Medium,
@@ -211,7 +215,7 @@ private fun QuickMessageComposer(
                     Box(modifier = Modifier.fillMaxSize()) {
                         if (draftText.isEmpty()) {
                             Text(
-                                text = "写点想对 TA 说的话…",
+                                text = "写下你想说的......",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     color = WarmGray,
                                     fontWeight = FontWeight.Medium,
@@ -340,7 +344,8 @@ fun MessageWallEditorScreen(
                         end = 20.dp,
                         top = innerPadding.calculateTopPadding() + 16.dp,
                         bottom = innerPadding.calculateBottomPadding() + 28.dp,
-                    ),
+                    )
+                    .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 QuickMessageComposer(
@@ -351,7 +356,9 @@ fun MessageWallEditorScreen(
                     onAddImages = { imagePickerLauncher.launch("image/*") },
                     onRemoveSelectedImage = onRemoveSelectedImage,
                     onPublish = onPublish,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                 )
             }
         }

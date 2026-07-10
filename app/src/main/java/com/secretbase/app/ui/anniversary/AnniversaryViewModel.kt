@@ -51,6 +51,7 @@ class AnniversaryViewModel(
                 editingId = null,
                 title = "",
                 date = System.currentTimeMillis(),
+                iconEmoji = DefaultAnniversaryEmoji,
                 repeatYearly = true,
                 reminderType = AnniversaryReminder.NONE,
             )
@@ -65,6 +66,7 @@ class AnniversaryViewModel(
                 editingId = item.id,
                 title = item.title,
                 date = item.date,
+                iconEmoji = item.iconEmoji ?: defaultAnniversaryEmoji(item.title),
                 repeatYearly = item.repeatYearly,
                 reminderType = item.reminderType,
             )
@@ -78,6 +80,7 @@ class AnniversaryViewModel(
                 editingId = null,
                 title = "",
                 date = null,
+                iconEmoji = DefaultAnniversaryEmoji,
                 repeatYearly = true,
                 reminderType = AnniversaryReminder.NONE,
             )
@@ -90,6 +93,10 @@ class AnniversaryViewModel(
 
     fun updateDate(value: Long) {
         _uiState.update { it.copy(date = value) }
+    }
+
+    fun updateIconEmoji(value: String) {
+        _uiState.update { it.copy(iconEmoji = value.takeIf { emoji -> emoji in AnniversaryEmojiOptions } ?: DefaultAnniversaryEmoji) }
     }
 
     fun toggleRepeat(value: Boolean) {
@@ -119,6 +126,7 @@ class AnniversaryViewModel(
             repeatYearly = state.repeatYearly,
             reminderType = state.reminderType,
             createdAt = latestItems.firstOrNull { it.id == state.editingId }?.createdAt ?: System.currentTimeMillis(),
+            iconEmoji = state.iconEmoji.ifBlank { defaultAnniversaryEmoji(title) },
         )
         _uiState.update { it.copy(isSaving = true) }
         viewModelScope.launch {
@@ -238,6 +246,7 @@ private fun Anniversary.toUiModel(today: LocalDate): AnniversaryUiModel {
         statusTone = tone,
         repeatLabel = if (repeatYearly) "每年重复" else "不重复",
         reminderType = reminderType,
+        iconEmoji = iconEmoji ?: defaultAnniversaryEmoji(title),
     )
 }
 

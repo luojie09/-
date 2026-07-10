@@ -13,6 +13,7 @@ data class AnniversaryUiState(
     val editingId: String? = null,
     val title: String = "",
     val date: Long? = null,
+    val iconEmoji: String = DefaultAnniversaryEmoji,
     val repeatYearly: Boolean = true,
     val reminderType: AnniversaryReminder = AnniversaryReminder.NONE,
     val isSaving: Boolean = false,
@@ -27,6 +28,7 @@ data class AnniversaryUiModel(
     val statusTone: AnniversaryStatusTone,
     val repeatLabel: String,
     val reminderType: AnniversaryReminder,
+    val iconEmoji: String,
 )
 
 enum class AnniversaryStatusTone {
@@ -35,3 +37,38 @@ enum class AnniversaryStatusTone {
     PASSED,
     EXPIRED,
 }
+
+const val DefaultAnniversaryEmoji: String = "💗"
+
+val AnniversaryEmojiOptions = listOf(
+    "💗",
+    "🌸",
+    "🎂",
+    "🎁",
+    "✈️",
+    "🌊",
+    "⭐",
+    "🍀",
+    "🏠",
+    "📷",
+    "🍰",
+    "🎬",
+    "🌙",
+    "☀️",
+    "💌",
+    "🦋",
+    "🐑",
+    "🐥",
+)
+
+fun defaultAnniversaryEmoji(title: String): String =
+    when {
+        "生日" in title -> "🎂"
+        "旅行" in title -> "✈️"
+        "约会" in title -> "🌸"
+        "见家长" in title -> "🏠"
+        "照片" in title || "相册" in title -> "📷"
+        "电影" in title -> "🎬"
+        "海" in title -> "🌊"
+        else -> DefaultAnniversaryEmoji
+    }

@@ -7,6 +7,7 @@ data class Anniversary(
     val repeatYearly: Boolean,
     val reminderType: AnniversaryReminder,
     val createdAt: Long,
+    val iconEmoji: String? = null,
 )
 
 enum class AnniversaryReminder {

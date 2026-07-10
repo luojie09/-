@@ -97,11 +97,11 @@
 
     .hero{
       display:grid;
-      grid-template-columns:minmax(0,1fr) 108px;
+      grid-template-columns:minmax(0,1fr) 156px;
       align-items:center;
-      gap:14px;
+      gap:4px;
       border-radius:28px;
-      padding:16px 18px;
+      padding:12px 8px 12px 18px;
       margin-bottom:14px;
     }
 
@@ -110,20 +110,20 @@
     .hero-ill{
       grid-column:2;
       grid-row:1 / span 3;
-      width:108px;
-      height:96px;
-      border-radius:22px;
-      overflow:hidden;
-      background:linear-gradient(180deg,#fff8fb,#fffdfd);
+      width:156px;
+      height:122px;
+      border-radius:0;
+      overflow:visible;
+      background:transparent;
       display:flex;
       align-items:center;
       justify-content:center;
-      margin:0 0 0 auto;
+      margin:0 -8px 0 auto;
     }
 
     .hero-ill img{
-      width:100%;
-      height:100%;
+      width:120%;
+      height:120%;
       object-fit:contain;
     }
 
@@ -153,6 +153,23 @@
       color:var(--pink-strong);
       letter-spacing:-.035em;
       font-variant-numeric:tabular-nums;
+    }
+
+    @media (max-width:360px){
+      .hero{
+        grid-template-columns:minmax(0,1fr) 140px;
+        padding-right:6px;
+      }
+
+      .hero-ill{
+        width:140px;
+        height:114px;
+        margin-right:-8px;
+      }
+
+      .hero-days strong{
+        font-size:46px;
+      }
     }
 
     .hero-days span{
@@ -477,6 +494,30 @@
       gap:10px;
     }
 
+    .emoji-picker{
+      display:grid;
+      grid-template-columns:repeat(6,1fr);
+      gap:8px;
+    }
+
+    .emoji-option{
+      height:44px;
+      border-radius:999px;
+      border:1px solid rgba(242,231,235,.92);
+      background:#fffbfd;
+      display:grid;
+      place-items:center;
+      font-size:21px;
+      cursor:pointer;
+      transition:background .18s ease,border-color .18s ease,transform .18s ease;
+    }
+
+    .emoji-option.active{
+      background:#fff0f4;
+      border-color:rgba(255,111,149,.36);
+      transform:translateY(-1px);
+    }
+
     .reminder{
       border:none;
       border-radius:999px;
@@ -552,6 +593,10 @@
         <input id="nameInput" type="text" maxlength="50" placeholder="请输入纪念日名称" />
       </div>
       <div class="field">
+        <div class="field-label">图标</div>
+        <div class="emoji-picker" id="iconPicker"></div>
+      </div>
+      <div class="field">
         <div class="field-label">日期 *</div>
         <input id="dateInput" type="date" />
       </div>
@@ -591,7 +636,7 @@
     const screenEl = document.getElementById("screen");
     const overlayEl = document.getElementById("editorOverlay");
     const confirmOverlayEl = document.getElementById("confirmOverlay");
-    const heroImage = "../app/src/main/res/drawable-nodpi/home_couple_hero.webp";
+    const heroImage = "../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero";
     const relationshipStart = "2026-05-06";
     const todayMs = new Date("2026-06-27T12:00:00+08:00").getTime();
     const today = toDateString(todayMs);
@@ -605,18 +650,21 @@
 
     const iconMap = {
       "在一起的日子": "💗",
-      "第一次约会": "✈️",
-      "第一次旅行": "🦋",
-      "第一次见家长": "🍀",
+      "第一次约会": "🌸",
+      "第一次旅行": "✈️",
+      "第一次见家长": "🏠",
       "生日 - 小羊": "🎂",
       "生日 - 小耶": "🎁"
     };
+
+    const iconOptions = ["💗","🌸","🎂","🎁","✈️","🌊","⭐","🍀","🏠","📷","🍰","🎬","🌙","☀️","💌","🦋","🐑","🐥"];
 
     const appState = {
       editorOpen: false,
       editingId: null,
       name: "",
       date: today,
+      iconEmoji: "💗",
       repeatYearly: true,
       reminderType: "NONE",
       menuId: null
@@ -627,12 +675,12 @@
 
     function seedItems() {
       return [
-        { id: "anniversary-love", title: "在一起的日子", date: "2026-05-06", repeatYearly: false, reminderType: "NONE", createdAt: "2026-05-06" },
-        { id: "anniversary-first-date", title: "第一次约会", date: "2026-06-15", repeatYearly: true, reminderType: "SAME_DAY", createdAt: "2026-05-20" },
-        { id: "anniversary-first-trip", title: "第一次旅行", date: "2026-10-01", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-23" },
-        { id: "anniversary-first-growth", title: "第一次见家长", date: "2026-10-20", repeatYearly: false, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-26" },
-        { id: "anniversary-sheep-birthday", title: "生日 - 小羊", date: "2026-08-15", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-28" },
-        { id: "anniversary-chick-birthday", title: "生日 - 小耶", date: "2026-11-02", repeatYearly: true, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-28" }
+        { id: "anniversary-love", title: "在一起的日子", date: "2026-05-06", repeatYearly: false, reminderType: "NONE", createdAt: "2026-05-06", iconEmoji: "💗" },
+        { id: "anniversary-first-date", title: "第一次约会", date: "2026-06-15", repeatYearly: true, reminderType: "SAME_DAY", createdAt: "2026-05-20", iconEmoji: "🌸" },
+        { id: "anniversary-first-trip", title: "第一次旅行", date: "2026-10-01", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-23", iconEmoji: "✈️" },
+        { id: "anniversary-first-growth", title: "第一次见家长", date: "2026-10-20", repeatYearly: false, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-26", iconEmoji: "🏠" },
+        { id: "anniversary-sheep-birthday", title: "生日 - 小羊", date: "2026-08-15", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-28", iconEmoji: "🎂" },
+        { id: "anniversary-chick-birthday", title: "生日 - 小耶", date: "2026-11-02", repeatYearly: true, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-28", iconEmoji: "🎁" }
       ];
     }
 
@@ -708,6 +756,17 @@
         });
     }
 
+    function defaultIconForTitle(title) {
+      if (title.includes("生日")) return "🎂";
+      if (title.includes("旅行")) return "✈️";
+      if (title.includes("约会")) return "🌸";
+      if (title.includes("见家长")) return "🏠";
+      if (title.includes("照片") || title.includes("相册")) return "📷";
+      if (title.includes("电影")) return "🎬";
+      if (title.includes("海")) return "🌊";
+      return iconMap[title] || "💗";
+    }
+
     function legend() {
       return `
         <section class="legend">
@@ -725,7 +784,7 @@
       return `
         <article class="card">
           <div class="card-head">
-            <div class="icon-box">${iconMap[item.title] || "💞"}</div>
+            <div class="icon-box">${item.iconEmoji || defaultIconForTitle(item.title)}</div>
             <div class="card-main">
               <div class="card-title">${escapeHtml(item.title)}</div>
               <div class="card-date">${formatDate(item.date)}</div>
@@ -785,11 +844,13 @@
       appState.editingId = item ? item.id : null;
       appState.name = item ? item.title : "";
       appState.date = item ? item.date : today;
+      appState.iconEmoji = item ? (item.iconEmoji || defaultIconForTitle(item.title)) : "💗";
       appState.repeatYearly = item ? item.repeatYearly : true;
       appState.reminderType = item ? item.reminderType : "NONE";
       document.getElementById("editorTitle").textContent = item ? "编辑纪念日" : "新增纪念日";
       document.getElementById("nameInput").value = appState.name;
       document.getElementById("dateInput").value = appState.date;
+      renderIconPicker();
       renderReminderRow();
       syncToggle();
       overlayEl.classList.add("show");
@@ -802,6 +863,12 @@
 
     function syncToggle() {
       document.getElementById("repeatToggle").classList.toggle("active", appState.repeatYearly);
+    }
+
+    function renderIconPicker() {
+      document.getElementById("iconPicker").innerHTML = iconOptions.map(emoji => `
+        <button class="emoji-option ${appState.iconEmoji === emoji ? "active" : ""}" type="button" data-action="pick-icon" data-value="${emoji}" aria-label="选择 ${emoji}">${emoji}</button>
+      `).join("");
     }
 
     function renderReminderRow() {
@@ -825,6 +892,7 @@
         id: appState.editingId || `anniversary-${crypto.randomUUID()}`,
         title,
         date,
+        iconEmoji: appState.iconEmoji || defaultIconForTitle(title),
         repeatYearly: appState.repeatYearly,
         reminderType: appState.reminderType,
         createdAt: appState.editingId ? anniversaries.find(item => item.id === appState.editingId)?.createdAt || today : today
@@ -911,6 +979,13 @@
     document.getElementById("repeatToggle").addEventListener("click", () => {
       appState.repeatYearly = !appState.repeatYearly;
       syncToggle();
+    });
+
+    document.getElementById("iconPicker").addEventListener("click", event => {
+      const button = event.target.closest("[data-action='pick-icon']");
+      if (!button) return;
+      appState.iconEmoji = button.dataset.value;
+      renderIconPicker();
     });
 
     document.getElementById("reminderRow").addEventListener("click", event => {

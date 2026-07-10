@@ -104,12 +104,20 @@
 
     .hero{
       display:grid;
-      grid-template-columns:minmax(0,1fr) 106px;
+      grid-template-columns:minmax(0,1fr) 164px;
       align-items:center;
-      gap:14px;
+      gap:4px;
       border-radius:28px;
-      padding:16px 18px;
+      padding:14px 12px 12px 18px;
       margin-bottom:14px;
+    }
+
+    .hero-left{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:16px;
     }
 
     .hero-copy{
@@ -124,7 +132,7 @@
     }
 
     .hero-copy h2{
-      margin:4px 0 12px;
+      margin:3px 0 0;
       font-size:21px;
       font-family:var(--font-heading);
       font-weight:700;
@@ -133,26 +141,28 @@
     }
 
     .hero-ill{
-      width:106px;
-      height:96px;
-      border-radius:22px;
-      background:linear-gradient(180deg,#fff8fb,#fffdfd);
+      width:164px;
+      height:132px;
+      border-radius:0;
+      background:transparent;
       display:flex;
       align-items:center;
       justify-content:center;
-      overflow:hidden;
+      overflow:visible;
       margin-left:auto;
+      margin-right:-14px;
     }
 
     .hero-ill img{
-      width:100%;
-      height:100%;
+      width:124%;
+      height:124%;
       object-fit:contain;
+      transform:translate(-4px,-3px);
     }
 
     .stat-grid{
       display:flex;
-      gap:18px;
+      gap:20px;
       align-items:flex-end;
     }
 
@@ -164,13 +174,34 @@
     .stat + .stat{border-left:none}
     .stat-label{font-size:12px;color:var(--muted);font-weight:680}
     .stat-num{
-      margin-top:2px;
-      font-size:28px;
+      margin-top:1px;
+      font-size:27px;
       font-family:var(--font-number);
       font-weight:700;
       line-height:1;
       letter-spacing:-.02em;
       font-variant-numeric:tabular-nums;
+    }
+
+    @media (max-width:360px){
+      .hero{
+        grid-template-columns:minmax(0,1fr) 144px;
+        padding-right:10px;
+      }
+
+      .hero-ill{
+        width:144px;
+        height:120px;
+        margin-right:-12px;
+      }
+
+      .hero-copy h2{
+        font-size:19px;
+      }
+
+      .stat-grid{
+        gap:16px;
+      }
     }
 
     .tabs{
@@ -211,12 +242,34 @@
 
     .wish-card{
       border-radius:24px;
-      padding:12px 14px;
+      padding:14px;
       display:grid;
-      grid-template-columns:78px 1fr auto;
+      grid-template-columns:42px minmax(0,1fr) auto;
       gap:12px;
       align-items:start;
       cursor:pointer;
+    }
+
+    .wish-icon{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:rgba(255,111,149,.12);
+      color:var(--pink);
+      margin-top:1px;
+    }
+
+    .wish-icon.realized{
+      background:rgba(74,168,117,.12);
+      color:#4a8a68;
+    }
+
+    .wish-icon svg{
+      width:20px;
+      height:20px;
+      display:block;
     }
 
     .wish-thumb{
@@ -307,6 +360,12 @@
       background:rgba(243,248,253,.68);
       border-color:rgba(220,229,239,.92);
       color:#657789;
+    }
+
+    .pill.done{
+      background:rgba(241,249,244,.72);
+      border-color:rgba(214,234,222,.92);
+      color:#4a8a68;
     }
 
     .wish-side{
@@ -693,7 +752,7 @@
     const titleCountEl = document.getElementById("wishTitleCount");
     const descCountEl = document.getElementById("wishDescCount");
 
-    const heroImage = "../app/src/main/res/drawable-nodpi/home_couple_hero.webp";
+    const heroImage = "../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero";
     const fixedNow = new Date("2026-06-27T12:00:00+08:00").getTime();
 
     const mockLabelMap = {
@@ -899,16 +958,18 @@
     function renderWishCard(wish) {
       const isRealized = wish.status === "REALIZED";
       const metaDate = isRealized ? wish.completion?.completedAt : wish.plannedDate;
-      const metaLabel = isRealized ? "完成日期" : "计划日期";
+      const icon = isRealized
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.4l2.1 2.1L15.8 9.8"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6c-1.7-1.6-4.4-1.4-5.9.4L12 8.1 9.1 5C7.6 3.2 4.9 3 3.2 4.6c-1.9 1.8-2 4.9-.2 6.8L12 20l9-8.6c1.8-1.9 1.7-5-.2-6.8Z"/></svg>`;
       return `
         <article class="wish-card" data-open-wish="${wish.id}">
-          <div class="wish-thumb">${renderMedia(wish.coverImagePath)}</div>
+          <div class="wish-icon ${isRealized ? "realized" : ""}">${icon}</div>
           <div class="wish-main">
             <div class="wish-title">${escapeHtml(wish.title)}</div>
             <p class="wish-desc">${escapeHtml(isRealized ? (wish.completion?.text || wish.description) : wish.description || "慢慢来，想做的事情都会实现。")}</p>
             <div class="wish-meta">
-              <span class="pill">${metaLabel} ${formatDate(metaDate)}</span>
-              ${isRealized ? `<span class="pill blue">已实现</span>` : `<span class="pill blue">未实现</span>`}
+              <span class="pill">${formatDate(metaDate)}</span>
+              ${isRealized ? `<span class="pill done">已实现</span>` : `<span class="pill blue">待实现</span>`}
             </div>
           </div>
           <div class="wish-side">
@@ -919,7 +980,6 @@
                 <button class="danger" type="button" data-action="delete-wish" data-id="${wish.id}">删除</button>
               </div>
             </div>
-            ${isRealized ? `<button class="tiny-btn" type="button" data-action="open-completion-detail" data-id="${wish.id}">看记录</button>` : `<button class="tiny-btn" type="button" data-action="open-detail" data-id="${wish.id}">完成愿望</button>`}
           </div>
         </article>
       `;
@@ -931,21 +991,23 @@
       return `
         ${renderTopbar("愿望清单", "back-home", "add")}
         <section class="hero">
-          <div class="hero-copy">
-            <p class="eyebrow">有你在身边</p>
-            <h2>愿望都会慢慢实现</h2>
+          <div class="hero-left">
+            <div class="hero-copy">
+              <p class="eyebrow">有你在身边</p>
+              <h2>愿望都会慢慢实现</h2>
+            </div>
+            <div class="stat-grid">
+              <div class="stat">
+                <div class="stat-label">未实现</div>
+                <div class="stat-num">${unrealized}</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">已实现</div>
+                <div class="stat-num">${realized}</div>
+              </div>
+            </div>
           </div>
           <div class="hero-ill"><img src="${heroImage}" alt="插画"></div>
-          <div class="stat-grid">
-            <div class="stat">
-              <div class="stat-label">未实现</div>
-              <div class="stat-num">${unrealized}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">已实现</div>
-              <div class="stat-num">${realized}</div>
-            </div>
-          </div>
         </section>
         <div class="tabs">
           <button class="tab ${appState.selectedStatus === "UNREALIZED" ? "active" : ""}" type="button" data-action="tab" data-status="UNREALIZED">未实现</button>
@@ -1198,12 +1260,6 @@
       } else {
         appState.screen = "list";
         screenEl.innerHTML = renderListScreen();
-        screenEl.querySelectorAll('[data-action="open-detail"]').forEach(button => {
-          button.textContent = "完成";
-        });
-        screenEl.querySelectorAll('[data-action="open-completion-detail"]').forEach(button => {
-          button.textContent = "记录";
-        });
       }
     }
 
