@@ -76,62 +76,64 @@ fun MessageWallScreen(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            SecretBasePageTopBar(
-                title = "留言墙",
-                onBack = onBack,
-                actionIcon = Icons.Outlined.Edit,
-                actionDescription = "写留言",
-                onActionClick = onOpenEditor,
-            )
-        },
     ) { innerPadding ->
         SecretBasePageBackground {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = innerPadding.calculateTopPadding() + 14.dp,
+                    top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding() + 36.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
+                item {
+                    SecretBasePageTopBar(
+                        title = "留言墙",
+                        onBack = onBack,
+                        actionIcon = Icons.Outlined.Edit,
+                        actionDescription = "写留言",
+                        onActionClick = onOpenEditor,
+                    )
+                }
                 if (uiState.messages.isEmpty()) {
                     item {
-                        MessageWallEmptyState(
-                            illustrationRes = uiState.visuals.hero.imageRes,
-                            onWriteMessage = onOpenEditor,
-                        )
+                        Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                            MessageWallEmptyState(
+                                illustrationRes = uiState.visuals.hero.imageRes,
+                                onWriteMessage = onOpenEditor,
+                            )
+                        }
                     }
                 } else {
                     items(
                         items = uiState.messages,
                         key = MessageUiModel::id,
                     ) { message ->
-                        MinimalMessageCard(
-                            message = message,
-                            isReplyActive = uiState.activeReplyMessageId == message.id,
-                            replyText = if (uiState.activeReplyMessageId == message.id) {
-                                uiState.replyText
-                            } else {
-                                ""
-                            },
-                            onReplyClick = {
-                                onReplyClick(message.id)
-                                onMarkMessageRead(message.id)
-                            },
-                            onReplyTextChange = onReplyTextChange,
-                            onSendReply = onSendReply,
-                            onCancelReply = onCancelReply,
-                            onToggleReplies = { onToggleReplies(message.id) },
-                            onDeleteMessage = { onDeleteMessage(message.id) },
-                            onDeleteReply = onDeleteReply,
-                            onStartEditing = { onStartEditing(message.id) },
-                            onImageClick = { onMarkMessageRead(message.id) },
-                            onCardOpened = { onMarkMessageRead(message.id) },
-                        )
+                        Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                            MinimalMessageCard(
+                                message = message,
+                                isReplyActive = uiState.activeReplyMessageId == message.id,
+                                replyText = if (uiState.activeReplyMessageId == message.id) {
+                                    uiState.replyText
+                                } else {
+                                    ""
+                                },
+                                onReplyClick = {
+                                    onReplyClick(message.id)
+                                    onMarkMessageRead(message.id)
+                                },
+                                onReplyTextChange = onReplyTextChange,
+                                onSendReply = onSendReply,
+                                onCancelReply = onCancelReply,
+                                onToggleReplies = { onToggleReplies(message.id) },
+                                onDeleteMessage = { onDeleteMessage(message.id) },
+                                onDeleteReply = onDeleteReply,
+                                onStartEditing = { onStartEditing(message.id) },
+                                onImageClick = { onMarkMessageRead(message.id) },
+                                onCardOpened = { onMarkMessageRead(message.id) },
+                            )
+                        }
                     }
                 }
             }
@@ -328,26 +330,19 @@ fun MessageWallEditorScreen(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            SecretBasePageTopBar(
-                title = "写留言",
-                onBack = onBack,
-            )
-        },
     ) { innerPadding ->
         SecretBasePageBackground {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        start = 20.dp,
-                        end = 20.dp,
-                        top = innerPadding.calculateTopPadding() + 16.dp,
-                        bottom = innerPadding.calculateBottomPadding() + 28.dp,
-                    )
+                    .padding(bottom = innerPadding.calculateBottomPadding() + 28.dp)
                     .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                SecretBasePageTopBar(
+                    title = "写留言",
+                    onBack = onBack,
+                )
                 QuickMessageComposer(
                     draftText = uiState.draftText,
                     selectedImages = uiState.selectedImages,
@@ -358,6 +353,7 @@ fun MessageWallEditorScreen(
                     onPublish = onPublish,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
                         .weight(1f),
                 )
             }

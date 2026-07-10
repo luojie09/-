@@ -192,7 +192,7 @@ fun MinimalMessageCard(
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontSize = 15.sp,
                         lineHeight = 25.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
                     ),
                     color = InkBlack,
                 )

@@ -135,54 +135,60 @@ fun WishListScreen(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            WishTopBar(
-                title = "愿望清单",
-                onBack = onBack,
-                onAdd = onAddWish,
-            )
-        },
     ) { innerPadding ->
         SecretBasePageBackground {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = innerPadding.calculateTopPadding() + 10.dp,
+                    top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding() + 32.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    WishHeroCard(
-                        illustrationRes = uiState.visuals.hero.imageRes,
-                        unrealizedCount = uiState.unrealizedCount,
-                        realizedCount = uiState.realizedCount,
+                    WishTopBar(
+                        title = "愿望清单",
+                        onBack = onBack,
+                        onAdd = onAddWish,
                     )
                 }
                 item {
-                    WishStatusTabs(
-                        selectedStatus = uiState.selectedStatus,
-                        onSelectStatus = onSelectStatus,
-                    )
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        WishHeroCard(
+                            illustrationRes = uiState.visuals.hero.imageRes,
+                            unrealizedCount = uiState.unrealizedCount,
+                            realizedCount = uiState.realizedCount,
+                        )
+                    }
+                }
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        WishStatusTabs(
+                            selectedStatus = uiState.selectedStatus,
+                            onSelectStatus = onSelectStatus,
+                        )
+                    }
                 }
                 if (visibleWishes.isEmpty()) {
                     item {
-                        WishEmptyState(
-                            illustrationRes = uiState.visuals.hero.imageRes,
-                            isRealized = uiState.selectedStatus == com.secretbase.app.data.wish.WishStatus.REALIZED,
-                            onCreateWish = onAddWish,
-                        )
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            WishEmptyState(
+                                illustrationRes = uiState.visuals.hero.imageRes,
+                                isRealized = uiState.selectedStatus == com.secretbase.app.data.wish.WishStatus.REALIZED,
+                                onCreateWish = onAddWish,
+                            )
+                        }
                     }
                 } else {
                     items(visibleWishes, key = WishUiModel::id) { wish ->
-                        WishCard(
-                            wish = wish,
-                            onClick = { onWishClick(wish.id) },
-                            onEdit = { onEditWish(wish.id) },
-                            onDelete = { onDeleteWish(wish.id) },
-                        )
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            WishCard(
+                                wish = wish,
+                                onClick = { onWishClick(wish.id) },
+                                onEdit = { onEditWish(wish.id) },
+                                onDelete = { onDeleteWish(wish.id) },
+                            )
+                        }
                     }
                 }
             }
@@ -271,14 +277,6 @@ fun WishDetailScreen(
     Scaffold(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            WishTopBar(
-                title = "愿望详情",
-                onBack = onBack,
-                onMore = false,
-                onAdd = {},
-            )
-        },
     ) { innerPadding ->
         SecretBasePageBackground {
             Column(
@@ -288,11 +286,17 @@ fun WishDetailScreen(
                     .padding(
                         start = 16.dp,
                         end = 16.dp,
-                        top = innerPadding.calculateTopPadding() + 12.dp,
+                        top = innerPadding.calculateTopPadding(),
                         bottom = 28.dp,
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                WishTopBar(
+                    title = "愿望详情",
+                    onBack = onBack,
+                    onMore = false,
+                    onAdd = {},
+                )
                 SecretBaseCardSurface(
                     shape = RoundedCornerShape(28.dp),
                 ) {
@@ -395,14 +399,6 @@ fun WishCompletionScreen(
     Scaffold(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            WishTopBar(
-                title = "完成记录",
-                onBack = onBack,
-                onMore = false,
-                onAdd = {},
-            )
-        },
     ) { innerPadding ->
         SecretBasePageBackground {
             Column(
@@ -412,11 +408,17 @@ fun WishCompletionScreen(
                     .padding(
                         start = 16.dp,
                         end = 16.dp,
-                        top = innerPadding.calculateTopPadding() + 10.dp,
+                        top = innerPadding.calculateTopPadding(),
                         bottom = 28.dp,
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                WishTopBar(
+                    title = "完成记录",
+                    onBack = onBack,
+                    onMore = false,
+                    onAdd = {},
+                )
                 SecretBaseCardSurface(
                     shape = RoundedCornerShape(28.dp),
                 ) {
@@ -492,14 +494,6 @@ fun WishCompletionDetailScreen(
     Scaffold(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            WishTopBar(
-                title = "完成记录详情",
-                onBack = onBack,
-                onMore = false,
-                onAdd = {},
-            )
-        },
     ) { innerPadding ->
         SecretBasePageBackground {
             Column(
@@ -509,11 +503,17 @@ fun WishCompletionDetailScreen(
                     .padding(
                         start = 16.dp,
                         end = 16.dp,
-                        top = innerPadding.calculateTopPadding() + 10.dp,
+                        top = innerPadding.calculateTopPadding(),
                         bottom = 28.dp,
                     ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                WishTopBar(
+                    title = "完成记录详情",
+                    onBack = onBack,
+                    onMore = false,
+                    onAdd = {},
+                )
                 SecretBaseCardSurface(
                     shape = RoundedCornerShape(28.dp),
                 ) {

@@ -94,7 +94,7 @@ fun SecretBasePageTopBar(
             text = title,
             modifier = Modifier.align(Alignment.Center),
             style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = (-0.15).sp,
             ),
             color = InkBlack,

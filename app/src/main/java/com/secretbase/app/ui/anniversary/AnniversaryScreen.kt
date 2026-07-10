@@ -113,48 +113,52 @@ fun AnniversaryScreen(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            SecretBasePageTopBar(
-                title = "纪念日",
-                onBack = onBack,
-                actionIcon = Icons.Outlined.Add,
-                actionDescription = "新增纪念日",
-                onActionClick = onAdd,
-            )
-        },
     ) { innerPadding ->
         SecretBasePageBackground {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = innerPadding.calculateTopPadding() + 10.dp,
+                    top = innerPadding.calculateTopPadding(),
                     bottom = 32.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    AnniversaryHero(
-                        relationshipDays = uiState.relationshipDays,
-                        relationshipStartText = uiState.relationshipStartText,
-                        illustrationRes = uiState.visuals.hero.imageRes,
+                    SecretBasePageTopBar(
+                        title = "纪念日",
+                        onBack = onBack,
+                        actionIcon = Icons.Outlined.Add,
+                        actionDescription = "新增纪念日",
+                        onActionClick = onAdd,
                     )
+                }
+                item {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        AnniversaryHero(
+                            relationshipDays = uiState.relationshipDays,
+                            relationshipStartText = uiState.relationshipStartText,
+                            illustrationRes = uiState.visuals.hero.imageRes,
+                        )
+                    }
                 }
                 if (uiState.items.isEmpty()) {
                     item {
-                        AnniversaryEmptyState(
-                            illustrationRes = uiState.visuals.hero.imageRes,
-                            onAdd = onAdd,
-                        )
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            AnniversaryEmptyState(
+                                illustrationRes = uiState.visuals.hero.imageRes,
+                                onAdd = onAdd,
+                            )
+                        }
                     }
                 } else {
                     items(uiState.items, key = AnniversaryUiModel::id) { item ->
-                        AnniversaryCard(
-                            item = item,
-                            onEdit = { onEdit(item.id) },
-                            onDelete = { pendingDeleteId = item.id },
-                        )
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            AnniversaryCard(
+                                item = item,
+                                onEdit = { onEdit(item.id) },
+                                onDelete = { pendingDeleteId = item.id },
+                            )
+                        }
                     }
                 }
             }
