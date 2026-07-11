@@ -7,10 +7,14 @@ import com.secretbase.app.data.supabase.millisToIsoInstant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.UUID
@@ -23,6 +27,7 @@ class SupabaseMessageRepository(
 
     private val messages = MutableStateFlow<List<Message>>(emptyList())
     private val draft = MutableStateFlow(MessageDraft())
+    private val refreshMutex = Mutex()
 
     init {
         scope.launch {
@@ -30,6 +35,15 @@ class SupabaseMessageRepository(
                 .onFailure { error ->
                     Log.e(TAG, "Failed to load message wall from Supabase", error)
                 }
+        }
+        scope.launch {
+            while (isActive) {
+                delay(REMOTE_REFRESH_INTERVAL_MS)
+                runCatching { refreshMessages() }
+                    .onFailure { error ->
+                        Log.e(TAG, "Failed to refresh message wall from Supabase", error)
+                    }
+            }
         }
     }
 
@@ -200,22 +214,24 @@ class SupabaseMessageRepository(
     }
 
     private suspend fun refreshMessages() {
-        val messageRows = client.select<MessageRow>(
-            table = MESSAGES_TABLE,
-            query = client.and("select=*", client.order("created_at", descending = true)),
-        )
+        refreshMutex.withLock {
+            val messageRows = client.select<MessageRow>(
+                table = MESSAGES_TABLE,
+                query = client.and("select=*", client.order("created_at", descending = true)),
+            )
 
-        val replyRows = client.select<ReplyRow>(
-            table = REPLIES_TABLE,
-            query = client.and("select=*", client.order("created_at")),
-        )
+            val replyRows = client.select<ReplyRow>(
+                table = REPLIES_TABLE,
+                query = client.and("select=*", client.order("created_at")),
+            )
 
-        val repliesByMessageId = replyRows
-            .groupBy { it.messageId }
-            .mapValues { (_, rows) -> rows.map { row -> row.toDomain() } }
+            val repliesByMessageId = replyRows
+                .groupBy { it.messageId }
+                .mapValues { (_, rows) -> rows.map { row -> row.toDomain() } }
 
-        messages.value = messageRows.map { row ->
-            row.toDomain(repliesByMessageId[row.id].orEmpty())
+            messages.value = messageRows.map { row ->
+                row.toDomain(repliesByMessageId[row.id].orEmpty())
+            }
         }
     }
 
@@ -330,6 +346,7 @@ class SupabaseMessageRepository(
         private const val MAX_IMAGES = 9
         private const val MAX_MESSAGE_LENGTH = 500
         private const val MAX_REPLY_LENGTH = 300
+        private const val REMOTE_REFRESH_INTERVAL_MS = 3_000L
         private const val TAG = "SupabaseMessageRepo"
     }
 }

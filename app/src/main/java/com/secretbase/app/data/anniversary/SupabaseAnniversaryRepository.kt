@@ -6,10 +6,14 @@ import com.secretbase.app.data.supabase.isoInstantToMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.Instant
@@ -24,6 +28,7 @@ class SupabaseAnniversaryRepository(
 ) : AnniversaryRepository {
 
     private val anniversaries = MutableStateFlow<List<Anniversary>>(emptyList())
+    private val refreshMutex = Mutex()
 
     init {
         scope.launch {
@@ -31,6 +36,15 @@ class SupabaseAnniversaryRepository(
                 .onFailure { error ->
                     Log.e(TAG, "Failed to load anniversaries from Supabase", error)
                 }
+        }
+        scope.launch {
+            while (isActive) {
+                delay(REMOTE_REFRESH_INTERVAL_MS)
+                runCatching { refreshAnniversaries() }
+                    .onFailure { error ->
+                        Log.e(TAG, "Failed to refresh anniversaries from Supabase", error)
+                    }
+            }
         }
     }
 
@@ -52,12 +66,14 @@ class SupabaseAnniversaryRepository(
     }
 
     private suspend fun refreshAnniversaries() {
-        val rows = client.select<AnniversaryRow>(
-            table = TABLE_NAME,
-            query = client.and("select=*", client.order("date")),
-        )
+        refreshMutex.withLock {
+            val rows = client.select<AnniversaryRow>(
+                table = TABLE_NAME,
+                query = client.and("select=*", client.order("date")),
+            )
 
-        anniversaries.value = rows.map { row -> row.toDomain() }
+            anniversaries.value = rows.map { row -> row.toDomain() }
+        }
     }
 
     private fun Anniversary.toRow(): AnniversaryRow =
@@ -163,6 +179,7 @@ class SupabaseAnniversaryRepository(
 
     private companion object {
         private const val TABLE_NAME = "anniversaries"
+        private const val REMOTE_REFRESH_INTERVAL_MS = 10_000L
         private const val TAG = "SupabaseAnniversaryRepo"
     }
 }

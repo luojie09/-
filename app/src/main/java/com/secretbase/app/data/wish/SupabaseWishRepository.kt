@@ -4,10 +4,14 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import com.secretbase.app.data.supabase.SupabaseRestClient
@@ -22,6 +26,7 @@ class SupabaseWishRepository(
 ) : WishRepository {
 
     private val wishes = MutableStateFlow<List<Wish>>(emptyList())
+    private val refreshMutex = Mutex()
 
     init {
         scope.launch {
@@ -29,6 +34,15 @@ class SupabaseWishRepository(
                 .onFailure { error ->
                     Log.e(TAG, "Failed to load wishes from Supabase", error)
                 }
+        }
+        scope.launch {
+            while (isActive) {
+                delay(REMOTE_REFRESH_INTERVAL_MS)
+                runCatching { refreshWishes() }
+                    .onFailure { error ->
+                        Log.e(TAG, "Failed to refresh wishes from Supabase", error)
+                    }
+            }
         }
     }
 
@@ -64,12 +78,14 @@ class SupabaseWishRepository(
     }
 
     private suspend fun refreshWishes() {
-        val rows = client.select<WishRow>(
-            table = TABLE_NAME,
-            query = client.and("select=*", client.order("created_at", descending = true)),
-        )
+        refreshMutex.withLock {
+            val rows = client.select<WishRow>(
+                table = TABLE_NAME,
+                query = client.and("select=*", client.order("created_at", descending = true)),
+            )
 
-        wishes.value = rows.map { row -> row.toDomain() }
+            wishes.value = rows.map { row -> row.toDomain() }
+        }
     }
 
     private fun Wish.toRow(): WishRow =
@@ -120,6 +136,7 @@ class SupabaseWishRepository(
 
     private companion object {
         private const val TABLE_NAME = "wishes"
+        private const val REMOTE_REFRESH_INTERVAL_MS = 10_000L
         private const val TAG = "SupabaseWishRepo"
     }
 }
