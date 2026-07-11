@@ -1,5 +1,6 @@
 package com.secretbase.app.ui.home
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,6 +38,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.secretbase.app.R
 import com.secretbase.app.data.HeroVisualConfig
 import com.secretbase.app.data.MoodOption
 import com.secretbase.app.ui.theme.CherryPink
@@ -62,6 +69,7 @@ import com.secretbase.app.ui.theme.SoftPinkStrong
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmBackground
 import com.secretbase.app.ui.theme.WarmGray
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
@@ -295,6 +303,28 @@ private fun HomeHeader(
 
 @Composable
 private fun CoupleIllustration(hero: HeroVisualConfig) {
+    val carouselImages = remember(hero.imageRes) {
+        listOf(
+            hero.imageRes,
+            R.drawable.home_carousel_tree,
+            R.drawable.home_carousel_music,
+            R.drawable.home_carousel_cake,
+            R.drawable.home_carousel_picnic,
+            R.drawable.home_carousel_camp,
+            R.drawable.home_carousel_dance,
+            R.drawable.home_carousel_read,
+        ).filterNotNull()
+    }
+    var carouselIndex by remember(carouselImages) { mutableIntStateOf(0) }
+
+    LaunchedEffect(carouselImages) {
+        if (carouselImages.size <= 1) return@LaunchedEffect
+        while (true) {
+            delay(3_000)
+            carouselIndex = (carouselIndex + 1) % carouselImages.size
+        }
+    }
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val horizontalPadding = when {
             maxWidth <= 320.dp -> 10.dp
@@ -303,24 +333,29 @@ private fun CoupleIllustration(hero: HeroVisualConfig) {
             else -> 24.dp
         }
 
-        DrawableOrFallback(
-            resId = hero.imageRes,
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    scaleX = 1.16f
-                    scaleY = 1.16f
-                    transformOrigin = TransformOrigin(0.5f, 1f)
-                }
-                .padding(
-                    start = horizontalPadding,
-                    end = horizontalPadding,
-                    top = 28.dp,
-                    bottom = 0.dp,
-                ),
-            contentScale = ContentScale.Fit,
-            alignment = Alignment.BottomCenter,
-        )
+        Crossfade(
+            targetState = carouselImages.getOrElse(carouselIndex) { hero.imageRes },
+            label = "HomeHeroCarousel",
+        ) { imageRes ->
+            DrawableOrFallback(
+                resId = imageRes,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = 1.08f
+                        scaleY = 1.08f
+                        transformOrigin = TransformOrigin(0.5f, 1f)
+                    }
+                    .padding(
+                        start = horizontalPadding,
+                        end = horizontalPadding,
+                        top = 42.dp,
+                        bottom = 0.dp,
+                    ),
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.BottomCenter,
+            )
+        }
     }
 }
 

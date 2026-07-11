@@ -150,9 +150,10 @@
       right:-8px;
       bottom:-2px;
       width:calc(100% + 16px);
-      height:calc(100% - 8px);
+      height:calc(100% - 34px);
       object-fit:contain;
       object-position:center bottom;
+      transition:opacity .45s ease;
     }
 
     .hero-fade{
@@ -541,7 +542,7 @@
         </div>
 
         <div class="hero-illustration">
-          <img src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero" alt="小羊和小耶">
+          <img id="heroCarouselImage" src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero" alt="小羊和小耶">
           <div class="hero-fade"></div>
         </div>
 
@@ -674,9 +675,13 @@
       const cycleTotal = Math.max(1, diffDays(nextAnniversary, cycleStart));
       const cycleElapsed = Math.max(0, Math.min(cycleTotal, diffDays(today, cycleStart)));
 
-      document.getElementById("anniversaryTitle").textContent = `恋爱${toChineseNumber(years)}周年`;
-      document.getElementById("anniversaryRemain").textContent = remain === 0 ? "就是今天" : `还有 ${remain} 天`;
-      document.getElementById("featureAnniversary").textContent = remain === 0 ? "就是今天" : `${remain} 天后`;
+      const titleNode = document.getElementById("anniversaryTitle");
+      if (titleNode) titleNode.textContent = `??${toChineseNumber(years)}??`;
+      const remainText = remain === 0 ? "\u5c31\u662f\u4eca\u5929" : `\u8fd8\u6709 ${remain} \u5929`;
+      const remainNode = document.getElementById("anniversaryRemain");
+      if (remainNode) remainNode.textContent = remainText;
+      const featureNode = document.getElementById("featureAnniversary");
+      if (featureNode) featureNode.textContent = remain === 0 ? "????" : `${remain} ??`;
       document.getElementById("anniversaryProgress").style.width = `${(cycleElapsed / cycleTotal) * 100}%`;
     }
 
@@ -775,7 +780,7 @@
           ? anniversaryThisYear
           : new Date(today.getFullYear() + 1, 4, 6);
         const remain = diffDays(nextAnniversary, today);
-        const remainText = remain === 0 ? "就是今天" : `还有 ${remain} 天`;
+        const remainText = remain === 0 ? "\u5c31\u662f\u4eca\u5929" : `\u8fd8\u6709 ${remain} \u5929`;
         const remainNode = document.getElementById("anniversaryRemain");
         if (remainNode) remainNode.textContent = remainText;
 
@@ -788,8 +793,33 @@
         }
       }
 
+      function initHeroCarousel() {
+        const image = document.getElementById("heroCarouselImage");
+        if (!image) return;
+        const images = [
+          "../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero",
+          "../app/src/main/res/drawable-nodpi/home_carousel_tree.png",
+          "../app/src/main/res/drawable-nodpi/home_carousel_music.png",
+          "../app/src/main/res/drawable-nodpi/home_carousel_cake.png",
+          "../app/src/main/res/drawable-nodpi/home_carousel_picnic.png",
+          "../app/src/main/res/drawable-nodpi/home_carousel_camp.png",
+          "../app/src/main/res/drawable-nodpi/home_carousel_dance.png",
+          "../app/src/main/res/drawable-nodpi/home_carousel_read.png"
+        ];
+        let index = 0;
+        setInterval(() => {
+          index = (index + 1) % images.length;
+          image.style.opacity = "0";
+          setTimeout(() => {
+            image.src = images[index];
+            image.style.opacity = "1";
+          }, 240);
+        }, 3000);
+      }
+
       bindRouteClicks();
       updateSafeRelationship();
+      initHeroCarousel();
     })();
   </script>
 </body>
