@@ -38,10 +38,17 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secretbase.app.ui.common.SecretBasePageBackground
@@ -186,14 +193,30 @@ private fun QuickMessageComposer(
     modifier: Modifier = Modifier,
 ) {
     val canPublish = !isPublishing && (draftText.isNotBlank() || selectedImages.isNotEmpty())
+    var editorValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = draftText,
+                selection = TextRange(draftText.length),
+            ),
+        )
+    }
+
+    LaunchedEffect(draftText) {
+        if (draftText != editorValue.text) {
+            editorValue = TextFieldValue(
+                text = draftText,
+                selection = TextRange(draftText.length),
+            )
+        }
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = Color(0xFFFFFDFC),
-        shadowElevation = 1.dp,
+        color = SurfaceWhite,
+        shadowElevation = 0.dp,
         tonalElevation = 0.dp,
         shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, Color(0xFFF3ECEF)),
     ) {
         Column(
             modifier = Modifier
@@ -202,8 +225,11 @@ private fun QuickMessageComposer(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             BasicTextField(
-                value = draftText,
-                onValueChange = onDraftTextChange,
+                value = editorValue,
+                onValueChange = { nextValue ->
+                    editorValue = nextValue
+                    onDraftTextChange(nextValue.text)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
@@ -215,7 +241,7 @@ private fun QuickMessageComposer(
                 ),
                 decorationBox = { innerTextField ->
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (draftText.isEmpty()) {
+                        if (editorValue.text.isEmpty()) {
                             Text(
                                 text = "写下你想说的......",
                                 style = MaterialTheme.typography.titleMedium.copy(
@@ -250,7 +276,11 @@ private fun QuickMessageComposer(
             ) {
                 EditorPhotoAction(onClick = onAddImages)
                 EditorPublishButton(
-                    text = if (isPublishing) "发布中…" else "发布",
+                    text = when {
+                        isPublishing && selectedImages.any(String::isLocalImageReference) -> "上传图片中…"
+                        isPublishing -> "发布中…"
+                        else -> "发布"
+                    },
                     enabled = canPublish,
                     onClick = onPublish,
                 )
@@ -258,6 +288,9 @@ private fun QuickMessageComposer(
         }
     }
 }
+
+private fun String.isLocalImageReference(): Boolean =
+    startsWith("content://", ignoreCase = true) || startsWith("file://", ignoreCase = true)
 
 @Composable
 private fun EditorPhotoAction(onClick: () -> Unit) {

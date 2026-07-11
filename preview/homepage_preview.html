@@ -13,14 +13,14 @@
       --hero-start:#ffeef3;
       --hero-middle:#fff7f8;
       --hero-end:#fffbfa;
-      --surface:rgba(255,255,255,.98);
+      --surface:#fff;
       --surface-soft:rgba(255,255,255,.78);
       --ink:#1f2024;
       --muted:#8f8991;
       --line:rgba(243,223,230,.72);
       --accent:#ff6f95;
       --accent-soft:#ffe2ea;
-      --shadow:0 6px 18px rgba(84,54,62,.06);
+      --shadow:none;
       --font-body:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
       --font-heading:"Playfair Display","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
       --font-song:"Songti SC","STSong","SimSun","Noto Serif SC",serif;
@@ -108,7 +108,7 @@
       margin:0 0 4px;
       font-size:14px;
       line-height:18px;
-      font-weight:500;
+      font-weight:700;
       letter-spacing:0;
       color:var(--muted);
     }
@@ -121,7 +121,7 @@
       line-height:36px;
       font-size:32px;
       font-family:var(--font-song);
-      font-weight:600;
+      font-weight:800;
       letter-spacing:-.02em;
     }
 
@@ -170,9 +170,9 @@
 
     .relationship{
       background:rgba(255,255,255,.8);
-      border:1px solid var(--line);
+      border:0;
       border-radius:26px;
-      box-shadow:var(--shadow);
+      box-shadow:none;
       padding:18px;
     }
 
@@ -183,7 +183,7 @@
     .relationship-label{
       font-size:13px;
       line-height:18px;
-      font-weight:500;
+      font-weight:700;
       letter-spacing:.01em;
       color:var(--muted);
       margin-bottom:8px;
@@ -201,7 +201,7 @@
       font-size:52px;
       line-height:52px;
       font-family:var(--font-number);
-      font-weight:600;
+      font-weight:800;
       letter-spacing:-.03em;
       font-variant-numeric:tabular-nums;
     }
@@ -218,7 +218,7 @@
       font-size:14px;
       line-height:20px;
       color:var(--muted);
-      font-weight:500;
+      font-weight:700;
       font-family:var(--font-number);
       font-variant-numeric:tabular-nums;
     }
@@ -243,7 +243,7 @@
     .anniversary-label{
       font-size:13px;
       line-height:18px;
-      font-weight:500;
+      font-weight:700;
       color:var(--muted);
       margin-bottom:3px;
     }
@@ -252,7 +252,7 @@
       font-size:17px;
       line-height:22px;
       font-family:var(--font-heading);
-      font-weight:700;
+      font-weight:800;
       letter-spacing:-.012em;
     }
 
@@ -323,8 +323,8 @@
       padding:16px;
       border-radius:22px;
       background:#fff;
-      border:1px solid var(--line);
-      box-shadow:var(--shadow);
+      border:0;
+      box-shadow:none;
       display:flex;
       flex-direction:column;
       gap:12px;
@@ -363,7 +363,7 @@
       font-size:18px;
       line-height:24px;
       font-family:var(--font-heading);
-      font-weight:700;
+      font-weight:800;
       letter-spacing:-.008em;
       margin-bottom:0;
       min-width:0;
@@ -376,7 +376,7 @@
       display:block;
       font-size:15px;
       line-height:22px;
-      font-weight:500;
+      font-weight:700;
       color:var(--muted);
       padding-left:8px;
     }
@@ -384,8 +384,8 @@
     .activity-card{
       margin-top:22px;
       background:var(--surface);
-      border:1px solid var(--line);
-      box-shadow:var(--shadow);
+      border:0;
+      box-shadow:none;
       border-radius:24px;
       padding:6px 16px;
     }
@@ -425,9 +425,10 @@
       width:52px;
       height:52px;
       border-radius:16px;
-      object-fit:cover;
+      object-fit:contain;
       background:#fff;
-      border:1px solid rgba(243,223,230,.48);
+      border:0;
+      padding:10px;
       flex:none;
     }
 
@@ -440,7 +441,7 @@
       font-size:17px;
       line-height:24px;
       font-family:var(--font-heading);
-      font-weight:700;
+      font-weight:800;
       letter-spacing:-.008em;
       margin-bottom:4px;
     }
@@ -449,7 +450,7 @@
       font-size:14px;
       line-height:20px;
       color:var(--muted);
-      font-weight:500;
+      font-weight:700;
       font-family:var(--font-number);
       font-variant-numeric:tabular-nums;
     }
@@ -457,7 +458,7 @@
     .activity-arrow{
       color:var(--muted);
       font-size:24px;
-      font-weight:500;
+      font-weight:700;
       line-height:1;
     }
 
@@ -480,14 +481,14 @@
       color:#8f8991;
       font-size:12px;
       line-height:16px;
-      font-weight:500;
+      font-weight:700;
       padding:6px 4px;
       cursor:pointer;
     }
 
     .nav-item.active{
       color:var(--accent);
-      font-weight:600;
+      font-weight:800;
     }
 
     .nav-item img{

@@ -36,6 +36,7 @@ class MessageWallViewModel(
     private var visuals: HomeVisuals = HomeVisuals.EMPTY
     private var latestMessages: List<Message> = emptyList()
     private var latestDraft: MessageDraft = MessageDraft()
+    private var localDraftDirty: Boolean = false
 
     val uiState: StateFlow<MessageWallUiState> = _uiState.asStateFlow()
     val messages: SharedFlow<String> = _messages.asSharedFlow()
@@ -46,41 +47,37 @@ class MessageWallViewModel(
     }
 
     fun updateDraftText(text: String) {
-        viewModelScope.launch {
-            messageRepository.updateDraft(
-                content = text.take(MAX_MESSAGE_LENGTH),
-                imagePaths = latestDraft.imagePaths,
-            )
-        }
+        saveDraftLocally(
+            content = text.take(MAX_MESSAGE_LENGTH),
+            imagePaths = _uiState.value.selectedImages,
+        )
     }
 
     fun addSelectedImages(imagePaths: List<String>) {
-        val merged = (latestDraft.imagePaths + imagePaths)
+        val currentImages = _uiState.value.selectedImages
+        val merged = (currentImages + imagePaths)
             .distinct()
             .take(MAX_IMAGE_COUNT)
-        viewModelScope.launch {
-            messageRepository.updateDraft(
-                content = latestDraft.content,
-                imagePaths = merged,
-            )
-            if (merged.size < latestDraft.imagePaths.size + imagePaths.distinct().size) {
+        saveDraftLocally(
+            content = _uiState.value.draftText,
+            imagePaths = merged,
+        )
+        if (merged.size < currentImages.size + imagePaths.distinct().size) {
                 emitMessage("最多选择 9 张图片")
             }
-        }
     }
 
     fun removeSelectedImage(imagePath: String) {
-        viewModelScope.launch {
-            messageRepository.updateDraft(
-                content = latestDraft.content,
-                imagePaths = latestDraft.imagePaths.filterNot { it == imagePath },
-            )
-        }
+        saveDraftLocally(
+            content = _uiState.value.draftText,
+            imagePaths = _uiState.value.selectedImages.filterNot { it == imagePath },
+        )
     }
 
     fun publishMessage() {
-        val draftText = latestDraft.content.trim()
-        val draftImages = latestDraft.imagePaths
+        val currentState = _uiState.value
+        val draftText = currentState.draftText.trim()
+        val draftImages = currentState.selectedImages
         if (draftText.isBlank() && draftImages.isEmpty()) {
             emitMessage("文字和图片不能同时为空")
             return
@@ -90,6 +87,14 @@ class MessageWallViewModel(
         viewModelScope.launch {
             messageRepository.publishMessage(draftText, draftImages)
                 .onSuccess {
+                    localDraftDirty = false
+                    latestDraft = MessageDraft()
+                    _uiState.update {
+                        it.copy(
+                            draftText = "",
+                            selectedImages = emptyList(),
+                        )
+                    }
                     messageRepository.clearDraft()
                     emitMessage("留言已发布")
                 }
@@ -225,6 +230,31 @@ class MessageWallViewModel(
         }
     }
 
+    private fun saveDraftLocally(
+        content: String,
+        imagePaths: List<String>,
+    ) {
+        val draft = MessageDraft(
+            content = content,
+            imagePaths = imagePaths,
+            updatedAt = System.currentTimeMillis(),
+        )
+        localDraftDirty = true
+        latestDraft = draft
+        _uiState.update {
+            it.copy(
+                draftText = draft.content,
+                selectedImages = draft.imagePaths,
+            )
+        }
+        viewModelScope.launch {
+            messageRepository.updateDraft(
+                content = draft.content,
+                imagePaths = draft.imagePaths,
+            )
+        }
+    }
+
     private fun loadVisuals() {
         viewModelScope.launch {
             try {
@@ -251,7 +281,9 @@ class MessageWallViewModel(
                 .collectLatest { (messages, draft) ->
                     runCatching {
                         latestMessages = messages.sortedByDescending { it.createdAt }
-                        latestDraft = draft
+                        if (!localDraftDirty) {
+                            latestDraft = draft
+                        }
                         updateUi()
                     }.onFailure { error ->
                         Log.e(TAG, "Failed to render message wall state", error)
@@ -274,8 +306,8 @@ class MessageWallViewModel(
                 unreadCount = latestMessages.sumOf { message ->
                     message.unreadCountFor(currentUserId)
                 },
-                draftText = latestDraft.content,
-                selectedImages = latestDraft.imagePaths,
+                draftText = if (localDraftDirty) state.draftText else latestDraft.content,
+                selectedImages = if (localDraftDirty) state.selectedImages else latestDraft.imagePaths,
                 visuals = visuals,
                 messages = latestMessages.map { message ->
                     message.toUiModel(

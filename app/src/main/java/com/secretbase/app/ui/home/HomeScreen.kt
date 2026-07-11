@@ -1,6 +1,5 @@
 package com.secretbase.app.ui.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -364,8 +363,7 @@ private fun RelationshipCard(
         modifier = modifier,
         shape = RoundedCornerShape(26.dp),
         color = SurfaceWhite.copy(alpha = 0.80f),
-        shadowElevation = 2.dp,
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.4f)),
+        shadowElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),
@@ -580,8 +578,7 @@ private fun FeatureGridCard(
         modifier = modifier,
         shape = RoundedCornerShape(22.dp),
         color = SurfaceWhite,
-        shadowElevation = 1.dp,
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.38f)),
+        shadowElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier
@@ -596,7 +593,7 @@ private fun FeatureGridCard(
             ) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = SurfaceWhite.copy(alpha = 0.78f),
+                    color = SurfaceWhite,
                 ) {
                     Box(
                         modifier = Modifier
@@ -640,9 +637,8 @@ private fun ActivityCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = SurfaceWhite.copy(alpha = 0.98f),
-        shadowElevation = 1.dp,
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.38f)),
+        color = SurfaceWhite,
+        shadowElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
@@ -689,13 +685,19 @@ private fun ActivityRow(
                 modifier = Modifier.size(52.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = SurfaceWhite,
-                border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.34f)),
             ) {
-                DrawableOrFallback(
-                    resId = activity.iconRes,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    DrawableOrFallback(
+                        resId = activity.iconRes,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit,
+                    )
+                }
             }
 
             Column(modifier = Modifier.weight(1f)) {
@@ -740,9 +742,8 @@ private fun EmptyActivityCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = SurfaceWhite.copy(alpha = 0.98f),
-        shadowElevation = 1.dp,
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.38f)),
+        color = SurfaceWhite,
+        shadowElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier
@@ -778,10 +779,9 @@ private fun HomeBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding(),
-        color = SurfaceWhite.copy(alpha = 0.96f),
-        shadowElevation = 3.dp,
+        color = SurfaceWhite,
+        shadowElevation = 0.dp,
         shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.4f)),
     ) {
         Row(
             modifier = Modifier
@@ -971,8 +971,7 @@ private fun MoodPickerSheet(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(20.dp),
                             color = SurfaceWhite,
-                            shadowElevation = 4.dp,
-                            border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.5f)),
+                            shadowElevation = 0.dp,
                         ) {
                             Column(
                                 modifier = Modifier

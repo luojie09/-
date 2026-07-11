@@ -7,6 +7,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.secretbase.app.ui.theme.SecretBaseDesignTokens
 import com.secretbase.app.ui.theme.SecretBaseSansFontFamily
 import com.secretbase.app.ui.theme.SecretBaseSerifFontFamily
 
@@ -20,25 +21,25 @@ internal data class HomeTextToken(
 )
 
 internal object HomeTypographyScale {
-    val Greeting = HomeTextToken(14.sp, 18.sp, FontWeight.SemiBold)
-    val HeroName = HomeTextToken(32.sp, 36.sp, FontWeight.Bold, SecretBaseSerifFontFamily, letterSpacing = (-0.4).sp)
-    val HeroHeart = HomeTextToken(19.sp, 20.sp, FontWeight.SemiBold)
-    val RelationshipLabel = HomeTextToken(13.sp, 18.sp, FontWeight.SemiBold, letterSpacing = 0.1.sp)
-    val DaysValue = HomeTextToken(52.sp, 52.sp, FontWeight.Bold, SecretBaseSansFontFamily, letterSpacing = (-1.1).sp)
-    val DaysUnit = HomeTextToken(18.sp, 22.sp, FontWeight.Bold, letterSpacing = (-0.05).sp)
-    val Meta = HomeTextToken(14.sp, 20.sp, FontWeight.SemiBold)
-    val Eyebrow = HomeTextToken(12.sp, 16.sp, FontWeight.SemiBold)
-    val AnniversaryTitle = HomeTextToken(17.sp, 22.sp, FontWeight.Bold, SecretBaseSerifFontFamily, letterSpacing = (-0.15).sp)
-    val Capsule = HomeTextToken(12.sp, 16.sp, FontWeight.Bold)
-    val SectionTitle = HomeTextToken(22.sp, 28.sp, FontWeight.Black, SecretBaseSerifFontFamily, letterSpacing = (-0.25).sp)
-    val SectionAction = HomeTextToken(13.sp, 18.sp, FontWeight.SemiBold)
-    val FeatureTitle = HomeTextToken(17.sp, 22.sp, FontWeight.Bold, SecretBaseSerifFontFamily, letterSpacing = (-0.15).sp)
-    val FeatureSummary = HomeTextToken(14.sp, 20.sp, FontWeight.SemiBold)
-    val ActivityTitle = HomeTextToken(16.sp, 22.sp, FontWeight.Bold, SecretBaseSerifFontFamily, letterSpacing = (-0.1).sp)
-    val ActivityMeta = HomeTextToken(12.sp, 18.sp, FontWeight.SemiBold)
-    val NavLabel = HomeTextToken(11.sp, 14.sp, FontWeight.SemiBold)
-    val EmptyState = HomeTextToken(14.sp, 20.sp, FontWeight.SemiBold)
-    val PickerTitle = HomeTextToken(22.sp, 28.sp, FontWeight.Bold, SecretBaseSerifFontFamily, letterSpacing = (-0.25).sp)
+    val Greeting = HomeTextToken(14.sp, 18.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val HeroName = HomeTextToken(32.sp, 36.sp, SecretBaseDesignTokens.FontWeights.Title, SecretBaseSerifFontFamily, letterSpacing = (-0.4).sp)
+    val HeroHeart = HomeTextToken(19.sp, 20.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val RelationshipLabel = HomeTextToken(13.sp, 18.sp, SecretBaseDesignTokens.FontWeights.Weak, letterSpacing = 0.1.sp)
+    val DaysValue = HomeTextToken(52.sp, 52.sp, SecretBaseDesignTokens.FontWeights.Body, SecretBaseSansFontFamily, letterSpacing = (-1.1).sp)
+    val DaysUnit = HomeTextToken(18.sp, 22.sp, SecretBaseDesignTokens.FontWeights.Body, letterSpacing = (-0.05).sp)
+    val Meta = HomeTextToken(14.sp, 20.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val Eyebrow = HomeTextToken(12.sp, 16.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val AnniversaryTitle = HomeTextToken(17.sp, 22.sp, SecretBaseDesignTokens.FontWeights.Title, SecretBaseSerifFontFamily, letterSpacing = (-0.15).sp)
+    val Capsule = HomeTextToken(12.sp, 16.sp, SecretBaseDesignTokens.FontWeights.Body)
+    val SectionTitle = HomeTextToken(22.sp, 28.sp, SecretBaseDesignTokens.FontWeights.Title, SecretBaseSerifFontFamily, letterSpacing = (-0.25).sp)
+    val SectionAction = HomeTextToken(13.sp, 18.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val FeatureTitle = HomeTextToken(17.sp, 22.sp, SecretBaseDesignTokens.FontWeights.Title, SecretBaseSerifFontFamily, letterSpacing = (-0.15).sp)
+    val FeatureSummary = HomeTextToken(14.sp, 20.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val ActivityTitle = HomeTextToken(16.sp, 22.sp, SecretBaseDesignTokens.FontWeights.Title, SecretBaseSerifFontFamily, letterSpacing = (-0.1).sp)
+    val ActivityMeta = HomeTextToken(12.sp, 18.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val NavLabel = HomeTextToken(11.sp, 14.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val EmptyState = HomeTextToken(14.sp, 20.sp, SecretBaseDesignTokens.FontWeights.Weak)
+    val PickerTitle = HomeTextToken(22.sp, 28.sp, SecretBaseDesignTokens.FontWeights.Title, SecretBaseSerifFontFamily, letterSpacing = (-0.25).sp)
 }
 
 internal fun TextStyle.homeToken(token: HomeTextToken): TextStyle =
