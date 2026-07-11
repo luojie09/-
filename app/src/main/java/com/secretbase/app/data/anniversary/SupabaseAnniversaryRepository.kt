@@ -2,6 +2,7 @@ package com.secretbase.app.data.anniversary
 
 import android.util.Log
 import com.secretbase.app.data.supabase.SupabaseRestClient
+import com.secretbase.app.data.supabase.isoInstantToMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -137,7 +138,7 @@ class SupabaseAnniversaryRepository(
         Instant.ofEpochMilli(value).toString()
 
     private fun instantToMillis(value: String): Long =
-        Instant.parse(value).toEpochMilli()
+        isoInstantToMillis(value)
 
     @Serializable
     private data class AnniversaryRow(

@@ -2,6 +2,7 @@ package com.secretbase.app.data.supabase
 
 import java.time.Instant
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -9,7 +10,14 @@ private val systemZoneId: ZoneId = ZoneId.systemDefault()
 
 fun millisToIsoInstant(value: Long): String = Instant.ofEpochMilli(value).toString()
 
-fun isoInstantToMillis(value: String): Long = Instant.parse(value).toEpochMilli()
+fun isoInstantToMillis(value: String): Long {
+    val normalized = value.trim().replace(' ', 'T')
+    return runCatching {
+        Instant.parse(normalized).toEpochMilli()
+    }.getOrElse {
+        OffsetDateTime.parse(normalized).toInstant().toEpochMilli()
+    }
+}
 
 fun millisToIsoDate(value: Long): String =
     Instant.ofEpochMilli(value)
