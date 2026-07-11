@@ -74,6 +74,7 @@ import java.time.format.DateTimeFormatter
 fun AnniversaryScreen(
     uiState: AnniversaryUiState,
     snackbarHostState: SnackbarHostState,
+    bottomBar: @Composable () -> Unit = {},
     onBack: () -> Unit,
     onAdd: () -> Unit,
     onEdit: (String) -> Unit,
@@ -112,6 +113,7 @@ fun AnniversaryScreen(
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = bottomBar,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         SecretBasePageBackground {
@@ -119,7 +121,7 @@ fun AnniversaryScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     top = innerPadding.calculateTopPadding(),
-                    bottom = 32.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 32.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -127,6 +129,8 @@ fun AnniversaryScreen(
                     SecretBasePageTopBar(
                         title = "纪念日",
                         onBack = onBack,
+                        showBackButton = false,
+                        titleAlignStart = true,
                         actionIcon = Icons.Outlined.Add,
                         actionDescription = "新增纪念日",
                         onActionClick = onAdd,
@@ -287,7 +291,7 @@ private fun AnniversaryHero(
                 Text(
                     text = "我们在一起已经",
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = CherryPink.copy(alpha = 0.82f),
+                    color = WarmGray,
                 )
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
@@ -295,7 +299,7 @@ private fun AnniversaryHero(
                         style = MaterialTheme.typography.headlineLarge.copy(
                             color = InkBlack,
                             fontFamily = SecretBaseSansFontFamily,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Black,
                             lineHeight = 42.sp,
                         ),
                     )

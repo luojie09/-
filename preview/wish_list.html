@@ -56,7 +56,8 @@
 
     .screen{
       min-height:100%;
-      padding:calc(14px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+      padding:calc(14px + env(safe-area-inset-top)) 16px calc(112px + env(safe-area-inset-bottom));
+      overflow:auto;
     }
 
     .topbar{
@@ -66,6 +67,10 @@
       margin-bottom:14px;
     }
 
+    .topbar.no-back{
+      grid-template-columns:1fr 44px;
+    }
+
     .title{
       margin:0;
       text-align:center;
@@ -73,6 +78,10 @@
       font-family:var(--font-heading);
       font-weight:700;
       letter-spacing:0;
+    }
+
+    .topbar.no-back .title{
+      text-align:left;
     }
 
     .circle-btn{
@@ -689,11 +698,54 @@
     .confirm .sheet-actions{margin-top:18px}
 
     .hidden{display:none!important}
+
+    .main-tab-nav{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+      border-radius:26px 26px 0 0;
+      border-top:1px solid var(--line);
+      background:rgba(255,255,255,.96);
+      box-shadow:0 -4px 14px rgba(58,39,46,.04);
+      z-index:20;
+    }
+
+    .main-tab-item{
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      font:700 12px/16px var(--font-body);
+      padding:6px 4px;
+      cursor:pointer;
+    }
+
+    .main-tab-item.active{
+      color:var(--pink);
+      font-weight:800;
+    }
+
+    .main-tab-item img{
+      display:block;
+      width:24px;
+      height:24px;
+      margin:0 auto 4px;
+      object-fit:contain;
+    }
   </style>
 </head>
 <body>
   <div class="phone">
     <div class="screen" id="screen"></div>
+    <nav class="main-tab-nav">
+      <button class="main-tab-item" type="button" data-main-tab="./homepage_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_home_nav_active.png" alt="">首页</button>
+      <button class="main-tab-item" type="button" data-main-tab="./message_wall_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="">留言墙</button>
+      <button class="main-tab-item active" type="button" data-main-tab="./wish_list.html"><img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="">愿望清单</button>
+      <button class="main-tab-item" type="button" data-main-tab="./anniversary.html"><img src="../app/src/main/res/drawable-nodpi/ic_calendar_nav.png" alt="">纪念日</button>
+    </nav>
   </div>
 
   <input class="hidden" id="coverPicker" type="file" accept="image/*" />
@@ -942,8 +994,8 @@
     }
 
     function renderTopbar(title, leftAction = "back", rightAction = "") {
-      const left = leftAction === "none"
-        ? `<div></div>`
+      const left = !leftAction || leftAction === "none"
+        ? ``
         : `<button class="circle-btn" type="button" data-action="${leftAction}" aria-label="返回">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L7.5 12L14.5 19"/></svg>
           </button>`;
@@ -952,7 +1004,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5V19"/><path d="M5 12H19"/></svg>
           </button>`
         : `<div></div>`;
-      return `<div class="topbar">${left}<h1 class="title">${title}</h1>${right}</div>`;
+      return `<div class="topbar ${left ? "" : "no-back"}">${left}<h1 class="title">${title}</h1>${right}</div>`;
     }
 
     function renderWishCard(wish) {
@@ -989,7 +1041,7 @@
       const { unrealized, realized } = counts();
       const items = visibleWishes();
       return `
-        ${renderTopbar("愿望清单", "back-home", "add")}
+        ${renderTopbar("愿望清单", "", "add")}
         <section class="hero">
           <div class="hero-left">
             <div class="hero-copy">
@@ -1416,6 +1468,32 @@
           render();
         }
       }
+    });
+
+    const mainTabPageMap = {
+      "./homepage_preview.html": "home",
+      "./message_wall_preview.html": "messageWall",
+      "./wish_list.html": "wishList",
+      "./anniversary.html": "anniversary"
+    };
+
+    function openMainTab(route) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: "secretbase-preview:navigate",
+          page: mainTabPageMap[route] || null,
+          route
+        }, "*");
+        return;
+      }
+      window.location.href = route;
+    }
+
+    document.querySelectorAll("[data-main-tab]").forEach(node => {
+      node.addEventListener("click", event => {
+        event.preventDefault();
+        openMainTab(node.dataset.mainTab);
+      });
     });
 
     render();

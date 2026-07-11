@@ -9,10 +9,10 @@
 
     :root{
       --page:#f5f1f2;
-      --bg:#fffbfa;
-      --hero-start:#ffeef3;
-      --hero-middle:#fff7f8;
-      --hero-end:#fffbfa;
+      --bg:#fff4f7;
+      --hero-start:#ffe4ec;
+      --hero-middle:#fff0f4;
+      --hero-end:#fff4f7;
       --surface:#fff;
       --surface-soft:rgba(255,255,255,.78);
       --ink:#1f2024;
@@ -20,7 +20,8 @@
       --line:rgba(243,223,230,.72);
       --accent:#ff6f95;
       --accent-soft:#ffe2ea;
-      --shadow:none;
+      --shadow:0 10px 26px rgba(84,54,62,.07);
+      --shadow-soft:0 6px 18px rgba(84,54,62,.055);
       --font-body:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
       --font-heading:"Playfair Display","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
       --font-song:"Songti SC","STSong","SimSun","Noto Serif SC",serif;
@@ -41,8 +42,9 @@
 
     .phone{
       width:min(100%,430px);
-      min-height:calc(100vh - 48px);
-      background:var(--bg);
+      height:calc(100vh - 48px);
+      min-height:0;
+      background:linear-gradient(180deg,var(--hero-start) 0%,var(--hero-middle) 44%,var(--hero-end) 100%);
       border-radius:36px;
       overflow:hidden;
       position:relative;
@@ -51,7 +53,8 @@
     }
 
     .scroll{
-      min-height:100%;
+      height:100%;
+      overflow:hidden!important;
       padding-bottom:108px;
     }
 
@@ -172,7 +175,7 @@
       background:rgba(255,255,255,.8);
       border:0;
       border-radius:26px;
-      box-shadow:none;
+      box-shadow:var(--shadow);
       padding:18px;
     }
 
@@ -324,7 +327,7 @@
       border-radius:22px;
       background:#fff;
       border:0;
-      box-shadow:none;
+      box-shadow:var(--shadow-soft);
       display:flex;
       flex-direction:column;
       gap:12px;
@@ -385,7 +388,7 @@
       margin-top:22px;
       background:var(--surface);
       border:0;
-      box-shadow:none;
+      box-shadow:var(--shadow-soft);
       border-radius:24px;
       padding:6px 16px;
     }
@@ -569,52 +572,6 @@
 
       <div class="content">
         <div class="section">
-          <h2>一起记录</h2>
-        </div>
-
-        <section class="feature-grid">
-          <div class="feature wall" data-route="./message_wall_preview.html">
-            <div class="feature-head">
-              <div class="feature-icon">
-                <img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="留言墙">
-              </div>
-              <strong>留言墙</strong>
-            </div>
-            <small>9 条新消息</small>
-          </div>
-
-          <div class="feature wish" data-route="./wish_list.html">
-            <div class="feature-head">
-              <div class="feature-icon">
-                <img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="愿望清单">
-              </div>
-              <strong>愿望清单</strong>
-            </div>
-            <small>3 / 8 完成</small>
-          </div>
-
-          <div class="feature day" data-route="./anniversary.html">
-            <div class="feature-head">
-              <div class="feature-icon">
-                <img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png" alt="纪念日">
-              </div>
-              <strong>纪念日</strong>
-            </div>
-            <small id="featureAnniversary">318 天后</small>
-          </div>
-
-          <div class="feature task" data-route="./wish_list.html">
-            <div class="feature-head">
-              <div class="feature-icon">
-                <img src="../app/src/main/res/drawable-nodpi/ic_task_card.png" alt="情侣任务">
-              </div>
-              <strong>挑战任务</strong>
-            </div>
-            <small>2 项进行中</small>
-          </div>
-        </section>
-
-        <div class="section" style="margin-top:22px">
           <h2>最近动态</h2>
         </div>
 
@@ -647,17 +604,17 @@
         <img src="../app/src/main/res/drawable-nodpi/ic_home_nav_active.png" alt="首页">
         首页
       </div>
+      <div class="nav-item" data-route="./message_wall_preview.html">
+        <img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="留言墙">
+        留言墙
+      </div>
+      <div class="nav-item" data-route="./wish_list.html">
+        <img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="愿望清单">
+        愿望清单
+      </div>
       <div class="nav-item" data-route="./anniversary.html">
         <img src="../app/src/main/res/drawable-nodpi/ic_calendar_nav.png" alt="纪念日">
         纪念日
-      </div>
-      <div class="nav-item" data-route="">
-        <img src="../app/src/main/res/drawable-nodpi/ic_album_nav.png" alt="相册">
-        相册
-      </div>
-      <div class="nav-item" data-route="">
-        <img src="../app/src/main/res/drawable-nodpi/ic_profile_nav.png" alt="我的">
-        我的
       </div>
     </nav>
   </div>
@@ -750,8 +707,90 @@
 
     document.querySelector(".activity-view-all").addEventListener("click", event => {
       event.preventDefault();
-      openPreview("./message_wall_preview.html");
+      openPreview("./recent_activity_preview.html");
     });
+  </script>
+  <script>
+    (() => {
+      const routePageMap = {
+        "./homepage_preview.html": "home",
+        "./message_wall_preview.html": "messageWall",
+        "./message_wall_editor_preview.html": "messageEditor",
+        "./wish_list.html": "wishList",
+          "./anniversary.html": "anniversary",
+          "./recent_activity_preview.html": "recentActivity"
+      };
+
+      function bridgeRoute(route) {
+        if (!route) return;
+        const page = routePageMap[route] || null;
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({
+            type: "secretbase-preview:navigate",
+            page,
+            route
+          }, "*");
+          return;
+        }
+        window.location.href = route;
+      }
+
+      function bindRouteClicks() {
+        document.querySelectorAll("[data-route]").forEach(node => {
+          node.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            bridgeRoute(node.dataset.route);
+          }, true);
+        });
+
+        const relationship = document.querySelector(".relationship");
+        if (relationship) {
+          relationship.addEventListener("click", event => {
+            event.preventDefault();
+            bridgeRoute("./anniversary.html");
+          }, true);
+        }
+
+        const activityViewAll = document.querySelector(".activity-view-all");
+        if (activityViewAll) {
+          activityViewAll.addEventListener("click", event => {
+            event.preventDefault();
+            bridgeRoute("./recent_activity_preview.html");
+          }, true);
+        }
+      }
+
+      function updateSafeRelationship() {
+        const startDate = new Date("2026-05-06T00:00:00");
+        const startOfDay = date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const diffDays = (a, b) => Math.round((startOfDay(a) - startOfDay(b)) / 86400000);
+        const today = startOfDay(new Date());
+        const daysTogether = Math.max(1, diffDays(today, startDate) + 1);
+        const daysNode = document.getElementById("daysTogether");
+        if (daysNode) daysNode.textContent = daysTogether;
+
+        const anniversaryThisYear = new Date(today.getFullYear(), 4, 6);
+        const nextAnniversary = today <= anniversaryThisYear && today.getFullYear() !== 2026
+          ? anniversaryThisYear
+          : new Date(today.getFullYear() + 1, 4, 6);
+        const remain = diffDays(nextAnniversary, today);
+        const remainText = remain === 0 ? "就是今天" : `还有 ${remain} 天`;
+        const remainNode = document.getElementById("anniversaryRemain");
+        if (remainNode) remainNode.textContent = remainText;
+
+        const progressNode = document.getElementById("anniversaryProgress");
+        if (progressNode) {
+          const cycleStart = new Date(nextAnniversary.getFullYear() - 1, 4, 6);
+          const cycleTotal = Math.max(1, diffDays(nextAnniversary, cycleStart));
+          const cycleElapsed = Math.max(0, Math.min(cycleTotal, diffDays(today, cycleStart)));
+          progressNode.style.width = `${(cycleElapsed / cycleTotal) * 100}%`;
+        }
+      }
+
+      bindRouteClicks();
+      updateSafeRelationship();
+    })();
   </script>
 </body>
 </html>

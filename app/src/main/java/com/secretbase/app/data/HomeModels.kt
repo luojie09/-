@@ -28,9 +28,9 @@ data class HomeVisuals(
         val EMPTY = HomeVisuals(
             hero = HeroVisualConfig(
                 imageRes = null,
-                gradientStartHex = "#FFEEF3",
-                gradientMiddleHex = "#FFF7F8",
-                gradientEndHex = "#FFFBFA",
+                gradientStartHex = "#FFE4EC",
+                gradientMiddleHex = "#FFF0F4",
+                gradientEndHex = "#FFF4F7",
                 heightDp = 220,
                 bottomFadeHeightDp = 64,
                 relationshipCardOverlapDp = 42,
@@ -64,6 +64,8 @@ data class QuickRecordConfig(
 )
 
 data class BottomNavMessages(
+    val messageWall: String,
+    val wishlist: String,
     val anniversary: String,
     val album: String,
     val profile: String,

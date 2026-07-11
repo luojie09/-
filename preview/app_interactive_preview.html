@@ -57,7 +57,7 @@
       if(!doc.getElementById("embedded-preview-style")){
         const style=doc.createElement("style");
         style.id="embedded-preview-style";
-        style.textContent='html,body{width:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:auto!important}.phone{width:100%!important;min-height:100vh!important;height:auto!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}';
+        style.textContent='html,body{width:100%!important;height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:hidden!important}.phone{width:100%!important;height:100vh!important;min-height:100vh!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}.scroll,.screen{height:100vh!important}';
         doc.head.appendChild(style);
       }
       attach(doc);
@@ -85,6 +85,89 @@
     renderTabs();
     navigate(current,true);
     toast("已切换为最新 HTML 页面嵌入模式");
+  </script>
+  <script>
+    (() => {
+      const routes = [
+        { id: "home", label: "首页", file: "homepage_preview.html" },
+        { id: "messageWall", label: "留言墙", file: "message_wall_preview.html" },
+        { id: "messageEditor", label: "写留言", file: "message_wall_editor_preview.html" },
+        { id: "wishList", label: "愿望清单", file: "wish_list.html" },
+        { id: "recentActivity", label: "最近动态", file: "recent_activity_preview.html" },
+        { id: "anniversary", label: "纪念日", file: "anniversary.html" },
+        { id: "font", label: "字体方案", file: "font_options_preview.html" }
+      ];
+      const routeToPage = {
+        "homepage_preview.html": "home",
+        "message_wall_preview.html": "messageWall",
+        "message_wall_editor_preview.html": "messageEditor",
+        "wish_list.html": "wishList",
+        "anniversary.html": "anniversary",
+        "recent_activity_preview.html": "recentActivity"
+      };
+      const tabsEl = document.getElementById("tabs");
+      const frameEl = document.getElementById("frame");
+      const toastEl = document.getElementById("toast");
+      let currentPage = new URLSearchParams(location.search).get("page") || "home";
+
+      function renderTabs() {
+        tabsEl.innerHTML = routes.map(route => (
+          `<button class="tab ${route.id === currentPage ? "active" : ""}" data-page="${route.id}">${route.label}</button>`
+        )).join("");
+        tabsEl.querySelectorAll(".tab").forEach(button => {
+          button.addEventListener("click", () => navigate(button.dataset.page));
+        });
+      }
+
+      function navigate(page, replace = false) {
+        const route = routes.find(item => item.id === page) || routes[0];
+        currentPage = route.id;
+        renderTabs();
+        frameEl.src = `${route.file}?embedded=1&v=${Date.now()}`;
+        const url = new URL(location.href);
+        url.searchParams.set("page", route.id);
+        history[replace ? "replaceState" : "pushState"]({ page: route.id }, "", url);
+      }
+
+      function pageFromRoute(route) {
+        if (!route) return null;
+        const normalized = route.split("?")[0].replace("./", "");
+        return routeToPage[normalized] || null;
+      }
+
+      function injectEmbeddedStyle() {
+        let doc;
+        try {
+          doc = frameEl.contentDocument || frameEl.contentWindow.document;
+        } catch (_) {
+          return;
+        }
+        if (!doc || !doc.head || doc.getElementById("embedded-preview-style")) return;
+        const style = doc.createElement("style");
+        style.id = "embedded-preview-style";
+        style.textContent = "html,body{width:100%!important;height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:hidden!important}.phone{width:100%!important;height:100vh!important;min-height:100vh!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}.scroll,.screen{height:100vh!important}";
+        doc.head.appendChild(style);
+      }
+
+      window.addEventListener("message", event => {
+        if (event.data?.type !== "secretbase-preview:navigate") return;
+        const page = event.data.page || pageFromRoute(event.data.route);
+        if (page) navigate(page);
+      });
+
+      frameEl.addEventListener("load", () => {
+        injectEmbeddedStyle();
+        setTimeout(injectEmbeddedStyle, 250);
+      });
+
+      window.addEventListener("popstate", event => {
+        const page = event.state?.page || new URLSearchParams(location.search).get("page") || "home";
+        navigate(page, true);
+      });
+
+      renderTabs();
+      navigate(currentPage, true);
+    })();
   </script>
 </body>
 </html>

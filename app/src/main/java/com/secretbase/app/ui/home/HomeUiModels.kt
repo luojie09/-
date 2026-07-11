@@ -37,6 +37,7 @@ data class HomePayload(
     val moodCards: List<MoodCardUiModel>,
     val featureCards: List<FeatureCardUiModel>,
     val activities: List<ActivityUiModel>,
+    val allActivities: List<ActivityUiModel>,
     val recentActivityEmptyText: String,
     val recentActivityListMessage: String,
     val messageDotVisible: Boolean,
@@ -95,6 +96,17 @@ fun HomeSnapshot.toUiState(
         today = now.toLocalDate(),
         upcomingAnniversary = upcomingAnniversary,
     )
+    val activityUiModels = recentActivities
+        .sortedByDescending { it.timestamp }
+        .map { activity ->
+            ActivityUiModel(
+                id = activity.id,
+                title = activity.title,
+                relativeTime = formatRelativeTime(activity.timestamp, now),
+                clickMessage = activity.clickMessage,
+                iconRes = visuals.icon(activity.iconSlot),
+            )
+        }
     return HomeUiState(
         isLoading = isLoading,
         errorMessage = errorMessage,
@@ -107,7 +119,11 @@ fun HomeSnapshot.toUiState(
             visuals = visuals,
             quickRecord = quickRecord,
             topActionMessages = topActionMessages.copy(message = AppActions.OpenMessageWall),
-            bottomNavMessages = bottomNavMessages.copy(anniversary = AppActions.OpenAnniversary),
+            bottomNavMessages = bottomNavMessages.copy(
+                messageWall = AppActions.OpenMessageWall,
+                wishlist = AppActions.OpenWishList,
+                anniversary = AppActions.OpenAnniversary,
+            ),
             moodOptions = MoodOption.defaults,
             moodCards = users.map { user ->
                 MoodCardUiModel(
@@ -128,20 +144,10 @@ fun HomeSnapshot.toUiState(
                     iconRes = visuals.icon(feature.iconSlot),
                 )
             },
-            activities = recentActivities
-                .sortedByDescending { it.timestamp }
-                .take(2)
-                .map { activity ->
-                    ActivityUiModel(
-                        id = activity.id,
-                        title = activity.title,
-                        relativeTime = formatRelativeTime(activity.timestamp, now),
-                        clickMessage = activity.clickMessage,
-                        iconRes = visuals.icon(activity.iconSlot),
-                    )
-                },
+            activities = activityUiModels.take(2),
+            allActivities = activityUiModels,
             recentActivityEmptyText = recentActivityEmptyText,
-            recentActivityListMessage = recentActivityListMessage,
+            recentActivityListMessage = AppActions.OpenRecentActivities,
             messageDotVisible = stats.messageUnread > 0,
         ),
     )

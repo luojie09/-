@@ -94,6 +94,7 @@ import java.time.format.DateTimeFormatter
 fun WishListScreen(
     uiState: WishListUiState,
     snackbarHostState: SnackbarHostState,
+    bottomBar: @Composable () -> Unit = {},
     onBack: () -> Unit,
     onSelectStatus: (com.secretbase.app.data.wish.WishStatus) -> Unit,
     onAddWish: () -> Unit,
@@ -138,6 +139,7 @@ fun WishListScreen(
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = bottomBar,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         SecretBasePageBackground {
@@ -154,6 +156,8 @@ fun WishListScreen(
                         title = "愿望清单",
                         onBack = onBack,
                         onAdd = onAddWish,
+                        showBackButton = false,
+                        titleAlignStart = true,
                     )
                 }
                 item {
@@ -567,10 +571,14 @@ private fun WishTopBar(
     onBack: () -> Unit,
     onAdd: () -> Unit,
     onMore: Boolean = true,
+    showBackButton: Boolean = true,
+    titleAlignStart: Boolean = false,
 ) {
     SecretBasePageTopBar(
         title = title,
         onBack = onBack,
+        showBackButton = showBackButton,
+        titleAlignStart = titleAlignStart,
         actionIcon = if (onMore) Icons.Outlined.Add else null,
         actionDescription = if (onMore) "新增" else null,
         onActionClick = if (onMore) onAdd else null,

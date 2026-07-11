@@ -77,6 +77,15 @@ fun HomeScreen(
 ) {
     val payload = uiState.payload
     val backgroundColor = payload?.visuals?.hero?.gradientEndColor() ?: WarmBackground
+    val backgroundBrush = payload?.visuals?.hero?.let { hero ->
+        Brush.verticalGradient(
+            colors = listOf(
+                hero.gradientStartColor(),
+                hero.gradientMiddleColor(),
+                hero.gradientEndColor(),
+            ),
+        )
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -99,7 +108,13 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(backgroundColor),
+                .then(
+                    if (backgroundBrush != null) {
+                        Modifier.background(backgroundBrush)
+                    } else {
+                        Modifier.background(backgroundColor)
+                    },
+                ),
         ) {
             when {
                 uiState.isLoading && payload == null -> LoadingContent(
@@ -138,64 +153,37 @@ private fun HomeContent(
     innerPadding: PaddingValues,
     onAction: (String) -> Unit,
 ) {
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
-        contentPadding = PaddingValues(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(22.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        item {
-            HomeHeroSection(
-                payload = payload,
+        HomeHeroSection(
+            payload = payload,
+        )
+
+        PaddedSection {
+            SectionTitle(
+                title = "\u6700\u8fd1\u52a8\u6001",
+                trailing = null,
             )
         }
 
-        item {
-            PaddedSection {
-                SectionTitle(
-                    title = "\u4e00\u8d77\u8bb0\u5f55",
-                    trailing = null,
-                )
-            }
-        }
-
-        item {
-            PaddedSection {
-                FeatureGrid(
-                    features = payload.featureCards,
-                    onAction = onAction,
-                )
-            }
-        }
-
-        item {
-            PaddedSection {
-                SectionTitle(
-                    title = "\u6700\u8fd1\u52a8\u6001",
-                    trailing = null,
-                )
-            }
-        }
-
         if (payload.activities.isEmpty()) {
-            item {
-                PaddedSection {
-                    EmptyActivityCard(
-                        text = payload.recentActivityEmptyText,
-                        heroRes = payload.visuals.hero.imageRes,
-                    )
-                }
+            PaddedSection {
+                EmptyActivityCard(
+                    text = payload.recentActivityEmptyText,
+                    heroRes = payload.visuals.hero.imageRes,
+                )
             }
         } else {
-            item {
-                PaddedSection {
-                    ActivityCard(
-                        activities = payload.activities,
-                        onViewAll = { onAction(payload.recentActivityListMessage) },
-                        onAction = onAction,
-                    )
-                }
+            PaddedSection {
+                ActivityCard(
+                    activities = payload.activities,
+                    onViewAll = { onAction(payload.recentActivityListMessage) },
+                    onAction = onAction,
+                )
             }
         }
     }
@@ -363,7 +351,7 @@ private fun RelationshipCard(
         modifier = modifier,
         shape = RoundedCornerShape(26.dp),
         color = SurfaceWhite.copy(alpha = 0.80f),
-        shadowElevation = 0.dp,
+        shadowElevation = 2.dp,
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),
@@ -578,7 +566,7 @@ private fun FeatureGridCard(
         modifier = modifier,
         shape = RoundedCornerShape(22.dp),
         color = SurfaceWhite,
-        shadowElevation = 0.dp,
+        shadowElevation = 1.dp,
     ) {
         Column(
             modifier = Modifier
@@ -638,7 +626,7 @@ private fun ActivityCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = SurfaceWhite,
-        shadowElevation = 0.dp,
+        shadowElevation = 1.dp,
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
@@ -743,7 +731,7 @@ private fun EmptyActivityCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = SurfaceWhite,
-        shadowElevation = 0.dp,
+        shadowElevation = 1.dp,
     ) {
         Column(
             modifier = Modifier
@@ -796,22 +784,22 @@ private fun HomeBottomBar(
                 onClick = {},
             )
             BottomNavItem(
+                label = "\u7559\u8a00\u5899",
+                iconRes = payload.visuals.icon("messageWallFeature"),
+                active = false,
+                onClick = { onAction(payload.bottomNavMessages.messageWall) },
+            )
+            BottomNavItem(
+                label = "\u613f\u671b\u6e05\u5355",
+                iconRes = payload.visuals.icon("wishlistFeature"),
+                active = false,
+                onClick = { onAction(payload.bottomNavMessages.wishlist) },
+            )
+            BottomNavItem(
                 label = "\u7eaa\u5ff5\u65e5",
                 iconRes = payload.visuals.icon("navAnniversary"),
                 active = false,
                 onClick = { onAction(payload.bottomNavMessages.anniversary) },
-            )
-            BottomNavItem(
-                label = "\u76f8\u518c",
-                iconRes = payload.visuals.icon("navAlbum"),
-                active = false,
-                onClick = { onAction(payload.bottomNavMessages.album) },
-            )
-            BottomNavItem(
-                label = "\u6211\u7684",
-                iconRes = payload.visuals.icon("navProfile"),
-                active = false,
-                onClick = { onAction(payload.bottomNavMessages.profile) },
             )
         }
     }

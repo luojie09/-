@@ -195,6 +195,7 @@ class HomeViewModel(
         val enriched = snapshot.withLiveModules(
             messages = latestMessageWall,
             wishes = latestWishes,
+            anniversaries = latestAnniversaries,
             currentUserId = currentUserId,
         )
         _uiState.value = enriched.toUiState(
@@ -270,21 +271,23 @@ private fun Anniversary.nextEffectiveDate(
 private fun HomeSnapshot.withLiveModules(
     messages: List<Message>,
     wishes: List<Wish>,
+    anniversaries: List<Anniversary>,
     currentUserId: String,
 ): HomeSnapshot {
     val unreadCount = messages.sumOf { it.unreadCountFor(currentUserId) }
     val messageActivities = messages.toActivityRecords(currentUserId)
-    val wishActivities = wishes.toActivityRecords()
+    val wishActivities = wishes.toWishActivityRecords()
+    val anniversaryActivities = anniversaries.toAnniversaryActivityRecords()
     return copy(
         stats = stats.copy(
             messageUnread = unreadCount,
             wishCompleted = wishes.count { it.status == WishStatus.REALIZED },
             wishTotal = wishes.size,
         ),
-        recentActivities = (recentActivities + messageActivities + wishActivities)
+        recentActivities = (recentActivities + messageActivities + wishActivities + anniversaryActivities)
             .distinctBy(ActivityRecord::id)
             .sortedByDescending(ActivityRecord::timestamp),
-        recentActivityListMessage = AppActions.OpenWishList,
+        recentActivityListMessage = AppActions.OpenRecentActivities,
     )
 }
 
@@ -300,36 +303,52 @@ private fun List<Message>.toActivityRecords(currentUserId: String): List<Activit
             add(
                 ActivityRecord(
                     id = "message-activity-${message.id}",
-                    title = "${message.authorName}发布了一条新留言",
+                    title = if (message.authorId == currentUserId) {
+                        "你发布了一条新留言"
+                    } else {
+                        "${message.authorName}发布了一条新留言"
+                    },
                     iconSlot = "activityNote",
                     timestamp = Instant.ofEpochMilli(message.createdAt),
                     clickMessage = AppActions.OpenMessageWall,
                 ),
             )
             message.replies.forEach { reply ->
-                if (message.authorId == currentUserId && reply.authorId != currentUserId) {
-                    add(
-                        ActivityRecord(
-                            id = "reply-activity-${reply.id}",
-                            title = "${reply.authorName}回复了你的留言",
-                            iconSlot = "messageWallFeature",
-                            timestamp = Instant.ofEpochMilli(reply.createdAt),
-                            clickMessage = AppActions.OpenMessageWall,
-                        ),
-                    )
-                }
+                add(
+                    ActivityRecord(
+                        id = "reply-activity-${reply.id}",
+                        title = when {
+                            reply.authorId == currentUserId -> "你回复了一条留言"
+                            message.authorId == currentUserId -> "${reply.authorName}回复了你的留言"
+                            else -> "${reply.authorName}回复了一条留言"
+                        },
+                        iconSlot = "messageWallFeature",
+                        timestamp = Instant.ofEpochMilli(reply.createdAt),
+                        clickMessage = AppActions.OpenMessageWall,
+                    ),
+                )
             }
         }
     }
-
-private fun List<Wish>.toActivityRecords(): List<ActivityRecord> =
+private fun List<Wish>.toWishActivityRecords(): List<ActivityRecord> =
     mapNotNull { wish ->
         val completion = wish.completion ?: return@mapNotNull null
         ActivityRecord(
             id = "wish-activity-${wish.id}",
-            title = "完成了愿望「${wish.title}」",
+            title = "愿望「${wish.title}」实现啦",
             iconSlot = "activityChecklist",
             timestamp = Instant.ofEpochMilli(completion.completedAt),
             clickMessage = AppActions.OpenWishList,
+        )
+    }
+
+private fun List<Anniversary>.toAnniversaryActivityRecords(): List<ActivityRecord> =
+    map { anniversary ->
+        ActivityRecord(
+            id = "anniversary-activity-${anniversary.id}",
+            title = "新增了纪念日「${anniversary.title}」",
+            iconSlot = "anniversaryFeature",
+            timestamp = Instant.ofEpochMilli(anniversary.createdAt),
+            clickMessage = AppActions.OpenAnniversary,
         )
     }

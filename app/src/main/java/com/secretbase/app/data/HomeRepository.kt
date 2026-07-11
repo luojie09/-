@@ -59,6 +59,8 @@ class HomeRepository(
 
         val bottomNavMessages = content.getJSONObject("bottomNavMessages").let { json ->
             BottomNavMessages(
+                messageWall = json.optString("messageWall", ""),
+                wishlist = json.optString("wishlist", ""),
                 anniversary = json.getString("anniversary"),
                 album = json.getString("album"),
                 profile = json.getString("profile"),
@@ -286,9 +288,9 @@ class HomeRepository(
         return HomeVisuals(
             hero = HeroVisualConfig(
                 imageRes = resolveDrawable(heroImageName),
-                gradientStartHex = json.optString("heroGradientStart", "#FFEEF3"),
-                gradientMiddleHex = json.optString("heroGradientMiddle", "#FFF7F8"),
-                gradientEndHex = json.optString("heroGradientEnd", "#FFFBFA"),
+                gradientStartHex = json.optString("heroGradientStart", "#FFE4EC"),
+                gradientMiddleHex = json.optString("heroGradientMiddle", "#FFF0F4"),
+                gradientEndHex = json.optString("heroGradientEnd", "#FFF4F7"),
                 heightDp = json.optInt("heroHeightDp", 250),
                 bottomFadeHeightDp = json.optInt("heroBottomFadeHeightDp", 72),
                 relationshipCardOverlapDp = json.optInt("relationshipCardOverlapDp", 24),

@@ -78,6 +78,8 @@ fun SecretBasePageTopBar(
     title: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
+    titleAlignStart: Boolean = false,
     actionIcon: ImageVector? = null,
     actionDescription: String? = null,
     onActionClick: (() -> Unit)? = null,
@@ -92,20 +94,24 @@ fun SecretBasePageTopBar(
     ) {
         Text(
             text = title,
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .align(if (titleAlignStart) Alignment.CenterStart else Alignment.Center)
+                .padding(start = if (titleAlignStart && showBackButton) 52.dp else 0.dp),
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = (-0.15).sp,
             ),
             color = InkBlack,
         )
-        SecretBaseTopBarButton(
-            icon = Icons.AutoMirrored.Outlined.ArrowBack,
-            contentDescription = "返回",
-            tint = InkBlack,
-            onClick = onBack,
-            modifier = Modifier.align(Alignment.CenterStart),
-        )
+        if (showBackButton) {
+            SecretBaseTopBarButton(
+                icon = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = "Back",
+                tint = InkBlack,
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterStart),
+            )
+        }
         if (actionIcon != null && actionDescription != null && onActionClick != null) {
             SecretBaseTopBarButton(
                 icon = actionIcon,

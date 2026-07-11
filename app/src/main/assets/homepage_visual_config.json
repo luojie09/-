@@ -1,8 +1,8 @@
 {
   "heroImageRes": "home_couple_hero",
-  "heroGradientStart": "#FFEEF3",
-  "heroGradientMiddle": "#FFF7F8",
-  "heroGradientEnd": "#FFFBFA",
+  "heroGradientStart": "#FFE4EC",
+  "heroGradientMiddle": "#FFF0F4",
+  "heroGradientEnd": "#FFF4F7",
   "heroHeightDp": 220,
   "heroBottomFadeHeightDp": 64,
   "relationshipCardOverlapDp": 42,

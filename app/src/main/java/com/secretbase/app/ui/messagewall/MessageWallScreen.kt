@@ -62,6 +62,7 @@ import com.secretbase.app.ui.theme.WarmGray
 fun MessageWallScreen(
     uiState: MessageWallUiState,
     snackbarHostState: SnackbarHostState,
+    bottomBar: @Composable () -> Unit = {},
     onBack: () -> Unit,
     onOpenEditor: () -> Unit,
     onReplyClick: (String) -> Unit,
@@ -82,6 +83,7 @@ fun MessageWallScreen(
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = bottomBar,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         SecretBasePageBackground {
@@ -98,6 +100,8 @@ fun MessageWallScreen(
                     SecretBasePageTopBar(
                         title = "留言墙",
                         onBack = onBack,
+                        showBackButton = false,
+                        titleAlignStart = true,
                         actionIcon = Icons.Outlined.Edit,
                         actionDescription = "写留言",
                         onActionClick = onOpenEditor,

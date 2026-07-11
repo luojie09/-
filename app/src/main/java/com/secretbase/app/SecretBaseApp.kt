@@ -2,9 +2,11 @@ package com.secretbase.app
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,7 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -50,6 +55,7 @@ import com.secretbase.app.ui.anniversary.AnniversaryScreen
 import com.secretbase.app.ui.anniversary.AnniversaryViewModel
 import com.secretbase.app.ui.home.HomeScreen
 import com.secretbase.app.ui.home.HomeViewModel
+import com.secretbase.app.ui.home.RecentActivityScreen
 import com.secretbase.app.ui.messagewall.MessageWallEditorScreen
 import com.secretbase.app.ui.messagewall.MessageWallScreen
 import com.secretbase.app.ui.messagewall.MessageWallViewModel
@@ -58,6 +64,9 @@ import com.secretbase.app.ui.wishlist.WishCompletionScreen
 import com.secretbase.app.ui.wishlist.WishDetailScreen
 import com.secretbase.app.ui.wishlist.WishListScreen
 import com.secretbase.app.ui.wishlist.WishListViewModel
+import com.secretbase.app.ui.theme.CherryPink
+import com.secretbase.app.ui.theme.SurfaceWhite
+import com.secretbase.app.ui.theme.WarmGray
 
 @Composable
 fun SecretBaseApp() {
@@ -115,6 +124,12 @@ fun SecretBaseApp() {
         }
     }
 
+    fun navigateTopLevel(route: String) {
+        if (backStack.lastOrNull() != route || backStack.size > 1) {
+            backStack = listOf(route)
+        }
+    }
+
     fun popBack() {
         if (backStack.size > 1) {
             backStack = backStack.dropLast(1)
@@ -139,13 +154,15 @@ fun SecretBaseApp() {
             dependencies = dependencies,
             snackbarHostState = snackbarHostState,
             onNavigate = { route -> navigate(route) },
+            onSelectTopTab = { route -> navigateTopLevel(route) },
         )
 
         AppRoute.MessageWall -> MessageWallRoute(
             dependencies = dependencies,
             snackbarHostState = snackbarHostState,
-            onBack = ::popBack,
+            onBack = { navigateTopLevel(AppRoute.Home.route) },
             onNavigate = { route -> navigate(route) },
+            onSelectTopTab = { route -> navigateTopLevel(route) },
         )
 
         AppRoute.MessageWallEditor -> MessageWallEditorRoute(
@@ -157,8 +174,9 @@ fun SecretBaseApp() {
         AppRoute.WishList -> WishListRoute(
             dependencies = dependencies,
             snackbarHostState = snackbarHostState,
-            onBack = ::popBack,
+            onBack = { navigateTopLevel(AppRoute.Home.route) },
             onNavigate = { route -> navigate(route) },
+            onSelectTopTab = { route -> navigateTopLevel(route) },
         )
 
         is AppRoute.WishDetail -> {
@@ -254,7 +272,15 @@ fun SecretBaseApp() {
         AppRoute.Anniversary -> AnniversaryRoute(
             dependencies = dependencies,
             snackbarHostState = snackbarHostState,
+            onBack = { navigateTopLevel(AppRoute.Home.route) },
+            onSelectTopTab = { route -> navigateTopLevel(route) },
+        )
+
+        AppRoute.RecentActivities -> RecentActivityRoute(
+            dependencies = dependencies,
+            snackbarHostState = snackbarHostState,
             onBack = ::popBack,
+            onNavigate = { route -> navigate(route) },
         )
     }
 }
@@ -264,6 +290,7 @@ private fun HomeRoute(
     dependencies: SecretBaseDependencies,
     snackbarHostState: SnackbarHostState,
     onNavigate: (String) -> Unit,
+    onSelectTopTab: (String) -> Unit,
 ) {
     val homeViewModel: HomeViewModel = viewModel(
         key = "home-${dependencies.currentUserId}",
@@ -289,6 +316,42 @@ private fun HomeRoute(
         onQuickNoteSubmit = homeViewModel::submitQuickNote,
         onPlaceholderAction = { action ->
             when (action) {
+                AppActions.OpenMessageWall -> onSelectTopTab(AppRoute.MessageWall.route)
+                AppActions.OpenWishList -> onSelectTopTab(AppRoute.WishList.route)
+                AppActions.OpenAnniversary -> onSelectTopTab(AppRoute.Anniversary.route)
+                AppActions.OpenRecentActivities -> onNavigate(AppRoute.RecentActivities.route)
+                else -> homeViewModel.onPlaceholderAction(action)
+            }
+        },
+    )
+}
+
+@Composable
+private fun RecentActivityRoute(
+    dependencies: SecretBaseDependencies,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+    onNavigate: (String) -> Unit,
+) {
+    val homeViewModel: HomeViewModel = viewModel(
+        key = "home-${dependencies.currentUserId}",
+        factory = HomeViewModel.factory(
+            homeRepository = dependencies.homeRepository,
+            messageRepository = dependencies.messageRepository,
+            wishRepository = dependencies.wishRepository,
+            anniversaryRepository = dependencies.anniversaryRepository,
+            currentUserId = dependencies.currentUserId,
+        ),
+    )
+    val homeState = homeViewModel.uiState.collectAsStateWithLifecycle()
+    CollectSnackbarMessages(homeViewModel, snackbarHostState)
+
+    RecentActivityScreen(
+        payload = homeState.value.payload,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onActivityClick = { action ->
+            when (action) {
                 AppActions.OpenMessageWall -> onNavigate(AppRoute.MessageWall.route)
                 AppActions.OpenWishList -> onNavigate(AppRoute.WishList.route)
                 AppActions.OpenAnniversary -> onNavigate(AppRoute.Anniversary.route)
@@ -304,6 +367,7 @@ private fun MessageWallRoute(
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onNavigate: (String) -> Unit,
+    onSelectTopTab: (String) -> Unit,
 ) {
     val messageWallViewModel: MessageWallViewModel = viewModel(
         key = "message-wall-${dependencies.currentUserId}",
@@ -319,6 +383,12 @@ private fun MessageWallRoute(
     MessageWallScreen(
         uiState = messageWallState.value,
         snackbarHostState = snackbarHostState,
+        bottomBar = {
+            MainBottomTabBar(
+                activeRoute = AppRoute.MessageWall.route,
+                onSelect = onSelectTopTab,
+            )
+        },
         onBack = onBack,
         onOpenEditor = { onNavigate(AppRoute.MessageWallEditor.route) },
         onReplyClick = messageWallViewModel::openReplyComposer,
@@ -370,6 +440,7 @@ private fun WishListRoute(
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onNavigate: (String) -> Unit,
+    onSelectTopTab: (String) -> Unit,
 ) {
     val wishListViewModel: WishListViewModel = viewModel(
         key = "wish-list-${dependencies.currentUserId}",
@@ -384,6 +455,12 @@ private fun WishListRoute(
     WishListScreen(
         uiState = wishState.value,
         snackbarHostState = snackbarHostState,
+        bottomBar = {
+            MainBottomTabBar(
+                activeRoute = AppRoute.WishList.route,
+                onSelect = onSelectTopTab,
+            )
+        },
         onBack = onBack,
         onSelectStatus = wishListViewModel::selectStatus,
         onAddWish = wishListViewModel::showAddWish,
@@ -414,6 +491,7 @@ private fun AnniversaryRoute(
     dependencies: SecretBaseDependencies,
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
+    onSelectTopTab: (String) -> Unit,
 ) {
     val anniversaryViewModel: AnniversaryViewModel = viewModel(
         key = "anniversary-${dependencies.currentUserId}",
@@ -428,6 +506,12 @@ private fun AnniversaryRoute(
     AnniversaryScreen(
         uiState = anniversaryState.value,
         snackbarHostState = snackbarHostState,
+        bottomBar = {
+            MainBottomTabBar(
+                activeRoute = AppRoute.Anniversary.route,
+                onSelect = onSelectTopTab,
+            )
+        },
         onBack = onBack,
         onAdd = anniversaryViewModel::showAddEditor,
         onEdit = anniversaryViewModel::editItem,
@@ -440,6 +524,87 @@ private fun AnniversaryRoute(
         onDismissEditor = anniversaryViewModel::dismissEditor,
         onSaveEditor = anniversaryViewModel::saveEditor,
     )
+}
+
+@Composable
+private fun MainBottomTabBar(
+    activeRoute: String,
+    onSelect: (String) -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+        color = SurfaceWhite,
+        shadowElevation = 0.dp,
+        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            MainBottomTabItem(
+                label = "首页",
+                iconRes = R.drawable.ic_home_nav_active,
+                active = activeRoute == AppRoute.Home.route,
+                onClick = { onSelect(AppRoute.Home.route) },
+            )
+            MainBottomTabItem(
+                label = "留言墙",
+                iconRes = R.drawable.ic_message_wall_card,
+                active = activeRoute == AppRoute.MessageWall.route,
+                onClick = { onSelect(AppRoute.MessageWall.route) },
+            )
+            MainBottomTabItem(
+                label = "愿望清单",
+                iconRes = R.drawable.ic_wishlist_card,
+                active = activeRoute == AppRoute.WishList.route,
+                onClick = { onSelect(AppRoute.WishList.route) },
+            )
+            MainBottomTabItem(
+                label = "纪念日",
+                iconRes = R.drawable.ic_calendar_nav,
+                active = activeRoute == AppRoute.Anniversary.route,
+                onClick = { onSelect(AppRoute.Anniversary.route) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun MainBottomTabItem(
+    label: String,
+    iconRes: Int,
+    active: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent,
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                contentScale = ContentScale.Fit,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
+                ),
+                color = if (active) CherryPink else WarmGray,
+            )
+        }
+    }
 }
 
 @Composable
@@ -496,6 +661,7 @@ private sealed class AppRoute(val route: String) {
     data object MessageWallEditor : AppRoute("message-wall/editor")
     data object WishList : AppRoute("wish-list")
     data object Anniversary : AppRoute("anniversary")
+    data object RecentActivities : AppRoute("recent-activities")
     data class WishDetail(val wishId: String) : AppRoute("wish-detail/$wishId")
     data class WishCompletion(val wishId: String) : AppRoute("wish-complete/$wishId")
     data class WishCompletionDetail(val wishId: String) : AppRoute("wish-completion-detail/$wishId")
@@ -507,6 +673,7 @@ private sealed class AppRoute(val route: String) {
             route == MessageWallEditor.route -> MessageWallEditor
             route == WishList.route -> WishList
             route == Anniversary.route -> Anniversary
+            route == RecentActivities.route -> RecentActivities
             route.startsWith("wish-detail/") -> WishDetail(route.substringAfter("wish-detail/"))
             route.startsWith("wish-complete/") -> WishCompletion(route.substringAfter("wish-complete/"))
             route.startsWith("wish-completion-detail/") -> WishCompletionDetail(route.substringAfter("wish-completion-detail/"))

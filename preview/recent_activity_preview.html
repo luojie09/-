@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>最近动态</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:#f5f1f2;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#202128}
+    body{display:flex;justify-content:center;padding:24px 12px}
+    .phone{width:min(100%,430px);min-height:calc(100vh - 48px);border-radius:34px;overflow:hidden;background:linear-gradient(180deg,#ffe4ec 0%,#fff0f4 42%,#fff4f7 100%);box-shadow:0 24px 60px rgba(58,39,46,.12)}
+    .top{position:relative;height:86px;padding:calc(16px + env(safe-area-inset-top)) 18px 0}
+    .back{position:absolute;left:18px;top:calc(16px + env(safe-area-inset-top));width:42px;height:42px;border:0;border-radius:999px;background:rgba(255,255,255,.86);box-shadow:0 8px 22px rgba(84,54,62,.08);font-size:24px;color:#202128}
+    h1{margin:0;text-align:center;font-family:"Songti SC","STSong","Noto Serif SC",serif;font-size:24px;line-height:42px;font-weight:800;letter-spacing:-.02em}
+    .list{padding:4px 18px 32px;display:flex;flex-direction:column;gap:12px}
+    .card{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:24px;background:rgba(255,255,255,.94);box-shadow:0 8px 22px rgba(84,54,62,.06);cursor:pointer}
+    .icon{width:50px;height:50px;border-radius:17px;background:#fff;display:grid;place-items:center;flex:none}
+    .icon img{width:30px;height:30px;object-fit:contain}
+    .copy{flex:1;min-width:0}
+    .title{font-size:16px;line-height:22px;font-weight:800;letter-spacing:-.01em}
+    .time{margin-top:4px;font-size:13px;line-height:18px;font-weight:700;color:#8f8991}
+    .arrow{font-size:24px;font-weight:800;color:#8f8991}
+    .empty{margin:36px 18px;padding:28px 22px;border-radius:28px;background:rgba(255,255,255,.92);text-align:center;color:#8f8991;font-weight:700}
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <header class="top">
+      <button class="back" data-route="./homepage_preview.html" aria-label="返回">‹</button>
+      <h1>最近动态</h1>
+    </header>
+
+    <section class="list">
+      <article class="card" data-route="./message_wall_preview.html">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt=""></div>
+        <div class="copy">
+          <div class="title">小耶发布了一条新留言</div>
+          <div class="time">刚刚</div>
+        </div>
+        <div class="arrow">›</div>
+      </article>
+      <article class="card" data-route="./message_wall_preview.html">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_message_bubble.png" alt=""></div>
+        <div class="copy">
+          <div class="title">小羊回复了你的留言</div>
+          <div class="time">12 分钟前</div>
+        </div>
+        <div class="arrow">›</div>
+      </article>
+      <article class="card" data-route="./wish_list.html">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_activity_checklist.png" alt=""></div>
+        <div class="copy">
+          <div class="title">愿望「一起去旅行」实现啦</div>
+          <div class="time">昨天</div>
+        </div>
+        <div class="arrow">›</div>
+      </article>
+      <article class="card" data-route="./anniversary.html">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png" alt=""></div>
+        <div class="copy">
+          <div class="title">新增了纪念日「生日 - 小羊」</div>
+          <div class="time">3天前</div>
+        </div>
+        <div class="arrow">›</div>
+      </article>
+      <article class="card" data-route="./message_wall_preview.html">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_activity_photo.png" alt=""></div>
+        <div class="copy">
+          <div class="title">小耶上传了 3 张新照</div>
+          <div class="time">6月22日</div>
+        </div>
+        <div class="arrow">›</div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const routePageMap = {
+      "./homepage_preview.html": "home",
+      "./message_wall_preview.html": "messageWall",
+      "./wish_list.html": "wishList",
+      "./anniversary.html": "anniversary"
+    };
+    function openPreview(route) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: "secretbase-preview:navigate",
+          page: routePageMap[route] || null,
+          route
+        }, "*");
+        return;
+      }
+      window.location.href = route;
+    }
+    document.querySelectorAll("[data-route]").forEach(node => {
+      node.addEventListener("click", event => {
+        event.preventDefault();
+        openPreview(node.dataset.route);
+      });
+    });
+  </script>
+</body>
+</html>

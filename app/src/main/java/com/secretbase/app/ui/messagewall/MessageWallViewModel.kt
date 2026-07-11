@@ -390,6 +390,7 @@ private fun Message.toUiModel(
 private fun Message.replyTargetName(reply: com.secretbase.app.data.message.MessageReply): String? {
     val replyIndex = replies.indexOfFirst { it.id == reply.id }
     if (replyIndex < 0) return null
+    if (replyIndex == 0) return null
 
     val mostRecentDifferentSpeaker = replies
         .take(replyIndex)

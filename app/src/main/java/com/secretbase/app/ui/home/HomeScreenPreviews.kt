@@ -4,6 +4,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
+import com.secretbase.app.AppActions
 import com.secretbase.app.R
 import com.secretbase.app.data.BottomNavMessages
 import com.secretbase.app.data.HeroVisualConfig
@@ -65,6 +66,8 @@ fun buildHomePreviewUiState(
             settings = "\u5f85\u63a5\u5165\u8bbe\u7f6e\u9875",
         ),
         bottomNavMessages = BottomNavMessages(
+            messageWall = AppActions.OpenMessageWall,
+            wishlist = AppActions.OpenWishList,
             anniversary = "\u5f85\u63a5\u5165\u7eaa\u5ff5\u65e5\u9875",
             album = "\u5f85\u63a5\u5165\u76f8\u518c\u9875",
             profile = "\u5f85\u63a5\u5165\u6211\u7684\u9875",
@@ -159,8 +162,42 @@ fun buildHomePreviewUiState(
 
             HomePreviewScenario.Empty -> emptyList()
         },
+        allActivities = when (scenario) {
+            HomePreviewScenario.Normal -> listOf(
+                ActivityUiModel(
+                    id = "photo",
+                    title = "\u5c0f\u8036\u4e0a\u4f20\u4e86 3 \u5f20\u65b0\u7167",
+                    relativeTime = "2\u5c0f\u65f6\u524d",
+                    clickMessage = "\u5f85\u63a5\u5165\u76f8\u518c\u8be6\u60c5",
+                    iconRes = R.drawable.ic_activity_photo,
+                ),
+                ActivityUiModel(
+                    id = "wish",
+                    title = "\u5b8c\u6210\u4e86\u613f\u671b\u6e05\u5355\u4e2d\u7684\u300c\u770b\u6d77\u300d",
+                    relativeTime = "\u6628\u5929",
+                    clickMessage = "\u5f85\u63a5\u5165\u613f\u671b\u8be6\u60c5",
+                    iconRes = R.drawable.ic_activity_checklist,
+                ),
+                ActivityUiModel(
+                    id = "message",
+                    title = "\u5c0f\u8036\u53d1\u5e03\u4e86\u4e00\u6761\u65b0\u7559\u8a00",
+                    relativeTime = "\u521a\u521a",
+                    clickMessage = AppActions.OpenMessageWall,
+                    iconRes = R.drawable.ic_message_wall_card,
+                ),
+                ActivityUiModel(
+                    id = "anniversary",
+                    title = "\u65b0\u589e\u4e86\u7eaa\u5ff5\u65e5\u300c\u751f\u65e5 - \u5c0f\u7f8a\u300d",
+                    relativeTime = "3\u5929\u524d",
+                    clickMessage = AppActions.OpenAnniversary,
+                    iconRes = R.drawable.ic_anniversary_card,
+                ),
+            )
+
+            HomePreviewScenario.Empty -> emptyList()
+        },
         recentActivityEmptyText = "\u8fd8\u6ca1\u6709\u65b0\u7684\u8bb0\u5f55\uff0c\u53bb\u7559\u4e0b\u5c5e\u4e8e\u6211\u4eec\u7684\u56de\u5fc6\u5427",
-        recentActivityListMessage = "\u5f85\u63a5\u5165\u5b8c\u6574\u52a8\u6001\u5217\u8868",
+        recentActivityListMessage = AppActions.OpenRecentActivities,
         messageDotVisible = scenario == HomePreviewScenario.Normal,
     )
 
@@ -175,9 +212,9 @@ private fun previewHomeVisuals(): HomeVisuals =
     HomeVisuals(
         hero = HeroVisualConfig(
             imageRes = R.drawable.home_couple_hero,
-            gradientStartHex = "#FFEEF3",
-            gradientMiddleHex = "#FFF7F8",
-            gradientEndHex = "#FFFBFA",
+            gradientStartHex = "#FFE4EC",
+            gradientMiddleHex = "#FFF0F4",
+            gradientEndHex = "#FFF4F7",
             heightDp = 220,
             bottomFadeHeightDp = 64,
             relationshipCardOverlapDp = 20,
