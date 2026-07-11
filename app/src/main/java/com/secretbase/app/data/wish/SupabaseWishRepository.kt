@@ -14,6 +14,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import com.secretbase.app.data.supabase.SupabaseImageStorage
 import com.secretbase.app.data.supabase.SupabaseRestClient
 import com.secretbase.app.data.supabase.isoInstantToMillis
 import com.secretbase.app.data.supabase.millisToIsoInstant
@@ -22,6 +23,7 @@ import com.secretbase.app.data.supabase.nullableIsoDateToMillis
 
 class SupabaseWishRepository(
     private val client: SupabaseRestClient,
+    private val imageStorage: SupabaseImageStorage? = null,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : WishRepository {
 
@@ -49,12 +51,14 @@ class SupabaseWishRepository(
     override fun observeWishes(): Flow<List<Wish>> = wishes.asStateFlow()
 
     override suspend fun addWish(wish: Wish): Result<Unit> = runCatching {
-        client.insert(TABLE_NAME, wish.toRow())
+        val wishWithUploadedImages = wish.withUploadedImages(folder = "wishes/${wish.id}")
+        client.insert(TABLE_NAME, wishWithUploadedImages.toRow())
         refreshWishes()
     }
 
     override suspend fun updateWish(wish: Wish): Result<Unit> = runCatching {
-        client.update(TABLE_NAME, client.eq("id", wish.id), wish.toRow())
+        val wishWithUploadedImages = wish.withUploadedImages(folder = "wishes/${wish.id}")
+        client.update(TABLE_NAME, client.eq("id", wish.id), wishWithUploadedImages.toRow())
         refreshWishes()
     }
 
@@ -69,9 +73,10 @@ class SupabaseWishRepository(
     ): Result<Unit> = runCatching {
         val wish = wishes.value.firstOrNull { it.id == wishId }
             ?: error("Wish not found")
+        val uploadedCompletion = completion.withUploadedImages(folder = "wishes/$wishId/completion")
         val updated = wish.copy(
             status = WishStatus.REALIZED,
-            completion = completion,
+            completion = uploadedCompletion,
         )
         client.update(TABLE_NAME, client.eq("id", wishId), updated.toRow())
         refreshWishes()
@@ -86,6 +91,24 @@ class SupabaseWishRepository(
 
             wishes.value = rows.map { row -> row.toDomain() }
         }
+    }
+
+    private suspend fun Wish.withUploadedImages(folder: String): Wish {
+        val uploadedCover = coverImagePath?.let { imagePath ->
+            imageStorage?.uploadLocalImageIfNeeded(
+                imagePath = imagePath,
+                folder = "$folder/cover",
+            ) ?: imagePath
+        }
+        return copy(coverImagePath = uploadedCover)
+    }
+
+    private suspend fun WishCompletion.withUploadedImages(folder: String): WishCompletion {
+        val uploadedImages = imageStorage?.uploadLocalImages(
+            imagePaths = imagePaths,
+            folder = folder,
+        ) ?: imagePaths
+        return copy(imagePaths = uploadedImages)
     }
 
     private fun Wish.toRow(): WishRow =

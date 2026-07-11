@@ -43,6 +43,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.painterResource
@@ -153,7 +155,7 @@ private fun HomeContent(
         item {
             PaddedSection {
                 SectionTitle(
-                    title = "\u5e38\u7528\u529f\u80fd",
+                    title = "\u4e00\u8d77\u8bb0\u5f55",
                     trailing = null,
                 )
             }
@@ -172,8 +174,7 @@ private fun HomeContent(
             PaddedSection {
                 SectionTitle(
                     title = "\u6700\u8fd1\u52a8\u6001",
-                    trailing = "\u67e5\u770b\u5168\u90e8",
-                    onTrailingClick = { onAction(payload.recentActivityListMessage) },
+                    trailing = null,
                 )
             }
         }
@@ -192,6 +193,7 @@ private fun HomeContent(
                 PaddedSection {
                     ActivityCard(
                         activities = payload.activities,
+                        onViewAll = { onAction(payload.recentActivityListMessage) },
                         onAction = onAction,
                     )
                 }
@@ -318,11 +320,16 @@ private fun CoupleIllustration(hero: HeroVisualConfig) {
             resId = hero.imageRes,
             modifier = Modifier
                 .fillMaxSize()
+                .graphicsLayer {
+                    scaleX = 1.16f
+                    scaleY = 1.16f
+                    transformOrigin = TransformOrigin(0.5f, 1f)
+                }
                 .padding(
                     start = horizontalPadding,
                     end = horizontalPadding,
-                    top = 6.dp,
-                    bottom = 2.dp,
+                    top = 28.dp,
+                    bottom = 0.dp,
                 ),
             contentScale = ContentScale.Fit,
             alignment = Alignment.BottomCenter,
@@ -356,7 +363,7 @@ private fun RelationshipCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(26.dp),
-        color = SurfaceWhite.copy(alpha = 0.98f),
+        color = SurfaceWhite.copy(alpha = 0.80f),
         shadowElevation = 2.dp,
         border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.4f)),
     ) {
@@ -393,7 +400,7 @@ private fun RelationshipCard(
                 }
 
                 Text(
-                    text = "\u4ece ${relationship.startDateText} \u5f00\u59cb",
+                    text = relationship.startDateText,
                     style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.Meta),
                     color = WarmGray,
                 )
@@ -551,7 +558,6 @@ private fun FeatureGrid(
                     FeatureGridCard(
                         feature = feature,
                         modifier = Modifier.weight(1f),
-                        accentBackground = feature.featureAccentBackground(),
                         onAction = onAction,
                     )
                 }
@@ -567,42 +573,43 @@ private fun FeatureGrid(
 private fun FeatureGridCard(
     feature: FeatureCardUiModel,
     modifier: Modifier = Modifier,
-    accentBackground: Color,
     onAction: (String) -> Unit,
 ) {
     Surface(
         onClick = { onAction(feature.clickMessage) },
         modifier = modifier,
         shape = RoundedCornerShape(22.dp),
-        color = accentBackground,
+        color = SurfaceWhite,
         shadowElevation = 1.dp,
         border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.38f)),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 118.dp)
+                .heightIn(min = 104.dp)
                 .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = SurfaceWhite.copy(alpha = 0.78f),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center,
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = SurfaceWhite.copy(alpha = 0.78f),
                 ) {
-                    DrawableOrFallback(
-                        resId = feature.iconRes,
-                        modifier = Modifier.size(24.dp),
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        DrawableOrFallback(
+                            resId = feature.iconRes,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
                 }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = feature.title,
                     style = MaterialTheme.typography.titleMedium.homeToken(HomeTypographyScale.FeatureTitle),
@@ -610,32 +617,24 @@ private fun FeatureGridCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = feature.summary,
-                    style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.FeatureSummary),
-                    color = WarmGray,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
             }
+
+            Text(
+                text = feature.summary,
+                modifier = Modifier.padding(start = 8.dp),
+                style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.FeatureSummary),
+                color = WarmGray,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
 
-private fun FeatureCardUiModel.featureAccentBackground(): Color =
-    when (id) {
-        "anniversary" -> Color(0xFFFFF9FB)
-        "album" -> Color(0xFFFFFFFF)
-        "wishlist" -> Color(0xFFFFFDF8)
-        "messageWall" -> Color(0xFFFFFAFC)
-        "diary" -> Color(0xFFFFFCFD)
-        "tasks" -> Color(0xFFFCFFFB)
-        else -> SurfaceWhite.copy(alpha = 0.98f)
-    }
-
 @Composable
 private fun ActivityCard(
     activities: List<ActivityUiModel>,
+    onViewAll: () -> Unit,
     onAction: (String) -> Unit,
 ) {
     Surface(
@@ -651,10 +650,20 @@ private fun ActivityCard(
             activities.forEachIndexed { index, activity ->
                 ActivityRow(
                     activity = activity,
-                    showDivider = index < activities.lastIndex,
+                    showDivider = true,
                     onClick = { onAction(activity.clickMessage) },
                 )
             }
+            Text(
+                text = "\u67e5\u770b\u5168\u90e8",
+                style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.SectionAction),
+                color = WarmGray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onViewAll)
+                    .padding(vertical = 12.dp),
+            )
         }
     }
 }

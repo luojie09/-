@@ -101,6 +101,48 @@ class SupabaseRestClient(
         )
     }
 
+    suspend fun uploadStorageObject(
+        bucket: String,
+        objectPath: String,
+        bytes: ByteArray,
+        contentType: String,
+        upsert: Boolean = true,
+    ) = withContext(Dispatchers.IO) {
+        val path = objectPath
+            .split('/')
+            .joinToString("/") { encode(it) }
+        val connection = (URL("$supabaseUrl/storage/v1/object/${encode(bucket)}/$path").openConnection() as HttpURLConnection)
+        connection.requestMethod = "POST"
+        connection.connectTimeout = REQUEST_TIMEOUT_MS
+        connection.readTimeout = REQUEST_TIMEOUT_MS
+        connection.setRequestProperty("apikey", publishableKey)
+        connection.setRequestProperty("Authorization", "Bearer $publishableKey")
+        connection.setRequestProperty("Content-Type", contentType)
+        connection.setRequestProperty("x-upsert", upsert.toString())
+        connection.doOutput = true
+        connection.outputStream.use { output ->
+            output.write(bytes)
+        }
+
+        val status = connection.responseCode
+        val response = runCatching {
+            val stream = if (status in 200..299) connection.inputStream else connection.errorStream
+            stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
+        }.getOrDefault("")
+        connection.disconnect()
+
+        if (status !in 200..299) {
+            throw IOException("Supabase storage upload failed: $bucket/$objectPath returned HTTP $status $response")
+        }
+    }
+
+    fun publicStorageUrl(bucket: String, objectPath: String): String {
+        val path = objectPath
+            .split('/')
+            .joinToString("/") { encode(it) }
+        return "$supabaseUrl/storage/v1/object/public/${encode(bucket)}/$path"
+    }
+
     suspend fun request(
         method: String,
         path: String,

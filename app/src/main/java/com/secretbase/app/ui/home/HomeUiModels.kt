@@ -172,13 +172,24 @@ private fun HomeSnapshot.buildRelationshipUi(
     return RelationshipUiModel(
         label = couple.relationshipLabel,
         daysTogether = daysTogether,
-        startDateText = startDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+        startDateText = "${startDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))} ${startDate.chineseWeekday()}",
         anniversaryTitle = upcomingAnniversary?.title ?: anniversaryTitle(startDate, nextAnniversary),
         daysUntilAnniversary = remainingDays,
         anniversaryCountdownLabel = if (remainingDays == 0) "就是今天" else "还有 $remainingDays 天",
         anniversaryProgress = (elapsedCycleDays.toFloat() / totalCycleDays.toFloat()).coerceIn(0f, 1f),
     )
 }
+
+private fun LocalDate.chineseWeekday(): String =
+    when (dayOfWeek.value) {
+        1 -> "\u661f\u671f\u4e00"
+        2 -> "\u661f\u671f\u4e8c"
+        3 -> "\u661f\u671f\u4e09"
+        4 -> "\u661f\u671f\u56db"
+        5 -> "\u661f\u671f\u4e94"
+        6 -> "\u661f\u671f\u516d"
+        else -> "\u661f\u671f\u65e5"
+    }
 
 private fun HomeSnapshot.summaryForFeature(featureId: String, anniversaryDays: Int): String =
     when (featureId) {

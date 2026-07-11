@@ -1,6 +1,7 @@
 package com.secretbase.app.data.message
 
 import android.util.Log
+import com.secretbase.app.data.supabase.SupabaseImageStorage
 import com.secretbase.app.data.supabase.SupabaseRestClient
 import com.secretbase.app.data.supabase.isoInstantToMillis
 import com.secretbase.app.data.supabase.millisToIsoInstant
@@ -22,6 +23,7 @@ import java.util.UUID
 class SupabaseMessageRepository(
     private val client: SupabaseRestClient,
     private val currentUserId: String,
+    private val imageStorage: SupabaseImageStorage? = null,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : MessageRepository {
 
@@ -89,12 +91,17 @@ class SupabaseMessageRepository(
         require(safeContent.isNotBlank() || safeImages.isNotEmpty()) { "文字和图片不能同时为空" }
 
         val timestamp = now()
+        val messageId = "message-${UUID.randomUUID()}"
+        val uploadedImages = imageStorage?.uploadLocalImages(
+            imagePaths = safeImages,
+            folder = "messages/$messageId",
+        ) ?: safeImages
         val message = Message(
-            id = "message-${UUID.randomUUID()}",
+            id = messageId,
             authorId = currentUserId,
             authorName = SecretBaseUsers.nameFor(currentUserId),
             content = safeContent,
-            imagePaths = safeImages,
+            imagePaths = uploadedImages,
             createdAt = timestamp,
             updatedAt = null,
             isRead = true,

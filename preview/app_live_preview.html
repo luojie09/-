@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Secret Base Live Preview</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:#f5f1f3;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#202128}
+    body{display:flex;justify-content:center;padding:10px}
+    .shell{width:min(100%,430px);height:calc(100vh - 20px);display:flex;flex-direction:column;gap:8px}
+    .tabs{display:flex;gap:8px;overflow:auto;padding:2px;scrollbar-width:none}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex:0 0 auto;border:1px solid #f1dfe7;background:rgba(255,255,255,.88);color:#8f8992;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+    .tab.active{background:#ff6f95;border-color:#ff6f95;color:#fff}
+    .viewer{position:relative;flex:1;min-height:0;border-radius:26px;overflow:hidden;background:#fffbfa;border:1px solid rgba(255,255,255,.9);box-shadow:0 14px 38px rgba(52,33,41,.1)}
+    iframe{width:100%;height:100%;border:0;display:block;background:#fffbfa}
+    .toast{position:absolute;left:14px;right:14px;bottom:14px;display:none;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.9);border:1px solid #f1dfe7;color:#6f6570;font-size:12px;font-weight:700;box-shadow:0 10px 24px rgba(64,42,50,.08)}
+    .toast.show{display:block}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="tabs" id="tabs"></nav>
+    <section class="viewer">
+      <iframe id="frame" title="preview"></iframe>
+      <div class="toast" id="toast"></div>
+    </section>
+  </main>
+  <script>
+    const routes=[
+      {id:"home",label:"首页",file:"homepage_preview.html"},
+      {id:"messageWall",label:"留言墙",file:"message_wall_preview.html"},
+      {id:"messageEditor",label:"写留言",file:"message_wall_editor_preview.html"},
+      {id:"wishList",label:"愿望清单",file:"wish_list.html"},
+      {id:"anniversary",label:"纪念日",file:"anniversary.html"},
+      {id:"font",label:"字体方案",file:"font_options_preview.html"}
+    ];
+    let current=new URLSearchParams(location.search).get("page")||"home";
+    function renderTabs(){
+      tabs.innerHTML=routes.map(r=>`<button class="tab ${r.id===current?"active":""}" data-route="${r.id}">${r.label}</button>`).join("");
+      tabs.querySelectorAll(".tab").forEach(b=>b.onclick=()=>navigate(b.dataset.route));
+    }
+    function navigate(id,replace=false){
+      const r=routes.find(x=>x.id===id)||routes[0];
+      current=r.id;
+      renderTabs();
+      frame.src=`${r.file}?embedded=1&v=${Date.now()}`;
+      const url=new URL(location.href);
+      url.searchParams.set("page",r.id);
+      history[replace?"replaceState":"pushState"]({page:r.id},"",url);
+    }
+    function inject(){
+      let doc;
+      try{doc=frame.contentDocument||frame.contentWindow.document}catch(_){return}
+      if(!doc||!doc.head)return;
+      if(!doc.getElementById("embedded-preview-style")){
+        const style=doc.createElement("style");
+        style.id="embedded-preview-style";
+        style.textContent='html,body{width:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:auto!important}.phone{width:100%!important;min-height:100vh!important;height:auto!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}';
+        doc.head.appendChild(style);
+      }
+      attach(doc);
+    }
+    function attach(doc){
+      const q="button,a,.feature-card,.feature,.wish-card,.message-card,.ann-card,.circle-btn,.icon-circle";
+      doc.querySelectorAll(q).forEach(n=>{
+        if(n.dataset.previewBridgeAttached)return;
+        n.dataset.previewBridgeAttached="true";
+        n.addEventListener("click",e=>{
+          const s=((n.innerText||n.textContent||"")+(n.getAttribute("aria-label")||"")).replace(/\s+/g,"");
+          if(s.includes("留言墙"))return go(e,"messageWall");
+          if(s.includes("写留言")||s.includes("发布留言"))return go(e,"messageEditor");
+          if(s.includes("愿望清单"))return go(e,"wishList");
+          if(s.includes("纪念日"))return go(e,"anniversary");
+          if(s.includes("新增")&&current==="messageWall")return go(e,"messageEditor");
+          if(s.includes("返回")||s==="‹"||s==="←")return go(e,"home");
+        },true);
+      });
+    }
+    function go(e,id){e.preventDefault();e.stopPropagation();navigate(id)}
+    function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2200)}
+    frame.addEventListener("load",()=>{inject();setTimeout(inject,250);setTimeout(inject,900)});
+    window.addEventListener("popstate",e=>{current=e.state?.page||new URLSearchParams(location.search).get("page")||"home";navigate(current,true)});
+    renderTabs();
+    navigate(current,true);
+    toast("已切换为最新 HTML 页面嵌入模式");
+  </script>
+</body>
+</html>

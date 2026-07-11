@@ -143,11 +143,11 @@
 
     .hero-illustration img{
       position:absolute;
-      left:18px;
-      right:18px;
-      bottom:0;
-      width:calc(100% - 36px);
-      height:calc(100% - 6px);
+      left:-8px;
+      right:-8px;
+      bottom:-2px;
+      width:calc(100% + 16px);
+      height:calc(100% - 8px);
       object-fit:contain;
       object-position:center bottom;
     }
@@ -162,14 +162,14 @@
     }
 
     .relationship-wrap{
-      margin-top:-22px;
+      margin-top:-42px;
       padding:0 20px;
       position:relative;
       z-index:2;
     }
 
     .relationship{
-      background:var(--surface);
+      background:rgba(255,255,255,.8);
       border:1px solid var(--line);
       border-radius:26px;
       box-shadow:var(--shadow);
@@ -319,22 +319,29 @@
     }
 
     .feature{
-      min-height:118px;
+      min-height:104px;
       padding:16px;
       border-radius:22px;
-      background:var(--surface);
+      background:#fff;
       border:1px solid var(--line);
       box-shadow:var(--shadow);
       display:flex;
       flex-direction:column;
-      gap:18px;
+      gap:12px;
       cursor:pointer;
     }
 
-    .feature.wall{background:#fffafc}
-    .feature.wish{background:#fffdf8}
-    .feature.day{background:#fff9fb}
-    .feature.task{background:#fcfffb}
+    .feature.wall,
+    .feature.wish,
+    .feature.day,
+    .feature.task{background:#fff}
+
+    .feature-head{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
 
     .feature-icon{
       width:36px;
@@ -358,7 +365,11 @@
       font-family:var(--font-heading);
       font-weight:700;
       letter-spacing:-.008em;
-      margin-bottom:6px;
+      margin-bottom:0;
+      min-width:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .feature small{
@@ -367,6 +378,7 @@
       line-height:22px;
       font-weight:500;
       color:var(--muted);
+      padding-left:8px;
     }
 
     .activity-card{
@@ -376,6 +388,18 @@
       box-shadow:var(--shadow);
       border-radius:24px;
       padding:6px 16px;
+    }
+
+    .activity-view-all{
+      display:block;
+      text-align:center;
+      color:var(--muted);
+      text-decoration:none;
+      font-size:14px;
+      line-height:20px;
+      font-weight:700;
+      padding:12px 0;
+      border-top:1px solid var(--line);
     }
 
     .activity{
@@ -476,9 +500,9 @@
 
     @media (max-width:380px){
       .hero-illustration img{
-        left:12px;
-        right:12px;
-        width:calc(100% - 24px);
+        left:-6px;
+        right:-6px;
+        width:calc(100% + 12px);
       }
       .names{font-size:30px;line-height:34px}
       .days-value{font-size:48px}
@@ -525,7 +549,7 @@
                 <span class="days-value" id="daysTogether">48</span>
                 <span class="days-unit">天</span>
               </div>
-              <div class="start-date">从 <span id="startDate">2026.05.06</span> 开始</div>
+              <div class="start-date"><span id="startDate">2026.05.06 星期三</span></div>
             </div>
 
             <div class="divider"></div>
@@ -544,57 +568,56 @@
 
       <div class="content">
         <div class="section">
-          <h2>常用功能</h2>
+          <h2>一起记录</h2>
         </div>
 
         <section class="feature-grid">
           <div class="feature wall" data-route="./message_wall_preview.html">
-            <div class="feature-icon">
-              <img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="留言墙">
-            </div>
-            <div>
+            <div class="feature-head">
+              <div class="feature-icon">
+                <img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="留言墙">
+              </div>
               <strong>留言墙</strong>
-              <small>9 条新消息</small>
             </div>
+            <small>9 条新消息</small>
           </div>
 
           <div class="feature wish" data-route="./wish_list.html">
-            <div class="feature-icon">
-              <img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="愿望清单">
-            </div>
-            <div>
+            <div class="feature-head">
+              <div class="feature-icon">
+                <img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="愿望清单">
+              </div>
               <strong>愿望清单</strong>
-              <small>3 / 8 完成</small>
             </div>
+            <small>3 / 8 完成</small>
           </div>
 
           <div class="feature day" data-route="./anniversary.html">
-            <div class="feature-icon">
-              <img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png" alt="纪念日">
-            </div>
-            <div>
+            <div class="feature-head">
+              <div class="feature-icon">
+                <img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png" alt="纪念日">
+              </div>
               <strong>纪念日</strong>
-              <small id="featureAnniversary">318 天后</small>
             </div>
+            <small id="featureAnniversary">318 天后</small>
           </div>
 
           <div class="feature task" data-route="./wish_list.html">
-            <div class="feature-icon">
-              <img src="../app/src/main/res/drawable-nodpi/ic_task_card.png" alt="情侣任务">
-            </div>
-            <div>
+            <div class="feature-head">
+              <div class="feature-icon">
+                <img src="../app/src/main/res/drawable-nodpi/ic_task_card.png" alt="情侣任务">
+              </div>
               <strong>挑战任务</strong>
-              <small>2 项进行中</small>
             </div>
+            <small>2 项进行中</small>
           </div>
         </section>
 
-        <section class="activity-card">
-          <div class="section" style="margin:10px 0 0">
-            <h2>最近动态</h2>
-            <a href="javascript:void(0)">查看全部</a>
-          </div>
+        <div class="section" style="margin-top:22px">
+          <h2>最近动态</h2>
+        </div>
 
+        <section class="activity-card">
           <div class="activity" data-route="./message_wall_preview.html">
             <img class="activity-thumb" src="../app/src/main/res/drawable-nodpi/ic_activity_photo.png" alt="照片">
             <div class="activity-copy">
@@ -612,6 +635,8 @@
             </div>
             <div class="activity-arrow">›</div>
           </div>
+
+          <a class="activity-view-all" href="javascript:void(0)">查看全部</a>
         </section>
       </div>
     </div>
@@ -722,7 +747,7 @@
       openPreview("./anniversary.html");
     });
 
-    document.querySelector(".activity-card .section a").addEventListener("click", event => {
+    document.querySelector(".activity-view-all").addEventListener("click", event => {
       event.preventDefault();
       openPreview("./message_wall_preview.html");
     });

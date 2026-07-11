@@ -10,6 +10,7 @@ import com.secretbase.app.data.message.MessageRepository
 import com.secretbase.app.data.message.SupabaseMessageRepository
 import com.secretbase.app.data.supabase.SupabaseClientProvider
 import com.secretbase.app.data.supabase.SupabaseConfig
+import com.secretbase.app.data.supabase.SupabaseImageStorage
 import com.secretbase.app.data.wish.FakeWishRepository
 import com.secretbase.app.data.wish.SupabaseWishRepository
 import com.secretbase.app.data.wish.WishRepository
@@ -21,6 +22,14 @@ class SecretBaseDependencies(
 ) {
     private val useSupabase = enableRemoteModules && SupabaseConfig.isConfigured
     private val supabaseClient = if (useSupabase) SupabaseClientProvider.client else null
+    private val imageStorage = if (useSupabase) {
+        SupabaseImageStorage(
+            context = context,
+            client = requireNotNull(supabaseClient),
+        )
+    } else {
+        null
+    }
 
     val homeRepository = HomeRepository(
         context = context,
@@ -32,13 +41,17 @@ class SecretBaseDependencies(
             SupabaseMessageRepository(
                 client = requireNotNull(supabaseClient),
                 currentUserId = currentUserId,
+                imageStorage = imageStorage,
             )
         } else {
             FakeMessageRepository(currentUserId = currentUserId)
         }
     val wishRepository: WishRepository =
         if (useSupabase) {
-            SupabaseWishRepository(requireNotNull(supabaseClient))
+            SupabaseWishRepository(
+                client = requireNotNull(supabaseClient),
+                imageStorage = imageStorage,
+            )
         } else {
             FakeWishRepository()
         }

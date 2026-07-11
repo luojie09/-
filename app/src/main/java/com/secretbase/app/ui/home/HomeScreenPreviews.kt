@@ -46,7 +46,7 @@ fun buildHomePreviewUiState(
         relationship = RelationshipUiModel(
             label = "\u6211\u4eec\u5df2\u7ecf\u5728\u4e00\u8d77",
             daysTogether = 48,
-            startDateText = "2026.05.06",
+            startDateText = "2026.05.06 \u661f\u671f\u4e09",
             anniversaryTitle = "\u604b\u7231\u4e00\u5468\u5e74",
             daysUntilAnniversary = 318,
             anniversaryCountdownLabel = "\u8fd8\u6709 318 \u5929",

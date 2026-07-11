@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,6 +31,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -204,6 +208,9 @@ fun WishListScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .fillMaxHeight(0.92f)
+                    .verticalScroll(rememberScrollState())
+                    .imePadding()
                     .navigationBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -214,19 +221,20 @@ fun WishListScreen(
                     color = InkBlack,
                 )
                 FieldLabel("愿望标题 *")
-                DraftInputCard(
+                WishEditorTextField(
                     value = uiState.editorTitle,
                     onValueChange = onEditorTitleChange,
                     placeholder = "请输入愿望标题（最多50字）",
-                    minHeight = 72.dp,
+                    minHeight = 56.dp,
+                    singleLine = true,
                 )
                 CounterText(uiState.editorTitle.length, 50)
                 FieldLabel("想法说明（可选）")
-                DraftInputCard(
+                WishEditorTextField(
                     value = uiState.editorDescription,
                     onValueChange = onEditorDescriptionChange,
                     placeholder = "写下你的想法吧…（最多500字）",
-                    minHeight = 150.dp,
+                    minHeight = 118.dp,
                 )
                 CounterText(uiState.editorDescription.length, 500)
                 FieldLabel("计划日期（可选）")
@@ -597,7 +605,7 @@ private fun WishHeroCard(
                         color = WarmGray,
                     )
                     Text(
-                        text = "愿望都会慢慢实现",
+                        text = "愿望都会\n慢慢实现",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = InkBlack,
                     )
@@ -937,6 +945,50 @@ private fun FieldLabel(text: String) {
         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
         color = InkBlack,
     )
+}
+
+@Composable
+private fun WishEditorTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    minHeight: androidx.compose.ui.unit.Dp,
+    singleLine: Boolean = false,
+) {
+    SecretBaseInputSurface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = minHeight),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = minHeight)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            singleLine = singleLine,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = InkBlack,
+                fontWeight = FontWeight.SemiBold,
+            ),
+            decorationBox = { innerTextField ->
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    if (value.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = WarmGray,
+                                fontWeight = FontWeight.Medium,
+                            ),
+                        )
+                    }
+                    innerTextField()
+                }
+            },
+        )
+    }
 }
 
 @Composable

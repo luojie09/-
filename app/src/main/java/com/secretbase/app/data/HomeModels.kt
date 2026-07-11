@@ -33,7 +33,7 @@ data class HomeVisuals(
                 gradientEndHex = "#FFFBFA",
                 heightDp = 220,
                 bottomFadeHeightDp = 64,
-                relationshipCardOverlapDp = 20,
+                relationshipCardOverlapDp = 42,
             ),
             backgroundOverlayRes = null,
             avatarResByUserId = emptyMap(),
