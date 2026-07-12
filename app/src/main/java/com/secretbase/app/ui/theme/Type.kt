@@ -14,17 +14,18 @@ import com.secretbase.app.R
 val SecretBaseSansFontFamily = FontFamily(
     Font(R.font.noto_sans_sc_variable, weight = FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
     Font(R.font.noto_sans_sc_variable, weight = FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
-    Font(R.font.noto_sans_sc_variable, weight = FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
-    Font(R.font.noto_sans_sc_variable, weight = FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(800))),
-    Font(R.font.noto_sans_sc_variable, weight = FontWeight.ExtraBold, variationSettings = FontVariation.Settings(FontVariation.weight(900))),
+    Font(R.font.noto_sans_sc_variable, weight = FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
+    Font(R.font.noto_sans_sc_variable, weight = FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
+    Font(R.font.noto_sans_sc_variable, weight = FontWeight.ExtraBold, variationSettings = FontVariation.Settings(FontVariation.weight(800))),
     Font(R.font.noto_sans_sc_variable, weight = FontWeight.Black, variationSettings = FontVariation.Settings(FontVariation.weight(900))),
 )
 
 @OptIn(ExperimentalTextApi::class)
 val SecretBaseSerifFontFamily = FontFamily(
     Font(R.font.noto_serif_sc_variable, weight = FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
-    Font(R.font.noto_serif_sc_variable, weight = FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
-    Font(R.font.noto_serif_sc_variable, weight = FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(800))),
+    Font(R.font.noto_serif_sc_variable, weight = FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
+    Font(R.font.noto_serif_sc_variable, weight = FontWeight.Bold, variationSettings = FontVariation.Settings(FontVariation.weight(700))),
+    Font(R.font.noto_serif_sc_variable, weight = FontWeight.ExtraBold, variationSettings = FontVariation.Settings(FontVariation.weight(800))),
     Font(R.font.noto_serif_sc_variable, weight = FontWeight.Black, variationSettings = FontVariation.Settings(FontVariation.weight(900))),
 )
 

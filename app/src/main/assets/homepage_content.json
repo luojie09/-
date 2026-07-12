@@ -10,7 +10,7 @@
     "message": "待接入消息 / 留言页",
     "settings": "待接入设置页"
   },
-  "heroHeightDp": 220,
+  "heroHeightDp": 250,
   "quickRecord": {
     "placeholder": "今天想说点什么……",
     "entryMessage": "待接入快捷发布页",

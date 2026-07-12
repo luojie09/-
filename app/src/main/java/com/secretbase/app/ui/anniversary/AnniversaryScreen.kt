@@ -1,4 +1,4 @@
-package com.secretbase.app.ui.anniversary
+﻿package com.secretbase.app.ui.anniversary
 
 import android.app.DatePickerDialog
 import androidx.compose.foundation.Image
@@ -32,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -59,10 +58,12 @@ import com.secretbase.app.ui.common.SecretBaseMiniActionButton
 import com.secretbase.app.ui.common.SecretBasePageBackground
 import com.secretbase.app.ui.common.SecretBasePageTopBar
 import com.secretbase.app.ui.common.SecretBasePrimaryButton
+import com.secretbase.app.ui.common.SecretBaseSnackbarHost
 import com.secretbase.app.ui.messagewall.WallIllustration
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.SecretBaseSansFontFamily
+import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
 import java.time.Instant
@@ -112,7 +113,7 @@ fun AnniversaryScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SecretBaseSnackbarHost(snackbarHostState) },
         bottomBar = bottomBar,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
@@ -261,6 +262,8 @@ fun AnniversaryScreen(
                     Text("取消", color = WarmGray)
                 }
             },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = SoftPink.copy(alpha = 0.96f),
             title = { Text("删除这个纪念日？") },
             text = { Text("删除后将无法恢复。", color = WarmGray) },
         )

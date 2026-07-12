@@ -6,10 +6,10 @@ import androidx.compose.ui.unit.dp
 
 object SecretBaseDesignTokens {
     object FontWeights {
-        val Weak = FontWeight.Bold
-        val Body = FontWeight.ExtraBold
-        val Title = FontWeight.Black
-        val Display = FontWeight.Black
+        val Weak = FontWeight.SemiBold
+        val Body = FontWeight.Bold
+        val Title = FontWeight.ExtraBold
+        val Display = FontWeight.ExtraBold
     }
 
     object Radius {

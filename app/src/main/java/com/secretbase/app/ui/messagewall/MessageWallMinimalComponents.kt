@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
+import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
 
@@ -547,7 +548,7 @@ private fun MinimalConfirmationDialog(
                 Text("取消", color = WarmGray)
             }
         },
-        containerColor = SurfaceWhite,
-        shape = RoundedCornerShape(24.dp),
+        containerColor = SoftPink.copy(alpha = 0.96f),
+        shape = RoundedCornerShape(16.dp),
     )
 }

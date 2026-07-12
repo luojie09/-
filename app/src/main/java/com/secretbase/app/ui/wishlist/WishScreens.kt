@@ -1,4 +1,4 @@
-package com.secretbase.app.ui.wishlist
+﻿package com.secretbase.app.ui.wishlist
 
 import android.app.DatePickerDialog
 import android.net.Uri
@@ -50,7 +50,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -75,6 +74,7 @@ import com.secretbase.app.ui.common.SecretBasePageBackground
 import com.secretbase.app.ui.common.SecretBasePageTopBar
 import com.secretbase.app.ui.common.SecretBasePrimaryButton
 import com.secretbase.app.ui.common.SecretBaseSecondaryButton
+import com.secretbase.app.ui.common.SecretBaseSnackbarHost
 import com.secretbase.app.ui.messagewall.ComposerImageAction
 import com.secretbase.app.ui.messagewall.DraftInputCard
 import com.secretbase.app.ui.messagewall.MessageMedia
@@ -83,6 +83,7 @@ import com.secretbase.app.ui.messagewall.WallIllustration
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
+import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
 import java.time.Instant
@@ -138,7 +139,7 @@ fun WishListScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SecretBaseSnackbarHost(snackbarHostState) },
         bottomBar = bottomBar,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
@@ -846,6 +847,8 @@ private fun WishCard(
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) { Text("取消", color = WarmGray) }
             },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = SoftPink.copy(alpha = 0.96f),
             title = { Text("删除这个愿望？") },
             text = { Text("删除后将无法恢复。", color = WarmGray) },
         )

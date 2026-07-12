@@ -32,7 +32,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,7 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import com.secretbase.app.R
 import com.secretbase.app.data.HeroVisualConfig
 import com.secretbase.app.data.MoodOption
+import com.secretbase.app.ui.common.SecretBaseSnackbarHost
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
@@ -98,7 +97,7 @@ fun HomeScreen(
     Scaffold(
         containerColor = Color.Transparent,
         snackbarHost = {
-            SnackbarHost(
+            SecretBaseSnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier.padding(bottom = 92.dp),
             )
@@ -161,37 +160,46 @@ private fun HomeContent(
     innerPadding: PaddingValues,
     onAction: (String) -> Unit,
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
+        contentPadding = PaddingValues(bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        HomeHeroSection(
-            payload = payload,
-        )
-
-        PaddedSection {
-            SectionTitle(
-                title = "\u6700\u8fd1\u52a8\u6001",
-                trailing = null,
+        item {
+            HomeHeroSection(
+                payload = payload,
             )
         }
 
-        if (payload.activities.isEmpty()) {
+        item {
             PaddedSection {
-                EmptyActivityCard(
-                    text = payload.recentActivityEmptyText,
-                    heroRes = payload.visuals.hero.imageRes,
+                SectionTitle(
+                    title = "\u6700\u8fd1\u52a8\u6001",
+                    trailing = null,
                 )
             }
+        }
+
+        if (payload.activities.isEmpty()) {
+            item {
+                PaddedSection {
+                    EmptyActivityCard(
+                        text = payload.recentActivityEmptyText,
+                        heroRes = payload.visuals.hero.imageRes,
+                    )
+                }
+            }
         } else {
-            PaddedSection {
-                ActivityCard(
-                    activities = payload.activities,
-                    onViewAll = { onAction(payload.recentActivityListMessage) },
-                    onAction = onAction,
-                )
+            item {
+                PaddedSection {
+                    ActivityCard(
+                        activities = payload.activities,
+                        onViewAll = { onAction(payload.recentActivityListMessage) },
+                        onAction = onAction,
+                    )
+                }
             }
         }
     }
@@ -208,34 +216,22 @@ private fun PaddedSection(content: @Composable () -> Unit) {
 private fun HomeHeroSection(
     payload: HomePayload,
 ) {
-    val overlap = payload.visuals.hero.relationshipCardOverlapDp.dp
-
-    Layout(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        content = {
-            HeroBackground(
-                payload = payload,
+    ) {
+        HeroBackground(
+            payload = payload,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(top = 6.dp),
+        ) {
+            RelationshipCard(
+                relationship = payload.relationship,
+                modifier = Modifier.fillMaxWidth(),
             )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-            ) {
-                RelationshipCard(
-                    relationship = payload.relationship,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
-    ) { measurables, constraints ->
-        val heroPlaceable = measurables[0].measure(constraints.copy(minWidth = 0, minHeight = 0))
-        val cardPlaceable = measurables[1].measure(constraints.copy(minWidth = 0, minHeight = 0))
-        val overlapPx = overlap.roundToPx()
-        val layoutHeight = heroPlaceable.height + cardPlaceable.height - overlapPx
-
-        layout(width = constraints.maxWidth, height = layoutHeight) {
-            heroPlaceable.placeRelative(0, 0)
-            cardPlaceable.placeRelative(0, heroPlaceable.height - overlapPx)
         }
     }
 }
@@ -305,7 +301,7 @@ private fun HomeHeader(
 private fun CoupleIllustration(hero: HeroVisualConfig) {
     val carouselImages = remember(hero.imageRes) {
         listOf(
-            hero.imageRes,
+            R.drawable.home_carousel_current,
             R.drawable.home_carousel_tree,
             R.drawable.home_carousel_music,
             R.drawable.home_carousel_cake,
@@ -342,14 +338,14 @@ private fun CoupleIllustration(hero: HeroVisualConfig) {
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        scaleX = 1.08f
-                        scaleY = 1.08f
+                        scaleX = 0.94f
+                        scaleY = 0.94f
                         transformOrigin = TransformOrigin(0.5f, 1f)
                     }
                     .padding(
                         start = horizontalPadding,
                         end = horizontalPadding,
-                        top = 42.dp,
+                        top = 10.dp,
                         bottom = 0.dp,
                     ),
                 contentScale = ContentScale.Fit,
@@ -385,7 +381,7 @@ private fun RelationshipCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(26.dp),
-        color = SurfaceWhite.copy(alpha = 0.80f),
+        color = SurfaceWhite,
         shadowElevation = 2.dp,
     ) {
         Column(
@@ -809,7 +805,8 @@ private fun HomeBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .height(64.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             BottomNavItem(
@@ -817,24 +814,28 @@ private fun HomeBottomBar(
                 iconRes = payload.visuals.icon("navHome"),
                 active = true,
                 onClick = {},
+                modifier = Modifier.weight(1f),
             )
             BottomNavItem(
                 label = "\u7559\u8a00\u5899",
                 iconRes = payload.visuals.icon("messageWallFeature"),
                 active = false,
                 onClick = { onAction(payload.bottomNavMessages.messageWall) },
+                modifier = Modifier.weight(1f),
             )
             BottomNavItem(
                 label = "\u613f\u671b\u6e05\u5355",
                 iconRes = payload.visuals.icon("wishlistFeature"),
                 active = false,
                 onClick = { onAction(payload.bottomNavMessages.wishlist) },
+                modifier = Modifier.weight(1f),
             )
             BottomNavItem(
                 label = "\u7eaa\u5ff5\u65e5",
                 iconRes = payload.visuals.icon("navAnniversary"),
                 active = false,
                 onClick = { onAction(payload.bottomNavMessages.anniversary) },
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -846,14 +847,18 @@ private fun BottomNavItem(
     iconRes: Int?,
     active: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
+        modifier = modifier.height(52.dp),
         onClick = onClick,
         color = Color.Transparent,
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp, vertical = 5.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -863,10 +868,11 @@ private fun BottomNavItem(
             )
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodySmall.homeToken(
-                    if (active) HomeTypographyScale.SectionAction else HomeTypographyScale.NavLabel,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
                 ),
                 color = if (active) CherryPink else WarmGray,
+                maxLines = 1,
             )
         }
     }

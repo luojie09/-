@@ -293,7 +293,7 @@ class HomeRepository(
                 gradientEndHex = json.optString("heroGradientEnd", "#FFF4F7"),
                 heightDp = json.optInt("heroHeightDp", 250),
                 bottomFadeHeightDp = json.optInt("heroBottomFadeHeightDp", 72),
-                relationshipCardOverlapDp = json.optInt("relationshipCardOverlapDp", 24),
+                relationshipCardOverlapDp = json.optInt("relationshipCardOverlapDp", 0),
             ),
             backgroundOverlayRes = resolveDrawable(json.optString("backgroundOverlay")),
             avatarResByUserId = avatarResByUserId,

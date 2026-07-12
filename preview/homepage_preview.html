@@ -54,7 +54,7 @@
 
     .scroll{
       height:100%;
-      overflow:hidden!important;
+      overflow:auto;
       padding-bottom:108px;
     }
 
@@ -140,19 +140,22 @@
 
     .hero-illustration{
       position:relative;
-      height:220px;
+      height:250px;
       margin-top:4px;
+      overflow:hidden;
     }
 
     .hero-illustration img{
       position:absolute;
-      left:-8px;
-      right:-8px;
-      bottom:-2px;
-      width:calc(100% + 16px);
-      height:calc(100% - 34px);
+      left:-12px;
+      right:-12px;
+      bottom:0;
+      width:calc(100% + 24px);
+      height:100%;
       object-fit:contain;
       object-position:center bottom;
+      transform:scale(.9);
+      transform-origin:center bottom;
       transition:opacity .45s ease;
     }
 
@@ -166,14 +169,14 @@
     }
 
     .relationship-wrap{
-      margin-top:-42px;
+      margin-top:6px;
       padding:0 20px;
       position:relative;
       z-index:2;
     }
 
     .relationship{
-      background:rgba(255,255,255,.8);
+      background:#fff;
       border:0;
       border-radius:26px;
       box-shadow:var(--shadow);
@@ -542,7 +545,7 @@
         </div>
 
         <div class="hero-illustration">
-          <img id="heroCarouselImage" src="../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero" alt="小羊和小耶">
+          <img id="heroCarouselImage" src="../app/src/main/res/drawable-nodpi/home_carousel_current.png" alt="小羊和小耶">
           <div class="hero-fade"></div>
         </div>
 
@@ -797,7 +800,7 @@
         const image = document.getElementById("heroCarouselImage");
         if (!image) return;
         const images = [
-          "../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero",
+          "../app/src/main/res/drawable-nodpi/home_carousel_current.png",
           "../app/src/main/res/drawable-nodpi/home_carousel_tree.png",
           "../app/src/main/res/drawable-nodpi/home_carousel_music.png",
           "../app/src/main/res/drawable-nodpi/home_carousel_cake.png",

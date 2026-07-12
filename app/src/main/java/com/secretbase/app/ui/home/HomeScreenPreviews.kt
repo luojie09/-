@@ -215,9 +215,9 @@ private fun previewHomeVisuals(): HomeVisuals =
             gradientStartHex = "#FFE4EC",
             gradientMiddleHex = "#FFF0F4",
             gradientEndHex = "#FFF4F7",
-            heightDp = 220,
+            heightDp = 250,
             bottomFadeHeightDp = 64,
-            relationshipCardOverlapDp = 20,
+            relationshipCardOverlapDp = 0,
         ),
         backgroundOverlayRes = null,
         avatarResByUserId = mapOf(

@@ -1,5 +1,7 @@
 package com.secretbase.app.ui.messagewall
 
+import android.app.Activity
+import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -7,9 +9,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +57,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +73,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -76,6 +82,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowCompat
 import coil.compose.AsyncImage
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
@@ -626,12 +633,18 @@ fun PublishPillButton(
             color = if (enabled) CherryPink.copy(alpha = 0.14f) else OutlinePink.copy(alpha = 0.7f),
         ),
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = if (enabled) SurfaceWhite else WarmGray,
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = if (enabled) SurfaceWhite else WarmGray,
+            )
+        }
     }
 }
 
@@ -644,10 +657,10 @@ fun WallCircleButton(
 ) {
     Surface(
         modifier = Modifier.size(40.dp),
-        color = SurfaceWhite.copy(alpha = 0.82f),
+        color = SurfaceWhite,
         shape = CircleShape,
-        shadowElevation = 1.dp,
-        border = BorderStroke(1.dp, OutlinePink.copy(alpha = 0.62f)),
+        shadowElevation = 0.dp,
+        border = null,
         onClick = onClick,
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -852,6 +865,35 @@ fun MessageImageViewer(
         initialPage = initialPage.coerceIn(0, imagePaths.lastIndex),
         pageCount = { imagePaths.size },
     )
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val window = (view.context as? Activity)?.window
+        val previousStatusBarColor = window?.statusBarColor
+        val previousNavigationBarColor = window?.navigationBarColor
+        val insetsController = window?.let { WindowCompat.getInsetsController(it, view) }
+        val previousLightStatusBars = insetsController?.isAppearanceLightStatusBars
+        val previousLightNavigationBars = insetsController?.isAppearanceLightNavigationBars
+
+        window?.statusBarColor = AndroidColor.BLACK
+        window?.navigationBarColor = AndroidColor.BLACK
+        insetsController?.isAppearanceLightStatusBars = false
+        insetsController?.isAppearanceLightNavigationBars = false
+
+        onDispose {
+            if (previousStatusBarColor != null) {
+                window.statusBarColor = previousStatusBarColor
+            }
+            if (previousNavigationBarColor != null) {
+                window.navigationBarColor = previousNavigationBarColor
+            }
+            if (previousLightStatusBars != null) {
+                insetsController?.isAppearanceLightStatusBars = previousLightStatusBars
+            }
+            if (previousLightNavigationBars != null) {
+                insetsController?.isAppearanceLightNavigationBars = previousLightNavigationBars
+            }
+        }
+    }
 
     androidx.compose.ui.window.Dialog(
         onDismissRequest = onDismiss,
@@ -862,7 +904,7 @@ fun MessageImageViewer(
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = Color(0xFF141217),
+            color = Color.Black,
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 HorizontalPager(
@@ -911,15 +953,9 @@ private fun ZoomableMedia(
     var offsetX by remember(imagePath) { mutableStateOf(0f) }
     var offsetY by remember(imagePath) { mutableStateOf(0f) }
 
-    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
-        scale = (scale * zoomChange).coerceIn(1f, 4f)
-        offsetX += panChange.x
-        offsetY += panChange.y
-    }
-
     Box(
         modifier = modifier
-            .background(Color(0xFF141217))
+            .background(Color.Black)
             .pointerInput(imagePath) {
                 detectTapGestures(
                     onDoubleTap = {
@@ -930,6 +966,32 @@ private fun ZoomableMedia(
                         }
                     },
                 )
+            }
+            .pointerInput(imagePath) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    do {
+                        val event = awaitPointerEvent()
+                        val pressedPointers = event.changes.count { it.pressed }
+                        if (pressedPointers > 1 || scale > 1f) {
+                            val nextScale = (scale * event.calculateZoom()).coerceIn(1f, 4f)
+                            val pan = event.calculatePan()
+                            scale = nextScale
+                            if (scale > 1f) {
+                                offsetX += pan.x
+                                offsetY += pan.y
+                            } else {
+                                offsetX = 0f
+                                offsetY = 0f
+                            }
+                            event.changes.forEach { change ->
+                                if (change.pressed) {
+                                    change.consume()
+                                }
+                            }
+                        }
+                    } while (event.changes.any { it.pressed })
+                }
             },
         contentAlignment = Alignment.Center,
     ) {
@@ -944,7 +1006,7 @@ private fun ZoomableMedia(
                     translationX = offsetX
                     translationY = offsetY
                 }
-                .transformable(transformableState),
+                ,
             contentScale = ContentScale.Fit,
             backgroundColor = Color.Transparent,
         )
@@ -984,8 +1046,8 @@ private fun ConfirmationDialog(
                 color = WarmGray,
             )
         },
-        shape = RoundedCornerShape(28.dp),
-        containerColor = SurfaceWhite,
+        shape = RoundedCornerShape(16.dp),
+        containerColor = SoftPink.copy(alpha = 0.96f),
     )
 }
 
@@ -1022,8 +1084,8 @@ fun EditMessageDialog(
                 minHeight = 140.dp,
             )
         },
-        shape = RoundedCornerShape(28.dp),
-        containerColor = SurfaceWhite,
+        shape = RoundedCornerShape(16.dp),
+        containerColor = SoftPink.copy(alpha = 0.96f),
     )
 }
 

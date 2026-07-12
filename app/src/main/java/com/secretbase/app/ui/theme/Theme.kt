@@ -1,8 +1,15 @@
 package com.secretbase.app.ui.theme
 
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.IndicationInstance
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 
 private val SecretBaseColorScheme = lightColorScheme(
     primary = CherryPink,
@@ -15,10 +22,23 @@ private val SecretBaseColorScheme = lightColorScheme(
 
 @Composable
 fun SecretBaseTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = SecretBaseColorScheme,
-        typography = SecretBaseTypography,
-        content = content,
-    )
+    CompositionLocalProvider(LocalIndication provides NoGrayPressIndication) {
+        MaterialTheme(
+            colorScheme = SecretBaseColorScheme,
+            typography = SecretBaseTypography,
+            content = content,
+        )
+    }
 }
 
+private object NoGrayPressIndication : Indication {
+    @Composable
+    override fun rememberUpdatedInstance(interactionSource: InteractionSource): IndicationInstance =
+        remember { NoGrayPressIndicationInstance }
+}
+
+private object NoGrayPressIndicationInstance : IndicationInstance {
+    override fun ContentDrawScope.drawIndication() {
+        drawContent()
+    }
+}

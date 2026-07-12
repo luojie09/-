@@ -430,7 +430,7 @@ private fun MessageWallEditorRoute(
         onDraftTextChange = messageWallViewModel::updateDraftText,
         onAddImages = messageWallViewModel::addSelectedImages,
         onRemoveSelectedImage = messageWallViewModel::removeSelectedImage,
-        onPublish = messageWallViewModel::publishMessage,
+        onPublish = { messageWallViewModel.publishMessage(onSuccess = onBack) },
     )
 }
 
@@ -542,7 +542,8 @@ private fun MainBottomTabBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .height(64.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             MainBottomTabItem(
@@ -581,12 +582,15 @@ private fun MainBottomTabItem(
     onClick: () -> Unit,
 ) {
     Surface(
+        modifier = Modifier.height(52.dp),
         onClick = onClick,
         color = Color.Transparent,
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp, vertical = 5.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -602,6 +606,7 @@ private fun MainBottomTabItem(
                     fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
                 ),
                 color = if (active) CherryPink else WarmGray,
+                maxLines = 1,
             )
         }
     }

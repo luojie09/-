@@ -57,7 +57,7 @@
       if(!doc.getElementById("embedded-preview-style")){
         const style=doc.createElement("style");
         style.id="embedded-preview-style";
-        style.textContent='html,body{width:100%!important;height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:hidden!important}.phone{width:100%!important;height:100vh!important;min-height:100vh!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}.scroll,.screen{height:100vh!important}';
+        style.textContent='html,body{width:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:auto!important}.phone{width:100%!important;min-height:100vh!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}.scroll,.screen{min-height:100vh!important;height:auto!important;overflow:visible!important}';
         doc.head.appendChild(style);
       }
       attach(doc);
@@ -145,7 +145,7 @@
         if (!doc || !doc.head || doc.getElementById("embedded-preview-style")) return;
         const style = doc.createElement("style");
         style.id = "embedded-preview-style";
-        style.textContent = "html,body{width:100%!important;height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:hidden!important}.phone{width:100%!important;height:100vh!important;min-height:100vh!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}.scroll,.screen{height:100vh!important}";
+        style.textContent = "html,body{width:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:auto!important}.phone{width:100%!important;min-height:100vh!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}.scroll,.screen{min-height:100vh!important;height:auto!important;overflow:visible!important}";
         doc.head.appendChild(style);
       }
 

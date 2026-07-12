@@ -74,7 +74,7 @@ class MessageWallViewModel(
         )
     }
 
-    fun publishMessage() {
+    fun publishMessage(onSuccess: (() -> Unit)? = null) {
         val currentState = _uiState.value
         val draftText = currentState.draftText.trim()
         val draftImages = currentState.selectedImages
@@ -96,6 +96,7 @@ class MessageWallViewModel(
                         )
                     }
                     messageRepository.clearDraft()
+                    onSuccess?.invoke()
                     emitMessage("留言已发布")
                 }
                 .onFailure { error ->

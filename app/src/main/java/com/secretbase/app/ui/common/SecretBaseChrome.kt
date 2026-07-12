@@ -199,12 +199,18 @@ fun SecretBasePrimaryButton(
             color = if (enabled) CherryPink.copy(alpha = 0.14f) else OutlinePink.copy(alpha = 0.7f),
         ),
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = if (enabled) SurfaceWhite else WarmGray,
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = if (enabled) SurfaceWhite else WarmGray,
+            )
+        }
     }
 }
 
@@ -222,12 +228,18 @@ fun SecretBaseSecondaryButton(
         shape = RoundedCornerShape(999.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.82f)),
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = InkBlack,
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = InkBlack,
+            )
+        }
     }
 }
 
@@ -258,10 +270,10 @@ fun SecretBaseTopBarButton(
 ) {
     Surface(
         modifier = modifier.size(40.dp),
-        color = SurfaceWhite.copy(alpha = 0.82f),
+        color = SurfaceWhite,
         shape = CircleShape,
-        shadowElevation = 1.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.62f)),
+        shadowElevation = 0.dp,
+        border = null,
         onClick = onClick,
     ) {
         Box(contentAlignment = Alignment.Center) {
