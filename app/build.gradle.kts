@@ -34,8 +34,8 @@ android {
         applicationId = "com.secretbase.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.0.3"
+        versionCode = 5
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "SUPABASE_URL", appConfig("SUPABASE_URL").toBuildConfigString())

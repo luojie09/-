@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>留言墙预览</title>
+  <link rel="stylesheet" href="./secretbase-preview.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
@@ -707,6 +708,9 @@
   <script>
     const currentUserId = "sheep";
     const currentUserName = "小羊";
+    const MESSAGE_STORAGE_KEY = "secretbase-preview-messages-v1";
+    const PENDING_MESSAGE_KEY = "secretbase-preview-pending-message-v1";
+    const LIKED_STORAGE_KEY = "secretbase-preview-liked-messages-v1";
     const avatars = {
       sheep: "../app/src/main/res/drawable-nodpi/avatar_sheep.png?v=20260710-new-avatar",
       chick: "../app/src/main/res/drawable-nodpi/avatar_chick.png?v=20260710-new-avatar"
@@ -715,7 +719,7 @@
     let activeReplyMessageId = null;
     let replyText = "";
     let expandedReplyIds = new Set();
-    let likedMessageIds = new Set();
+    let likedMessageIds = new Set(JSON.parse(localStorage.getItem(LIKED_STORAGE_KEY) || "[]"));
     let poppingLikeId = null;
     let editingMessageId = null;
     let viewerState = { open: false, messageId: null, index: 0 };
@@ -802,6 +806,39 @@
         replies: []
       }
     ];
+
+    try {
+      const storedMessages = JSON.parse(localStorage.getItem(MESSAGE_STORAGE_KEY) || "null");
+      if (Array.isArray(storedMessages)) messages = storedMessages;
+    } catch (_) {}
+
+    try {
+      const pendingMessage = JSON.parse(localStorage.getItem(PENDING_MESSAGE_KEY) || "null");
+      if (pendingMessage && (pendingMessage.content || pendingMessage.imagePaths?.length)) {
+        messages.unshift({
+          id: `message-${crypto.randomUUID()}`,
+          authorId: currentUserId,
+          authorName: currentUserName,
+          content: String(pendingMessage.content || "").slice(0, 500),
+          imagePaths: Array.isArray(pendingMessage.imagePaths) ? pendingMessage.imagePaths.slice(0, 9) : [],
+          createdAt: Number(pendingMessage.createdAt) || Date.now(),
+          updatedAt: null,
+          isRead: true,
+          readAt: Date.now(),
+          counterpartReadAt: null,
+          replies: []
+        });
+      }
+      localStorage.removeItem(PENDING_MESSAGE_KEY);
+    } catch (_) {
+      localStorage.removeItem(PENDING_MESSAGE_KEY);
+    }
+
+    function persistMessages() {
+      localStorage.setItem(MESSAGE_STORAGE_KEY, JSON.stringify(messages));
+    }
+
+    persistMessages();
 
     const feedEl = document.getElementById("feed");
     const emptyStateEl = document.getElementById("emptyState");
@@ -1048,15 +1085,15 @@
     }
 
     document.querySelector(".icon-circle.back")?.addEventListener("click", () => {
-      window.location.href = "./homepage_preview.html";
+      openMainTab("./homepage_preview.html");
     });
 
     document.getElementById("openEditorBtn").addEventListener("click", () => {
-      window.location.href = "./message_wall_editor_preview.html";
+      openMessageEditor();
     });
 
     document.getElementById("emptyWriteBtn").addEventListener("click", () => {
-      window.location.href = "./message_wall_editor_preview.html";
+      openMessageEditor();
     });
 
     feedEl.addEventListener("click", event => {
@@ -1081,6 +1118,7 @@
             }
           }, 300);
         }
+        localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify([...likedMessageIds]));
         markMessageRead(id);
         render();
         return;
@@ -1117,6 +1155,7 @@
           messages.forEach(message => {
             message.replies = message.replies.filter(reply => !(reply.id === replyId && reply.authorId === currentUserId));
           });
+          persistMessages();
           closeConfirm();
           render();
         });
@@ -1127,6 +1166,7 @@
         const messageId = target.dataset.deleteMessage;
         openConfirm("删除这条留言？", "删除后，这条留言和它的回复都会一起移除。", () => {
           messages = messages.filter(message => !(message.id === messageId && message.authorId === currentUserId));
+          persistMessages();
           closeConfirm();
           render();
         });
@@ -1157,6 +1197,7 @@
           isRead: true,
           readAt: Date.now()
         });
+        persistMessages();
         activeReplyMessageId = null;
         replyText = "";
         render();
@@ -1184,7 +1225,8 @@
       const target = event.target;
       if (target.matches("[data-reply-input]")) {
         replyText = target.value.slice(0, 300);
-        render();
+        const card = target.closest(".message-card");
+        card?.querySelector(".reply-send")?.classList.toggle("active", Boolean(replyText.trim()));
       }
     });
 
@@ -1219,6 +1261,7 @@
       }
       message.content = text.slice(0, 500);
       message.updatedAt = Date.now();
+      persistMessages();
       editingMessageId = null;
       render();
     });
@@ -1251,6 +1294,18 @@
         return;
       }
       window.location.href = route;
+    }
+
+    function openMessageEditor() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: "secretbase-preview:navigate",
+          page: "messageEditor",
+          route: "./message_wall_editor_preview.html"
+        }, "*");
+        return;
+      }
+      window.location.href = "./message_wall_editor_preview.html";
     }
 
     document.querySelectorAll("[data-main-tab]").forEach(node => {

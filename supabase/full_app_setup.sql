@@ -1,3 +1,8 @@
+-- LEGACY BOOTSTRAP ONLY.
+-- This file creates the original schema and seed data, including permissive demo policies.
+-- Do not use it by itself for a production installation. Immediately run
+-- secure_couple_auth_migration.sql afterwards to replace all demo policies.
+
 create table if not exists public.anniversaries (
     id text primary key,
     title text not null,

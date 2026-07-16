@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>愿望清单预览</title>
+  <link rel="stylesheet" href="./secretbase-preview.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
@@ -1335,9 +1336,7 @@
       const { action, id, status, index } = actionEl.dataset;
       if (action === "back" || action === "back-home") {
         if (appState.screen === "list") {
-          window.location.href = "./homepage_preview.html";
-          return;
-          alert("这里是可独立浏览的预览页，返回首页入口已预留在 Android 端。");
+          openMainTab("./homepage_preview.html");
         } else if (appState.screen === "completion") {
           appState.screen = "detail";
           render();

@@ -48,11 +48,22 @@ jobs:
         run: |
           test -n "$SUPABASE_URL"
           test -n "$SUPABASE_PUBLISHABLE_KEY"
-          curl --fail --silent --show-error \
+          auth_settings="$(curl --fail --silent --show-error \
             -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY" \
-            "$SUPABASE_URL/rest/v1/messages?select=id&limit=1" \
-            > /dev/null
+            "$SUPABASE_URL/auth/v1/settings")"
+          echo "$auth_settings" | jq -e '.external.anonymous_users == true' > /dev/null || {
+            echo 'Supabase Anonymous Sign-Ins must be enabled for secure device pairing.'
+            exit 1
+          }
+
+      - name: Verify secure Supabase migration
+        run: |
+          grep -q 'join_secret_base' supabase/secure_couple_auth_migration.sql
+          grep -q 'current_secret_base_couple_id' supabase/secure_couple_auth_migration.sql
+          if grep -Eiq 'to[[:space:]]+anon' supabase/secure_couple_auth_migration.sql; then
+            echo 'Secure migration must not grant application access to anon.'
+            exit 1
+          fi
 
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace

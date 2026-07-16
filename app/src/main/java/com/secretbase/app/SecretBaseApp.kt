@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +45,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -49,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.secretbase.app.data.message.SecretBaseUsers
 import com.secretbase.app.data.supabase.SupabaseConfig
+import com.secretbase.app.data.supabase.SupabaseAuthManager
 import com.secretbase.app.data.user.UserIdentityStore
 import com.secretbase.app.data.wish.WishStatus
 import com.secretbase.app.ui.anniversary.AnniversaryScreen
@@ -67,18 +73,73 @@ import com.secretbase.app.ui.wishlist.WishListViewModel
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
+import kotlinx.coroutines.launch
 
 @Composable
 fun SecretBaseApp() {
     val appContext = LocalContext.current.applicationContext
     val userIdentityStore = remember(appContext) { UserIdentityStore(appContext) }
-    var currentUserId by rememberSaveable { mutableStateOf(userIdentityStore.currentUserId()) }
+    val authManager = remember(userIdentityStore) { SupabaseAuthManager(userIdentityStore) }
+    val initialUserId = remember(userIdentityStore) { userIdentityStore.currentUserId() }
+    var currentUserId by rememberSaveable {
+        mutableStateOf(
+            initialUserId?.takeIf {
+                !SupabaseConfig.isConfigured || userIdentityStore.hasAuthenticatedIdentity()
+            },
+        )
+    }
+    var isBindingIdentity by rememberSaveable { mutableStateOf(false) }
+    var identityError by rememberSaveable { mutableStateOf<String?>(null) }
+    var isValidatingIdentity by rememberSaveable {
+        mutableStateOf(SupabaseConfig.isConfigured && userIdentityStore.hasAuthenticatedIdentity())
+    }
+    val appScope = rememberCoroutineScope()
+
+    LaunchedEffect(isValidatingIdentity) {
+        if (!isValidatingIdentity) return@LaunchedEffect
+        runCatching { authManager.validAccessToken() }
+            .onSuccess {
+                isValidatingIdentity = false
+            }
+            .onFailure {
+                userIdentityStore.clearAuthSessionKeepingRole()
+                identityError = "身份会话已过期，请使用配对码重新连接"
+                currentUserId = null
+                isValidatingIdentity = false
+            }
+    }
+
+    if (isValidatingIdentity) {
+        IdentityConnectionProgress()
+        return
+    }
 
     if (currentUserId == null) {
         IdentitySelectionGate(
-            onIdentitySelected = { selectedUserId ->
-                userIdentityStore.saveCurrentUserId(selectedUserId)
-                currentUserId = selectedUserId
+            initialSelection = initialUserId,
+            requiresPairingCode = SupabaseConfig.isConfigured,
+            isBinding = isBindingIdentity,
+            errorMessage = identityError,
+            onIdentitySelected = { selectedUserId, pairingCode ->
+                if (!SupabaseConfig.isConfigured) {
+                    userIdentityStore.saveCurrentUserId(selectedUserId)
+                    currentUserId = selectedUserId
+                    return@IdentitySelectionGate
+                }
+
+                appScope.launch {
+                    isBindingIdentity = true
+                    identityError = null
+                    authManager.bindIdentity(
+                        role = selectedUserId,
+                        pairingCode = pairingCode,
+                    ).onSuccess { identity ->
+                        currentUserId = identity.role
+                    }.onFailure { error ->
+                        identityError = error.message ?: "配对失败，请检查配对码和网络"
+                    }
+                    isBindingIdentity = false
+                }
             },
         )
         return
@@ -90,6 +151,8 @@ fun SecretBaseApp() {
             SecretBaseDependencies(
                 context = appContext,
                 currentUserId = selectedUserId,
+                authManager = authManager,
+                coupleId = userIdentityStore.coupleId(),
             )
         }
             .recoverCatching { error ->
@@ -575,14 +638,16 @@ private fun MainBottomTabBar(
 }
 
 @Composable
-private fun MainBottomTabItem(
+private fun RowScope.MainBottomTabItem(
     label: String,
     iconRes: Int,
     active: Boolean,
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.height(52.dp),
+        modifier = Modifier
+            .weight(1f)
+            .height(52.dp),
         onClick = onClick,
         color = Color.Transparent,
         shape = RoundedCornerShape(16.dp),
@@ -688,10 +753,46 @@ private sealed class AppRoute(val route: String) {
 }
 
 @Composable
+private fun IdentityConnectionProgress() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFFFF3F6),
+                        Color(0xFFFFFAFB),
+                    ),
+                ),
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(28.dp),
+                color = CherryPink,
+                strokeWidth = 2.5.dp,
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = "正在连接你们的秘密基地",
+                style = MaterialTheme.typography.bodyMedium,
+                color = WarmGray,
+            )
+        }
+    }
+}
+
+@Composable
 private fun IdentitySelectionGate(
-    onIdentitySelected: (String) -> Unit,
+    initialSelection: String?,
+    requiresPairingCode: Boolean,
+    isBinding: Boolean,
+    errorMessage: String?,
+    onIdentitySelected: (String, String) -> Unit,
 ) {
-    var pendingSelection by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingSelection by rememberSaveable { mutableStateOf(initialSelection) }
+    var pairingCode by rememberSaveable { mutableStateOf("") }
 
     Box(
         modifier = Modifier
@@ -730,7 +831,11 @@ private fun IdentitySelectionGate(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "\u8fd9\u6837\u7559\u8a00\u3001\u56de\u590d\u548c\u5fc3\u60c5\u624d\u4f1a\u5199\u5165\u6b63\u786e\u7684\u6570\u636e\u5e93\u8eab\u4efd\u3002",
+                    text = if (requiresPairingCode) {
+                        "选择身份并输入一次配对码，这台设备就会安全连接到你们的秘密基地。"
+                    } else {
+                        "这样留言、回复和心情才会写入正确的身份。"
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF8C8690),
                 )
@@ -746,18 +851,55 @@ private fun IdentitySelectionGate(
                     selected = pendingSelection == SecretBaseUsers.CHICK_ID,
                     onClick = { pendingSelection = SecretBaseUsers.CHICK_ID },
                 )
+                if (requiresPairingCode) {
+                    Spacer(modifier = Modifier.height(18.dp))
+                    OutlinedTextField(
+                        value = pairingCode,
+                        onValueChange = {
+                            pairingCode = it.take(MAX_PAIRING_CODE_LENGTH)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isBinding,
+                        singleLine = true,
+                        label = { Text("配对码") },
+                        placeholder = { Text("只需首次绑定时输入") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        isError = errorMessage != null,
+                        supportingText = errorMessage?.let { message ->
+                            { Text(message) }
+                        },
+                    )
+                }
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = { pendingSelection?.let(onIdentitySelected) },
-                    enabled = pendingSelection != null,
+                    onClick = {
+                        pendingSelection?.let { selection ->
+                            onIdentitySelected(selection, pairingCode)
+                        }
+                    },
+                    enabled = pendingSelection != null &&
+                        !isBinding &&
+                        (!requiresPairingCode || pairingCode.isNotBlank()),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(text = "\u8fdb\u5165\u79d8\u5bc6\u57fa\u5730")
+                    if (isBinding) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "正在连接")
+                    } else {
+                        Text(text = "进入秘密基地")
+                    }
                 }
             }
         }
     }
 }
+
+private const val MAX_PAIRING_CODE_LENGTH = 64
 
 @Composable
 private fun StartupErrorScreen(error: Throwable?) {

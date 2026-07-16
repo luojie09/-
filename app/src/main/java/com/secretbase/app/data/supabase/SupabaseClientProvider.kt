@@ -20,13 +20,16 @@ object SupabaseConfig {
 }
 
 object SupabaseClientProvider {
-    val client: SupabaseRestClient by lazy {
+    fun client(
+        accessTokenProvider: suspend () -> String,
+    ): SupabaseRestClient {
         check(SupabaseConfig.isConfigured) {
             "Supabase is not configured. Please set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY."
         }
-        SupabaseRestClient(
+        return SupabaseRestClient(
             supabaseUrl = SupabaseConfig.url,
             publishableKey = SupabaseConfig.publishableKey,
+            accessTokenProvider = accessTokenProvider,
         )
     }
 }
@@ -34,6 +37,7 @@ object SupabaseClientProvider {
 class SupabaseRestClient(
     private val supabaseUrl: String,
     private val publishableKey: String,
+    private val accessTokenProvider: (suspend () -> String)? = null,
 ) {
     @PublishedApi
     internal val json = Json {
@@ -107,7 +111,9 @@ class SupabaseRestClient(
         bytes: ByteArray,
         contentType: String,
         upsert: Boolean = true,
-    ) = withContext(Dispatchers.IO) {
+    ) {
+        val authorizationToken = authorizationToken()
+        withContext(Dispatchers.IO) {
         val path = objectPath
             .split('/')
             .joinToString("/") { encode(it) }
@@ -116,7 +122,7 @@ class SupabaseRestClient(
         connection.connectTimeout = REQUEST_TIMEOUT_MS
         connection.readTimeout = REQUEST_TIMEOUT_MS
         connection.setRequestProperty("apikey", publishableKey)
-        connection.setRequestProperty("Authorization", "Bearer $publishableKey")
+        connection.setRequestProperty("Authorization", "Bearer $authorizationToken")
         connection.setRequestProperty("Content-Type", contentType)
         connection.setRequestProperty("x-upsert", upsert.toString())
         connection.doOutput = true
@@ -134,6 +140,7 @@ class SupabaseRestClient(
         if (status !in 200..299) {
             throw IOException("Supabase storage upload failed: $bucket/$objectPath returned HTTP $status $response")
         }
+        }
     }
 
     fun publicStorageUrl(bucket: String, objectPath: String): String {
@@ -147,13 +154,15 @@ class SupabaseRestClient(
         method: String,
         path: String,
         body: String? = null,
-    ): String = withContext(Dispatchers.IO) {
+    ): String {
+        val authorizationToken = authorizationToken()
+        return withContext(Dispatchers.IO) {
         val connection = (URL("$supabaseUrl/rest/v1/$path").openConnection() as HttpURLConnection)
         connection.requestMethod = method
         connection.connectTimeout = REQUEST_TIMEOUT_MS
         connection.readTimeout = REQUEST_TIMEOUT_MS
         connection.setRequestProperty("apikey", publishableKey)
-        connection.setRequestProperty("Authorization", "Bearer $publishableKey")
+        connection.setRequestProperty("Authorization", "Bearer $authorizationToken")
         connection.setRequestProperty("Accept", "application/json")
         connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
         if (method != "GET") {
@@ -179,7 +188,11 @@ class SupabaseRestClient(
             throw IOException("Supabase request failed: $method $path returned HTTP $status $response")
         }
         response
+        }
     }
+
+    private suspend fun authorizationToken(): String =
+        accessTokenProvider?.invoke()?.takeIf { it.isNotBlank() } ?: publishableKey
 
     private fun encode(value: String): String =
         URLEncoder.encode(value, Charsets.UTF_8.name())

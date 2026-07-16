@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>我们的秘密基地 - 首页预览</title>
+  <link rel="stylesheet" href="./secretbase-preview.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
@@ -56,21 +57,6 @@
       height:100%;
       overflow:auto;
       padding-bottom:108px;
-    }
-
-    .preview-badge{
-      position:absolute;
-      right:16px;
-      top:16px;
-      z-index:5;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:700;
-      color:#a36b79;
-      background:rgba(255,255,255,.78);
-      border:1px solid var(--line);
-      backdrop-filter:blur(10px);
     }
 
     .hero{
@@ -519,7 +505,6 @@
 </head>
 <body>
   <div class="phone">
-    <div class="preview-badge">静态预览</div>
     <div class="scroll">
       <section class="hero">
         <div class="hero-inner">
@@ -657,42 +642,62 @@
       const daysTogether = Math.max(1, diffDays(today, START_DATE) + 1);
       document.getElementById("daysTogether").textContent = daysTogether;
 
-      let anniversaryThisYear = new Date(today.getFullYear(), 4, 6);
-      let nextAnniversary;
-      if (today < anniversaryThisYear) {
-        nextAnniversary = anniversaryThisYear;
-      } else if (today > anniversaryThisYear) {
-        nextAnniversary = new Date(today.getFullYear() + 1, 4, 6);
-      } else if (today.getFullYear() === 2026) {
-        nextAnniversary = new Date(today.getFullYear() + 1, 4, 6);
-      } else {
-        nextAnniversary = anniversaryThisYear;
-      }
+      const anniversaryThisYear = new Date(today.getFullYear(), 4, 6);
+      const fallbackDate = today < anniversaryThisYear
+        ? anniversaryThisYear
+        : new Date(today.getFullYear() + 1, 4, 6);
+      const fallbackYears = Math.max(1, fallbackDate.getFullYear() - 2026);
+      let nextEvent = {
+        title: `恋爱${toChineseNumber(fallbackYears)}周年`,
+        date: fallbackDate,
+        cycleStart: new Date(fallbackDate.getFullYear() - 1, 4, 6)
+      };
 
-      const cycleStart = START_DATE > new Date(nextAnniversary.getFullYear() - 1, 4, 6)
-        ? START_DATE
-        : new Date(nextAnniversary.getFullYear() - 1, 4, 6);
+      try {
+        const items = JSON.parse(localStorage.getItem("secretbase-preview-anniversaries-v1") || "[]");
+        const candidates = Array.isArray(items) ? items.map(item => {
+          const [year, month, day] = String(item.date || "").split("-").map(Number);
+          if (!year || !month || !day) return null;
+          const originalDate = new Date(year, month - 1, day);
+          let effectiveDate = originalDate;
+          if (item.repeatYearly) {
+            effectiveDate = new Date(today.getFullYear(), month - 1, day);
+            if (effectiveDate < today) effectiveDate = new Date(today.getFullYear() + 1, month - 1, day);
+          } else if (effectiveDate < today) {
+            return null;
+          }
+          const cycleStartCandidate = item.repeatYearly
+            ? new Date(effectiveDate.getFullYear() - 1, month - 1, day)
+            : originalDate;
+          return {
+            title: item.title,
+            date: effectiveDate,
+            cycleStart: cycleStartCandidate > START_DATE ? cycleStartCandidate : START_DATE,
+            remain: diffDays(effectiveDate, today)
+          };
+        }).filter(Boolean) : [];
+        candidates.sort((a, b) => a.remain - b.remain);
+        if (candidates.length) nextEvent = candidates[0];
+      } catch (_) {}
 
+      const nextAnniversary = nextEvent.date;
+      const cycleStart = nextEvent.cycleStart > START_DATE ? nextEvent.cycleStart : START_DATE;
       const remain = diffDays(nextAnniversary, today);
-      const years = Math.max(1, nextAnniversary.getFullYear() - 2026);
       const cycleTotal = Math.max(1, diffDays(nextAnniversary, cycleStart));
       const cycleElapsed = Math.max(0, Math.min(cycleTotal, diffDays(today, cycleStart)));
 
       const titleNode = document.getElementById("anniversaryTitle");
-      if (titleNode) titleNode.textContent = `??${toChineseNumber(years)}??`;
+      if (titleNode) titleNode.textContent = nextEvent.title;
       const remainText = remain === 0 ? "\u5c31\u662f\u4eca\u5929" : `\u8fd8\u6709 ${remain} \u5929`;
       const remainNode = document.getElementById("anniversaryRemain");
       if (remainNode) remainNode.textContent = remainText;
       const featureNode = document.getElementById("featureAnniversary");
-      if (featureNode) featureNode.textContent = remain === 0 ? "????" : `${remain} ??`;
+      if (featureNode) featureNode.textContent = remain === 0 ? "就是今天" : `${remain} 天后`;
       document.getElementById("anniversaryProgress").style.width = `${(cycleElapsed / cycleTotal) * 100}%`;
     }
 
     function openPreview(route) {
-      if (!route) {
-        alert("这个预览页还没单独生成 HTML，等我下一步补上。");
-        return;
-      }
+      if (!route) return;
       window.location.href = route;
     }
 
@@ -821,7 +826,7 @@
       }
 
       bindRouteClicks();
-      updateSafeRelationship();
+      updateRelationship();
       initHeroCarousel();
     })();
   </script>

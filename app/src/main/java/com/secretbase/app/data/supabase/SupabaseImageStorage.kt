@@ -17,6 +17,7 @@ class SupabaseImageStorage(
     context: Context,
     private val client: SupabaseRestClient,
     private val bucket: String = DEFAULT_BUCKET,
+    private val pathPrefix: String = "",
 ) {
     private val appContext = context.applicationContext
 
@@ -42,7 +43,12 @@ class SupabaseImageStorage(
         val uri = Uri.parse(imagePath)
         val uploadPayload = readUploadPayload(uri)
         val safeFolder = folder.trim('/').ifBlank { "uploads" }
-        val objectPath = "$safeFolder/${System.currentTimeMillis()}-$order-${UUID.randomUUID()}.${uploadPayload.extension}"
+        val safePrefix = pathPrefix.trim('/')
+        val objectPath = listOfNotNull(
+            safePrefix.takeIf { it.isNotBlank() },
+            safeFolder,
+            "${System.currentTimeMillis()}-$order-${UUID.randomUUID()}.${uploadPayload.extension}",
+        ).joinToString("/")
 
         client.uploadStorageObject(
             bucket = bucket,

@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>纪念日预览</title>
+  <link rel="stylesheet" href="./secretbase-preview.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
@@ -902,7 +903,7 @@
       const items = sortedItems();
       screenEl.innerHTML = `
         <div class="topbar no-back">
-          <h1 class="title">???</h1>
+          <h1 class="title">纪念日</h1>
           <button class="circle-btn add" type="button" data-action="open-editor" aria-label="新增">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5V19"/><path d="M5 12H19"/></svg>
           </button>
@@ -1028,9 +1029,7 @@
 
       const { action, id, value } = actionEl.dataset;
       if (action === "back-home") {
-        window.location.href = "./homepage_preview.html";
-        return;
-        alert("这里是可独立浏览的预览页，Android 端已经预留从首页进入纪念日页面的跳转。");
+        openMainTab("./homepage_preview.html");
         return;
       }
       if (action === "open-editor") {

@@ -10,6 +10,7 @@ import com.secretbase.app.data.message.MessageRepository
 import com.secretbase.app.data.message.SupabaseMessageRepository
 import com.secretbase.app.data.supabase.SupabaseClientProvider
 import com.secretbase.app.data.supabase.SupabaseConfig
+import com.secretbase.app.data.supabase.SupabaseAuthManager
 import com.secretbase.app.data.supabase.SupabaseImageStorage
 import com.secretbase.app.data.wish.FakeWishRepository
 import com.secretbase.app.data.wish.SupabaseWishRepository
@@ -18,14 +19,22 @@ import com.secretbase.app.data.wish.WishRepository
 class SecretBaseDependencies(
     context: Context,
     val currentUserId: String,
+    authManager: SupabaseAuthManager? = null,
+    coupleId: String? = null,
     enableRemoteModules: Boolean = true,
 ) {
     private val useSupabase = enableRemoteModules && SupabaseConfig.isConfigured
-    private val supabaseClient = if (useSupabase) SupabaseClientProvider.client else null
+    private val supabaseClient = if (useSupabase) {
+        val manager = requireNotNull(authManager) { "Authenticated Supabase session is required" }
+        SupabaseClientProvider.client(manager::validAccessToken)
+    } else {
+        null
+    }
     private val imageStorage = if (useSupabase) {
         SupabaseImageStorage(
             context = context,
             client = requireNotNull(supabaseClient),
+            pathPrefix = requireNotNull(coupleId) { "Couple id is required for secure image storage" },
         )
     } else {
         null

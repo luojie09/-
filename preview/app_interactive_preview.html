@@ -3,89 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Secret Base Live Preview</title>
+  <title>我们的秘密基地</title>
   <style>
     *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:#f5f1f3;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#202128}
+    html,body{margin:0;min-height:100%;background:#f5f1f3;color:#202128;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
     body{display:flex;justify-content:center;padding:10px}
-    .shell{width:min(100%,430px);height:calc(100vh - 20px);display:flex;flex-direction:column;gap:8px}
-    .tabs{display:flex;gap:8px;overflow:auto;padding:2px;scrollbar-width:none}
+    .shell{width:min(100%,430px);height:calc(100dvh - 20px);display:flex;flex-direction:column;gap:8px}
+    .tabs{display:flex;gap:7px;overflow:auto;padding:2px;scrollbar-width:none}
     .tabs::-webkit-scrollbar{display:none}
-    .tab{flex:0 0 auto;border:1px solid #f1dfe7;background:rgba(255,255,255,.88);color:#8f8992;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;white-space:nowrap}
-    .tab.active{background:#ff6f95;border-color:#ff6f95;color:#fff}
-    .viewer{position:relative;flex:1;min-height:0;border-radius:26px;overflow:hidden;background:#fffbfa;border:1px solid rgba(255,255,255,.9);box-shadow:0 14px 38px rgba(52,33,41,.1)}
-    iframe{width:100%;height:100%;border:0;display:block;background:#fffbfa}
-    .toast{position:absolute;left:14px;right:14px;bottom:14px;display:none;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.9);border:1px solid #f1dfe7;color:#6f6570;font-size:12px;font-weight:700;box-shadow:0 10px 24px rgba(64,42,50,.08)}
-    .toast.show{display:block}
+    .tab{flex:0 0 auto;border:1px solid #f1e4e9;background:rgba(255,255,255,.82);color:#928b91;border-radius:999px;padding:7px 11px;font:700 12px/1.2 inherit;white-space:nowrap}
+    .tab.active{border-color:#ff8aa8;background:#ff8aa8;color:#fff}
+    .viewer{position:relative;flex:1;min-height:0;overflow:hidden;border:1px solid rgba(255,255,255,.9);border-radius:26px;background:#fff7f8;box-shadow:0 14px 38px rgba(52,33,41,.1)}
+    iframe{display:block;width:100%;height:100%;border:0;background:#fff7f8}
+    .transition{position:absolute;inset:0;pointer-events:none;background:#fff7f8;opacity:0;transition:opacity .16s ease}
+    .transition.show{opacity:.48}
+    @media (max-width:480px){body{padding:0}.shell{width:100%;height:100dvh;gap:0}.tabs{display:none}.viewer{border:0;border-radius:0;box-shadow:none}}
+    @media (prefers-reduced-motion:reduce){.transition{transition:none}}
   </style>
 </head>
 <body>
   <main class="shell">
-    <nav class="tabs" id="tabs"></nav>
+    <nav class="tabs" id="tabs" aria-label="预览页面"></nav>
     <section class="viewer">
-      <iframe id="frame" title="preview"></iframe>
-      <div class="toast" id="toast"></div>
+      <iframe id="frame" title="我们的秘密基地交互预览"></iframe>
+      <div class="transition" id="transition"></div>
     </section>
   </main>
-  <script>
-    const routes=[
-      {id:"home",label:"首页",file:"homepage_preview.html"},
-      {id:"messageWall",label:"留言墙",file:"message_wall_preview.html"},
-      {id:"messageEditor",label:"写留言",file:"message_wall_editor_preview.html"},
-      {id:"wishList",label:"愿望清单",file:"wish_list.html"},
-      {id:"anniversary",label:"纪念日",file:"anniversary.html"},
-      {id:"font",label:"字体方案",file:"font_options_preview.html"}
-    ];
-    let current=new URLSearchParams(location.search).get("page")||"home";
-    function renderTabs(){
-      tabs.innerHTML=routes.map(r=>`<button class="tab ${r.id===current?"active":""}" data-route="${r.id}">${r.label}</button>`).join("");
-      tabs.querySelectorAll(".tab").forEach(b=>b.onclick=()=>navigate(b.dataset.route));
-    }
-    function navigate(id,replace=false){
-      const r=routes.find(x=>x.id===id)||routes[0];
-      current=r.id;
-      renderTabs();
-      frame.src=`${r.file}?embedded=1&v=${Date.now()}`;
-      const url=new URL(location.href);
-      url.searchParams.set("page",r.id);
-      history[replace?"replaceState":"pushState"]({page:r.id},"",url);
-    }
-    function inject(){
-      let doc;
-      try{doc=frame.contentDocument||frame.contentWindow.document}catch(_){return}
-      if(!doc||!doc.head)return;
-      if(!doc.getElementById("embedded-preview-style")){
-        const style=doc.createElement("style");
-        style.id="embedded-preview-style";
-        style.textContent='html,body{width:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:auto!important}.phone{width:100%!important;min-height:100vh!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}.scroll,.screen{min-height:100vh!important;height:auto!important;overflow:visible!important}';
-        doc.head.appendChild(style);
-      }
-      attach(doc);
-    }
-    function attach(doc){
-      const q="button,a,.feature-card,.feature,.wish-card,.message-card,.ann-card,.circle-btn,.icon-circle";
-      doc.querySelectorAll(q).forEach(n=>{
-        if(n.dataset.previewBridgeAttached)return;
-        n.dataset.previewBridgeAttached="true";
-        n.addEventListener("click",e=>{
-          const s=((n.innerText||n.textContent||"")+(n.getAttribute("aria-label")||"")).replace(/\s+/g,"");
-          if(s.includes("留言墙"))return go(e,"messageWall");
-          if(s.includes("写留言")||s.includes("发布留言"))return go(e,"messageEditor");
-          if(s.includes("愿望清单"))return go(e,"wishList");
-          if(s.includes("纪念日"))return go(e,"anniversary");
-          if(s.includes("新增")&&current==="messageWall")return go(e,"messageEditor");
-          if(s.includes("返回")||s==="‹"||s==="←")return go(e,"home");
-        },true);
-      });
-    }
-    function go(e,id){e.preventDefault();e.stopPropagation();navigate(id)}
-    function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2200)}
-    frame.addEventListener("load",()=>{inject();setTimeout(inject,250);setTimeout(inject,900)});
-    window.addEventListener("popstate",e=>{current=e.state?.page||new URLSearchParams(location.search).get("page")||"home";navigate(current,true)});
-    renderTabs();
-    navigate(current,true);
-    toast("已切换为最新 HTML 页面嵌入模式");
-  </script>
   <script>
     (() => {
       const routes = [
@@ -94,79 +37,96 @@
         { id: "messageEditor", label: "写留言", file: "message_wall_editor_preview.html" },
         { id: "wishList", label: "愿望清单", file: "wish_list.html" },
         { id: "recentActivity", label: "最近动态", file: "recent_activity_preview.html" },
-        { id: "anniversary", label: "纪念日", file: "anniversary.html" },
-        { id: "font", label: "字体方案", file: "font_options_preview.html" }
+        { id: "anniversary", label: "纪念日", file: "anniversary.html" }
       ];
-      const routeToPage = {
-        "homepage_preview.html": "home",
-        "message_wall_preview.html": "messageWall",
-        "message_wall_editor_preview.html": "messageEditor",
-        "wish_list.html": "wishList",
-        "anniversary.html": "anniversary",
-        "recent_activity_preview.html": "recentActivity"
-      };
-      const tabsEl = document.getElementById("tabs");
-      const frameEl = document.getElementById("frame");
-      const toastEl = document.getElementById("toast");
-      let currentPage = new URLSearchParams(location.search).get("page") || "home";
+      const fileToPage = Object.fromEntries(routes.map(route => [route.file, route.id]));
+      const tabs = document.getElementById("tabs");
+      const frame = document.getElementById("frame");
+      const transition = document.getElementById("transition");
+      let currentPage = normalizePage(new URLSearchParams(location.search).get("page"));
+      let transitionTimer = 0;
+
+      function normalizePage(page, route) {
+        if (routes.some(item => item.id === page)) return page;
+        const file = String(route || "").split("?")[0].replace(/^\.\//, "");
+        return fileToPage[file] || "home";
+      }
 
       function renderTabs() {
-        tabsEl.innerHTML = routes.map(route => (
+        tabs.innerHTML = routes.map(route =>
           `<button class="tab ${route.id === currentPage ? "active" : ""}" data-page="${route.id}">${route.label}</button>`
-        )).join("");
-        tabsEl.querySelectorAll(".tab").forEach(button => {
+        ).join("");
+        tabs.querySelectorAll("[data-page]").forEach(button => {
           button.addEventListener("click", () => navigate(button.dataset.page));
         });
       }
 
-      function navigate(page, replace = false) {
+      function frameUrl(page) {
         const route = routes.find(item => item.id === page) || routes[0];
-        currentPage = route.id;
-        renderTabs();
-        frameEl.src = `${route.file}?embedded=1&v=${Date.now()}`;
-        const url = new URL(location.href);
-        url.searchParams.set("page", route.id);
-        history[replace ? "replaceState" : "pushState"]({ page: route.id }, "", url);
+        return `${route.file}?embedded=1&v=${Date.now()}`;
       }
 
-      function pageFromRoute(route) {
-        if (!route) return null;
-        const normalized = route.split("?")[0].replace("./", "");
-        return routeToPage[normalized] || null;
+      function syncAddress(page, replace) {
+        const url = new URL(location.href);
+        url.searchParams.set("page", page);
+        history[replace ? "replaceState" : "pushState"]({ page }, "", url);
+      }
+
+      function showTransition() {
+        clearTimeout(transitionTimer);
+        transition.classList.add("show");
+        transitionTimer = setTimeout(() => transition.classList.remove("show"), 210);
+      }
+
+      function navigate(page, options = {}) {
+        const nextPage = normalizePage(page, options.route);
+        const shouldReload = nextPage !== currentPage || options.force;
+        currentPage = nextPage;
+        renderTabs();
+        if (shouldReload) {
+          showTransition();
+          frame.src = frameUrl(currentPage);
+        }
+        syncAddress(currentPage, Boolean(options.replace));
       }
 
       function injectEmbeddedStyle() {
         let doc;
-        try {
-          doc = frameEl.contentDocument || frameEl.contentWindow.document;
-        } catch (_) {
-          return;
-        }
-        if (!doc || !doc.head || doc.getElementById("embedded-preview-style")) return;
+        try { doc = frame.contentDocument || frame.contentWindow.document; } catch (_) { return; }
+        if (!doc?.head || doc.getElementById("secretbase-embedded-style")) return;
         const style = doc.createElement("style");
-        style.id = "embedded-preview-style";
-        style.textContent = "html,body{width:100%!important;min-height:100%!important;margin:0!important;padding:0!important;display:block!important;background:transparent!important;overflow:auto!important}.phone{width:100%!important;min-height:100vh!important;border-radius:0!important;border:0!important;box-shadow:none!important;margin:0!important}.scroll,.screen{min-height:100vh!important;height:auto!important;overflow:visible!important}";
+        style.id = "secretbase-embedded-style";
+        style.textContent = `
+          html,body{width:100%!important;height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#fff7f8!important}
+          .phone{width:100%!important;height:100%!important;min-height:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+          .scroll,.screen{height:100%!important;min-height:0!important;overflow:auto!important;overscroll-behavior:contain!important;scrollbar-width:none}
+          .scroll::-webkit-scrollbar,.screen::-webkit-scrollbar{display:none}
+          .preview-badge{display:none!important}
+        `;
         doc.head.appendChild(style);
       }
 
-      window.addEventListener("message", event => {
-        if (event.data?.type !== "secretbase-preview:navigate") return;
-        const page = event.data.page || pageFromRoute(event.data.route);
-        if (page) navigate(page);
-      });
-
-      frameEl.addEventListener("load", () => {
+      frame.addEventListener("load", () => {
         injectEmbeddedStyle();
         setTimeout(injectEmbeddedStyle, 250);
+        transition.classList.remove("show");
+      });
+
+      window.addEventListener("message", event => {
+        if (event.source !== frame.contentWindow || event.data?.type !== "secretbase-preview:navigate") return;
+        navigate(event.data.page, { route: event.data.route });
       });
 
       window.addEventListener("popstate", event => {
-        const page = event.state?.page || new URLSearchParams(location.search).get("page") || "home";
-        navigate(page, true);
+        currentPage = normalizePage(event.state?.page || new URLSearchParams(location.search).get("page"));
+        renderTabs();
+        showTransition();
+        frame.src = frameUrl(currentPage);
       });
 
       renderTabs();
-      navigate(currentPage, true);
+      frame.src = frameUrl(currentPage);
+      syncAddress(currentPage, true);
     })();
   </script>
 </body>

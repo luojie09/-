@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content" />
   <title>写留言预览</title>
+  <link rel="stylesheet" href="./secretbase-preview.css" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
@@ -249,11 +250,33 @@
   </div>
 
   <script>
+    const PENDING_MESSAGE_KEY = "secretbase-preview-pending-message-v1";
     const imagePickerEl = document.getElementById("imagePicker");
     const imageStripEl = document.getElementById("imageStrip");
     const draftInputEl = document.getElementById("draftInput");
     const publishBtnEl = document.getElementById("publishBtn");
     let selectedImages = [];
+
+    function openMessageWall() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: "secretbase-preview:navigate",
+          page: "messageWall",
+          route: "./message_wall_preview.html"
+        }, "*");
+        return;
+      }
+      window.location.href = "./message_wall_preview.html";
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
 
     function syncPublishState() {
       const canPublish = draftInputEl.value.trim().length > 0 || selectedImages.length > 0;
@@ -278,12 +301,14 @@
     }
 
     document.getElementById("backBtn").addEventListener("click", () => {
-      window.location.href = "./message_wall_preview.html";
+      openMessageWall();
     });
 
-    imagePickerEl.addEventListener("change", event => {
+    imagePickerEl.addEventListener("change", async event => {
       const files = Array.from(event.target.files || []).slice(0, 9 - selectedImages.length);
-      files.forEach(file => selectedImages.push(URL.createObjectURL(file)));
+      const dataUrls = await Promise.all(files.map(fileToDataUrl));
+      selectedImages.push(...dataUrls.filter(Boolean));
+      imagePickerEl.value = "";
       renderImages();
     });
 
@@ -298,8 +323,12 @@
 
     publishBtnEl.addEventListener("click", () => {
       if (publishBtnEl.disabled) return;
-      alert("这是静态编辑页预览，当前会模拟发布后返回留言墙。");
-      window.location.href = "./message_wall_preview.html";
+      localStorage.setItem(PENDING_MESSAGE_KEY, JSON.stringify({
+        content: draftInputEl.value.trim().slice(0, 500),
+        imagePaths: selectedImages.slice(0, 9),
+        createdAt: Date.now()
+      }));
+      openMessageWall();
     });
 
     syncPublishState();
