@@ -1,159 +1,148 @@
 package com.secretbase.app.data.message
 
 import android.util.Log
-import com.secretbase.app.data.supabase.SupabaseImageStorage
+import com.secretbase.app.data.local.SecretBaseCache
 import com.secretbase.app.data.supabase.SupabaseRestClient
 import com.secretbase.app.data.supabase.isoInstantToMillis
-import com.secretbase.app.data.supabase.millisToIsoInstant
+import com.secretbase.app.data.sync.DraftSyncPayload
+import com.secretbase.app.data.sync.SecretBaseSyncManager
+import com.secretbase.app.data.sync.SyncModules
+import com.secretbase.app.data.sync.SyncOperations
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.util.UUID
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class SupabaseMessageRepository(
     private val client: SupabaseRestClient,
     private val currentUserId: String,
-    private val imageStorage: SupabaseImageStorage? = null,
+    private val cache: SecretBaseCache,
+    private val syncManager: SecretBaseSyncManager,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : MessageRepository {
-
-    private val messages = MutableStateFlow<List<Message>>(emptyList())
-    private val draft = MutableStateFlow(MessageDraft())
     private val refreshMutex = Mutex()
+    private val json = Json { encodeDefaults = true }
 
     init {
+        scope.launch { refreshAllSafely() }
         scope.launch {
-            runCatching { refreshAll() }
-                .onFailure { error ->
-                    Log.e(TAG, "Failed to load message wall from Supabase", error)
-                }
+            syncManager.refreshEvents
+                .filter { it == SyncModules.MESSAGES }
+                .collect { refreshAllSafely() }
         }
         scope.launch {
             while (isActive) {
-                delay(REMOTE_REFRESH_INTERVAL_MS)
-                runCatching { refreshMessages() }
-                    .onFailure { error ->
-                        Log.e(TAG, "Failed to refresh message wall from Supabase", error)
-                    }
+                delay(FALLBACK_REFRESH_INTERVAL_MS)
+                refreshAllSafely()
             }
         }
     }
 
-    override fun observeMessages(): Flow<List<Message>> = messages.asStateFlow()
+    override fun observeMessages(): Flow<List<Message>> = cache.observeMessages()
 
-    override fun observeDraft(): Flow<MessageDraft> = draft.asStateFlow()
+    override fun observeDraft(): Flow<MessageDraft> = cache.observeDraft()
 
-    override suspend fun updateDraft(
-        content: String,
-        imagePaths: List<String>,
-    ) {
-        val row = DraftRow(
-            userId = currentUserId,
+    override suspend fun updateDraft(content: String, imagePaths: List<String>) {
+        val draft = MessageDraft(
             content = content.take(MAX_MESSAGE_LENGTH),
             imagePaths = imagePaths.take(MAX_IMAGES),
-            updatedAt = millisToIsoInstant(now()),
+            updatedAt = now(),
         )
-        runCatching {
-            client.delete(DRAFTS_TABLE, client.eq("user_id", currentUserId))
-            client.insert(DRAFTS_TABLE, row)
-            draft.value = row.toDomain()
-        }.onFailure { error ->
-            Log.e(TAG, "Failed to update draft in Supabase", error)
-            draft.value = row.toDomain()
-        }
+        cache.saveDraft(draft)
+        syncManager.enqueue(
+            module = SyncModules.MESSAGES,
+            operation = SyncOperations.DRAFT_UPSERT,
+            entityId = currentUserId,
+            payload = json.encodeToString(DraftSyncPayload(currentUserId, draft)),
+            dedupeKey = "draft:$currentUserId",
+        )
     }
 
     override suspend fun clearDraft() {
-        runCatching {
-            client.delete(DRAFTS_TABLE, client.eq("user_id", currentUserId))
-        }.onFailure { error ->
-            Log.e(TAG, "Failed to clear draft in Supabase", error)
-        }
-        draft.value = MessageDraft()
+        cache.saveDraft(MessageDraft())
+        syncManager.enqueue(
+            module = SyncModules.MESSAGES,
+            operation = SyncOperations.DRAFT_DELETE,
+            entityId = currentUserId,
+            dedupeKey = "draft:$currentUserId",
+        )
     }
 
-    override suspend fun publishMessage(
-        content: String,
-        imagePaths: List<String>,
-    ): Result<Message> = runCatching {
+    override suspend fun publishMessage(content: String, imagePaths: List<String>): Result<Message> = runCatching {
         val safeContent = content.trim().take(MAX_MESSAGE_LENGTH)
         val safeImages = imagePaths.take(MAX_IMAGES)
         require(safeContent.isNotBlank() || safeImages.isNotEmpty()) { "文字和图片不能同时为空" }
 
         val timestamp = now()
-        val messageId = "message-${UUID.randomUUID()}"
-        val uploadedImages = imageStorage?.uploadLocalImages(
-            imagePaths = safeImages,
-            folder = "messages/$messageId",
-        ) ?: safeImages
         val message = Message(
-            id = messageId,
+            id = "message-${UUID.randomUUID()}",
             authorId = currentUserId,
             authorName = SecretBaseUsers.nameFor(currentUserId),
             content = safeContent,
-            imagePaths = uploadedImages,
+            imagePaths = safeImages,
             createdAt = timestamp,
-            updatedAt = null,
             isRead = true,
             readAt = timestamp,
-            counterpartReadAt = null,
         )
-        client.insert(MESSAGES_TABLE, message.toRow())
-        refreshMessages()
-        clearDraft()
+        cache.saveMessages(listOf(message) + cache.messages())
+        cache.saveDraft(MessageDraft())
+        syncManager.enqueue(
+            SyncModules.MESSAGES,
+            SyncOperations.MESSAGE_UPSERT,
+            message.id,
+            json.encodeToString(message),
+        )
+        syncManager.enqueue(
+            SyncModules.MESSAGES,
+            SyncOperations.DRAFT_DELETE,
+            currentUserId,
+            dedupeKey = "draft:$currentUserId",
+        )
         message
     }
 
-    override suspend fun updateMessage(
-        messageId: String,
-        content: String,
-    ): Result<Unit> = runCatching {
+    override suspend fun updateMessage(messageId: String, content: String): Result<Unit> = runCatching {
         val safeContent = content.trim().take(MAX_MESSAGE_LENGTH)
         require(safeContent.isNotBlank()) { "留言内容不能为空" }
-
-        val message = messages.value.firstOrNull { it.id == messageId }
-            ?: error("Message not found")
-        client.update(
-            table = MESSAGES_TABLE,
-            query = client.and(
-                client.eq("id", messageId),
-                client.eq("author_id", currentUserId),
-            ),
-            row = message.copy(content = safeContent, updatedAt = now()).toRow(),
+        var updated: Message? = null
+        val messages = cache.messages().map { message ->
+            if (message.id == messageId && message.authorId == currentUserId) {
+                message.copy(content = safeContent, updatedAt = now()).also { updated = it }
+            } else {
+                message
+            }
+        }
+        val value = updated ?: error("Message not found")
+        cache.saveMessages(messages)
+        syncManager.enqueue(
+            SyncModules.MESSAGES,
+            SyncOperations.MESSAGE_UPSERT,
+            messageId,
+            json.encodeToString(value),
         )
-        refreshMessages()
     }
 
-    override suspend fun deleteMessage(
-        messageId: String,
-    ): Result<Unit> = runCatching {
-        client.delete(
-            table = MESSAGES_TABLE,
-            query = client.and(
-                client.eq("id", messageId),
-                client.eq("author_id", currentUserId),
-            ),
-        )
-        refreshMessages()
+    override suspend fun deleteMessage(messageId: String): Result<Unit> = runCatching {
+        val current = cache.messages()
+        check(current.any { it.id == messageId && it.authorId == currentUserId }) { "Message not found" }
+        cache.saveMessages(current.filterNot { it.id == messageId })
+        syncManager.enqueue(SyncModules.MESSAGES, SyncOperations.MESSAGE_DELETE, messageId)
     }
 
-    override suspend fun addReply(
-        messageId: String,
-        content: String,
-    ): Result<MessageReply> = runCatching {
+    override suspend fun addReply(messageId: String, content: String): Result<MessageReply> = runCatching {
         val safeContent = content.trim().take(MAX_REPLY_LENGTH)
         require(safeContent.isNotBlank()) { "回复内容不能为空" }
-
         val timestamp = now()
         val reply = MessageReply(
             id = "reply-${UUID.randomUUID()}",
@@ -165,152 +154,193 @@ class SupabaseMessageRepository(
             isRead = true,
             readAt = timestamp,
         )
-        client.insert(REPLIES_TABLE, reply.toRow())
-        refreshMessages()
+        var found = false
+        val messages = cache.messages().map { message ->
+            if (message.id == messageId) {
+                found = true
+                message.copy(replies = message.replies + reply)
+            } else {
+                message
+            }
+        }
+        check(found) { "留言不存在" }
+        cache.saveMessages(messages)
+        syncManager.enqueue(
+            SyncModules.MESSAGES,
+            SyncOperations.REPLY_UPSERT,
+            reply.id,
+            json.encodeToString(reply),
+        )
         reply
     }
 
-    override suspend fun deleteReply(
-        replyId: String,
-    ): Result<Unit> = runCatching {
-        client.delete(
-            table = REPLIES_TABLE,
-            query = client.and(
-                client.eq("id", replyId),
-                client.eq("author_id", currentUserId),
-            ),
-        )
-        refreshMessages()
+    override suspend fun deleteReply(replyId: String): Result<Unit> = runCatching {
+        var found = false
+        val messages = cache.messages().map { message ->
+            val target = message.replies.firstOrNull { it.id == replyId && it.authorId == currentUserId }
+            if (target != null) {
+                found = true
+                message.copy(replies = message.replies.filterNot { it.id == replyId })
+            } else {
+                message
+            }
+        }
+        check(found) { "回复不存在" }
+        cache.saveMessages(messages)
+        syncManager.enqueue(SyncModules.MESSAGES, SyncOperations.REPLY_DELETE, replyId)
     }
 
-    override suspend fun markMessageRead(
-        messageId: String,
-    ): Result<Unit> = runCatching {
+    override suspend fun markMessageRead(messageId: String): Result<Unit> = runCatching {
         val readAt = now()
-        val message = messages.value.firstOrNull { it.id == messageId } ?: return@runCatching
-
-        if (message.authorId != currentUserId && !message.isRead) {
-            client.update(
-                table = MESSAGES_TABLE,
-                query = client.eq("id", messageId),
-                row = message.copy(
-                    isRead = true,
-                    readAt = readAt,
-                ).toRow(),
+        val changedReplies = mutableListOf<MessageReply>()
+        var changedMessage: Message? = null
+        val messages = cache.messages().map { message ->
+            if (message.id != messageId) return@map message
+            val replies = message.replies.map { reply ->
+                if (reply.authorId != currentUserId && !reply.isRead) {
+                    reply.copy(isRead = true, readAt = readAt).also(changedReplies::add)
+                } else {
+                    reply
+                }
+            }
+            message.copy(
+                isRead = message.isRead || message.authorId != currentUserId,
+                readAt = if (message.authorId != currentUserId) readAt else message.readAt,
+                replies = replies,
+            ).also { updated ->
+                if (updated != message) changedMessage = updated
+            }
+        }
+        cache.saveMessages(messages)
+        changedMessage?.let { message ->
+            syncManager.enqueue(
+                SyncModules.MESSAGES,
+                SyncOperations.MESSAGE_UPSERT,
+                message.id,
+                json.encodeToString(message),
             )
         }
+        changedReplies.forEach { reply ->
+            syncManager.enqueue(
+                SyncModules.MESSAGES,
+                SyncOperations.REPLY_UPSERT,
+                reply.id,
+                json.encodeToString(reply),
+            )
+        }
+    }
 
-        message.replies
-            .filter { reply -> reply.authorId != currentUserId && !reply.isRead }
-            .forEach { reply ->
-                client.update(
-                    table = REPLIES_TABLE,
-                    query = client.eq("id", reply.id),
-                    row = reply.copy(
-                        isRead = true,
-                        readAt = readAt,
-                    ).toRow(),
+    override suspend fun toggleLike(messageId: String): Result<Boolean> = runCatching {
+        val timestamp = now()
+        var found = false
+        var liked = false
+        val messages = cache.messages().map { message ->
+            if (message.id != messageId) return@map message
+            found = true
+            liked = currentUserId !in message.likedByUserIds
+            message.copy(
+                likedByUserIds = if (liked) {
+                    (message.likedByUserIds + currentUserId).distinct()
+                } else {
+                    message.likedByUserIds.filterNot { it == currentUserId }
+                },
+            )
+        }
+        check(found) { "留言不存在" }
+        cache.saveMessages(messages)
+
+        val like = MessageLike(
+            messageId = messageId,
+            userId = currentUserId,
+            createdAt = timestamp,
+        )
+        syncManager.enqueue(
+            module = SyncModules.MESSAGES,
+            operation = if (liked) SyncOperations.LIKE_UPSERT else SyncOperations.LIKE_DELETE,
+            entityId = "$messageId:$currentUserId",
+            payload = json.encodeToString(like),
+            dedupeKey = "like:$messageId:$currentUserId",
+        )
+        liked
+    }
+
+    private suspend fun refreshAllSafely() {
+        if (syncManager.hasPending(SyncModules.MESSAGES)) return
+        runCatching {
+            refreshMessages()
+            refreshDraft()
+        }.onFailure { error ->
+            Log.w(TAG, "Remote refresh failed; keeping Room cache", error)
+        }
+    }
+
+    private suspend fun refreshMessages() = refreshMutex.withLock {
+        val messageRows = client.select<MessageRow>(
+            MESSAGES_TABLE,
+            client.and("select=*", client.order("created_at", descending = true)),
+        )
+        val replyRows = client.select<ReplyRow>(
+            REPLIES_TABLE,
+            client.and("select=*", client.order("created_at")),
+        )
+        val likeRows = runCatching {
+            client.select<LikeRow>(
+                LIKES_TABLE,
+                "select=message_id,user_id",
+            )
+        }.getOrDefault(emptyList())
+        val replies = replyRows.groupBy { it.messageId }
+        val likes = likeRows.groupBy(LikeRow::messageId)
+        cache.saveMessages(
+            messageRows.map { row ->
+                row.toDomain(
+                    replies = replies[row.id].orEmpty().map { it.toDomain() },
+                    likedByUserIds = likes[row.id].orEmpty().map(LikeRow::userId),
                 )
-            }
-        refreshMessages()
-    }
-
-    private suspend fun refreshAll() {
-        refreshMessages()
-        refreshDraft()
-    }
-
-    private suspend fun refreshMessages() {
-        refreshMutex.withLock {
-            val messageRows = client.select<MessageRow>(
-                table = MESSAGES_TABLE,
-                query = client.and("select=*", client.order("created_at", descending = true)),
-            )
-
-            val replyRows = client.select<ReplyRow>(
-                table = REPLIES_TABLE,
-                query = client.and("select=*", client.order("created_at")),
-            )
-
-            val repliesByMessageId = replyRows
-                .groupBy { it.messageId }
-                .mapValues { (_, rows) -> rows.map { row -> row.toDomain() } }
-
-            messages.value = messageRows.map { row ->
-                row.toDomain(repliesByMessageId[row.id].orEmpty())
-            }
-        }
+            },
+        )
     }
 
     private suspend fun refreshDraft() {
         val rows = client.select<DraftRow>(
-            table = DRAFTS_TABLE,
-            query = client.and("select=*", client.eq("user_id", currentUserId)),
+            DRAFTS_TABLE,
+            client.and("select=*", client.eq("user_id", currentUserId)),
         )
-        draft.value = rows.firstOrNull()?.toDomain() ?: MessageDraft()
+        cache.saveDraft(rows.firstOrNull()?.toDomain() ?: MessageDraft())
     }
 
-    private fun Message.toRow(): MessageRow =
-        MessageRow(
-            id = id,
-            authorId = authorId,
-            authorName = authorName,
-            content = content,
-            imagePaths = imagePaths,
-            createdAt = millisToIsoInstant(createdAt),
-            updatedAt = updatedAt?.let(::millisToIsoInstant),
-            isRead = isRead,
-            readAt = readAt?.let(::millisToIsoInstant),
-            counterpartReadAt = counterpartReadAt?.let(::millisToIsoInstant),
-        )
+    private fun MessageRow.toDomain(
+        replies: List<MessageReply>,
+        likedByUserIds: List<String>,
+    ) = Message(
+        id = id,
+        authorId = authorId,
+        authorName = authorName,
+        content = content,
+        imagePaths = imagePaths,
+        createdAt = isoInstantToMillis(createdAt),
+        updatedAt = updatedAt?.let(::isoInstantToMillis),
+        isRead = isRead,
+        readAt = readAt?.let(::isoInstantToMillis),
+        counterpartReadAt = counterpartReadAt?.let(::isoInstantToMillis),
+        replies = replies,
+        likedByUserIds = likedByUserIds,
+    )
 
-    private fun MessageReply.toRow(): ReplyRow =
-        ReplyRow(
-            id = id,
-            messageId = messageId,
-            authorId = authorId,
-            authorName = authorName,
-            content = content,
-            createdAt = millisToIsoInstant(createdAt),
-            isRead = isRead,
-            readAt = readAt?.let(::millisToIsoInstant),
-        )
+    private fun ReplyRow.toDomain() = MessageReply(
+        id = id,
+        messageId = messageId,
+        authorId = authorId,
+        authorName = authorName,
+        content = content,
+        createdAt = isoInstantToMillis(createdAt),
+        isRead = isRead,
+        readAt = readAt?.let(::isoInstantToMillis),
+    )
 
-    private fun MessageRow.toDomain(replies: List<MessageReply>): Message =
-        Message(
-            id = id,
-            authorId = authorId,
-            authorName = authorName,
-            content = content,
-            imagePaths = imagePaths,
-            createdAt = isoInstantToMillis(createdAt),
-            updatedAt = updatedAt?.let(::isoInstantToMillis),
-            isRead = isRead,
-            readAt = readAt?.let(::isoInstantToMillis),
-            counterpartReadAt = counterpartReadAt?.let(::isoInstantToMillis),
-            replies = replies,
-        )
+    private fun DraftRow.toDomain() = MessageDraft(content, imagePaths, isoInstantToMillis(updatedAt))
 
-    private fun ReplyRow.toDomain(): MessageReply =
-        MessageReply(
-            id = id,
-            messageId = messageId,
-            authorId = authorId,
-            authorName = authorName,
-            content = content,
-            createdAt = isoInstantToMillis(createdAt),
-            isRead = isRead,
-            readAt = readAt?.let(::isoInstantToMillis),
-        )
-
-    private fun DraftRow.toDomain(): MessageDraft =
-        MessageDraft(
-            content = content,
-            imagePaths = imagePaths,
-            updatedAt = isoInstantToMillis(updatedAt),
-        )
-
-    private fun now(): Long = System.currentTimeMillis()
+    private fun now() = System.currentTimeMillis()
 
     @Serializable
     private data class MessageRow(
@@ -346,14 +376,21 @@ class SupabaseMessageRepository(
         @SerialName("updated_at") val updatedAt: String,
     )
 
+    @Serializable
+    private data class LikeRow(
+        @SerialName("message_id") val messageId: String,
+        @SerialName("user_id") val userId: String,
+    )
+
     private companion object {
         private const val MESSAGES_TABLE = "messages"
         private const val REPLIES_TABLE = "message_replies"
         private const val DRAFTS_TABLE = "message_drafts"
+        private const val LIKES_TABLE = "message_likes"
         private const val MAX_IMAGES = 9
         private const val MAX_MESSAGE_LENGTH = 500
         private const val MAX_REPLY_LENGTH = 300
-        private const val REMOTE_REFRESH_INTERVAL_MS = 3_000L
+        private const val FALLBACK_REFRESH_INTERVAL_MS = 60_000L
         private const val TAG = "SupabaseMessageRepo"
     }
 }

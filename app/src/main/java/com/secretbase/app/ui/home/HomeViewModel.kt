@@ -16,6 +16,8 @@ import com.secretbase.app.data.message.MessageRepository
 import com.secretbase.app.data.wish.Wish
 import com.secretbase.app.data.wish.WishRepository
 import com.secretbase.app.data.wish.WishStatus
+import com.secretbase.app.data.sync.SyncModules
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -23,11 +25,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -37,6 +42,7 @@ class HomeViewModel(
     private val wishRepository: WishRepository,
     private val anniversaryRepository: AnniversaryRepository,
     private val currentUserId: String,
+    private val remoteRefreshEvents: Flow<String> = emptyFlow(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -54,11 +60,20 @@ class HomeViewModel(
         observeMessageWall()
         observeWishes()
         observeAnniversaries()
+        observeHomeRemoteChanges()
         refresh()
     }
 
     fun refresh() {
         loadSnapshot(showLoading = true)
+    }
+
+    private fun observeHomeRemoteChanges() {
+        viewModelScope.launch {
+            remoteRefreshEvents
+                .filter { it == SyncModules.HOME }
+                .collect { loadSnapshot(showLoading = false) }
+        }
     }
 
     fun updateQuickNote(text: String) {
@@ -222,6 +237,7 @@ class HomeViewModel(
             wishRepository: WishRepository,
             anniversaryRepository: AnniversaryRepository,
             currentUserId: String,
+            remoteRefreshEvents: Flow<String> = emptyFlow(),
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
@@ -231,6 +247,7 @@ class HomeViewModel(
                     wishRepository = wishRepository,
                     anniversaryRepository = anniversaryRepository,
                     currentUserId = currentUserId,
+                    remoteRefreshEvents = remoteRefreshEvents,
                 ) as T
         }
     }
@@ -311,6 +328,8 @@ private fun List<Message>.toActivityRecords(currentUserId: String): List<Activit
                     iconSlot = "activityNote",
                     timestamp = Instant.ofEpochMilli(message.createdAt),
                     clickMessage = AppActions.OpenMessageWall,
+                    detail = message.content.ifBlank { "分享了 ${message.imagePaths.size} 张照片" },
+                    imagePaths = message.imagePaths,
                 ),
             )
             message.replies.forEach { reply ->
@@ -325,6 +344,7 @@ private fun List<Message>.toActivityRecords(currentUserId: String): List<Activit
                         iconSlot = "messageWallFeature",
                         timestamp = Instant.ofEpochMilli(reply.createdAt),
                         clickMessage = AppActions.OpenMessageWall,
+                        detail = reply.content,
                     ),
                 )
             }
@@ -338,7 +358,9 @@ private fun List<Wish>.toWishActivityRecords(): List<ActivityRecord> =
             title = "愿望「${wish.title}」实现啦",
             iconSlot = "activityChecklist",
             timestamp = Instant.ofEpochMilli(completion.completedAt),
-            clickMessage = AppActions.OpenWishList,
+            clickMessage = AppActions.openWishCompletionDetail(wish.id),
+            detail = completion.text.ifBlank { wish.description },
+            imagePaths = completion.imagePaths,
         )
     }
 
@@ -350,5 +372,14 @@ private fun List<Anniversary>.toAnniversaryActivityRecords(): List<ActivityRecor
             iconSlot = "anniversaryFeature",
             timestamp = Instant.ofEpochMilli(anniversary.createdAt),
             clickMessage = AppActions.OpenAnniversary,
+            detail = buildString {
+                append(
+                    Instant.ofEpochMilli(anniversary.date)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                        .format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+                )
+                append(if (anniversary.repeatYearly) " · 每年重复" else " · 不重复")
+            },
         )
     }

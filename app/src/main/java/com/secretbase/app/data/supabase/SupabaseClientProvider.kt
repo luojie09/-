@@ -67,6 +67,18 @@ class SupabaseRestClient(
         )
     }
 
+    suspend inline fun <reified T> upsert(
+        table: String,
+        row: T,
+    ) {
+        request(
+            method = "POST",
+            path = table,
+            body = json.encodeToString(row),
+            prefer = "resolution=merge-duplicates,return=minimal",
+        )
+    }
+
     suspend inline fun <reified T> update(
         table: String,
         query: String,
@@ -154,6 +166,7 @@ class SupabaseRestClient(
         method: String,
         path: String,
         body: String? = null,
+        prefer: String? = null,
     ): String {
         val authorizationToken = authorizationToken()
         return withContext(Dispatchers.IO) {
@@ -166,7 +179,7 @@ class SupabaseRestClient(
         connection.setRequestProperty("Accept", "application/json")
         connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
         if (method != "GET") {
-            connection.setRequestProperty("Prefer", "return=minimal")
+            connection.setRequestProperty("Prefer", prefer ?: "return=minimal")
         }
 
         if (body != null) {

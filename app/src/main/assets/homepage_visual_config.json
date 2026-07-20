@@ -4,7 +4,7 @@
   "heroGradientMiddle": "#FFF0F4",
   "heroGradientEnd": "#FFF4F7",
   "heroHeightDp": 250,
-  "heroBottomFadeHeightDp": 64,
+  "heroBottomFadeHeightDp": 0,
   "relationshipCardOverlapDp": 0,
   "backgroundOverlay": "",
   "avatarSlots": {

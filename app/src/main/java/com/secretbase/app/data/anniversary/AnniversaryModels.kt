@@ -1,5 +1,8 @@
 package com.secretbase.app.data.anniversary
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Anniversary(
     val id: String,
     val title: String,
@@ -10,6 +13,7 @@ data class Anniversary(
     val iconEmoji: String? = null,
 )
 
+@Serializable
 enum class AnniversaryReminder {
     NONE,
     SAME_DAY,

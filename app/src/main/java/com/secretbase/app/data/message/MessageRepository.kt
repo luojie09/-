@@ -41,4 +41,8 @@ interface MessageRepository {
     suspend fun markMessageRead(
         messageId: String,
     ): Result<Unit>
+
+    suspend fun toggleLike(
+        messageId: String,
+    ): Result<Boolean>
 }

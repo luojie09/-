@@ -69,6 +69,7 @@ fun MinimalMessageCard(
     onDeleteMessage: () -> Unit,
     onDeleteReply: (String) -> Unit,
     onStartEditing: () -> Unit,
+    onLikeClick: () -> Unit,
     onImageClick: () -> Unit,
     onCardOpened: () -> Unit,
 ) {
@@ -76,9 +77,8 @@ fun MinimalMessageCard(
     var confirmDeleteMessage by remember(message.id) { mutableStateOf(false) }
     var confirmDeleteReplyId by remember(message.id) { mutableStateOf<String?>(null) }
     var viewerIndex by remember(message.id) { mutableIntStateOf(-1) }
-    var liked by remember(message.id) { mutableStateOf(false) }
     val likeScale by animateFloatAsState(
-        targetValue = if (liked) 1.16f else 1f,
+        targetValue = if (message.isLiked) 1.16f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium,
@@ -215,13 +215,13 @@ fun MinimalMessageCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 MinimalMessageAction(
-                    icon = if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    label = "赞",
-                    tint = if (liked) CherryPink else WarmGray,
-                    selected = liked,
+                    icon = if (message.isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                    label = if (message.likeCount > 0) "赞 ${message.likeCount}" else "赞",
+                    tint = if (message.isLiked) CherryPink else WarmGray,
+                    selected = message.isLiked,
                     iconScale = likeScale,
                     onClick = {
-                        liked = !liked
+                        onLikeClick()
                         onCardOpened()
                     },
                 )

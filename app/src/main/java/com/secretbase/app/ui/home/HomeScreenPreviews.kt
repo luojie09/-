@@ -53,7 +53,7 @@ fun buildHomePreviewUiState(
             anniversaryCountdownLabel = "\u8fd8\u6709 318 \u5929",
             anniversaryProgress = 0.14f,
         ),
-        visuals = previewHomeVisuals(),
+        visuals = buildPreviewHomeVisuals(),
         quickRecord = QuickRecordConfig(
             placeholder = "\u4eca\u5929\u60f3\u8bf4\u70b9\u4ec0\u4e48\u2026",
             entryMessage = "\u5f85\u63a5\u5165\u5feb\u6377\u53d1\u5e03\u9875",
@@ -208,7 +208,7 @@ fun buildHomePreviewUiState(
     )
 }
 
-private fun previewHomeVisuals(): HomeVisuals =
+internal fun buildPreviewHomeVisuals(): HomeVisuals =
     HomeVisuals(
         hero = HeroVisualConfig(
             imageRes = R.drawable.home_couple_hero,
@@ -216,7 +216,7 @@ private fun previewHomeVisuals(): HomeVisuals =
             gradientMiddleHex = "#FFF0F4",
             gradientEndHex = "#FFF4F7",
             heightDp = 250,
-            bottomFadeHeightDp = 64,
+            bottomFadeHeightDp = 0,
             relationshipCardOverlapDp = 0,
         ),
         backgroundOverlayRes = null,

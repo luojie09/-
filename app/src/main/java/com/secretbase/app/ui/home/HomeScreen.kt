@@ -170,6 +170,7 @@ private fun HomeContent(
         item {
             HomeHeroSection(
                 payload = payload,
+                onSettingsClick = { onAction(com.secretbase.app.AppActions.OpenIdentitySettings) },
             )
         }
 
@@ -215,12 +216,14 @@ private fun PaddedSection(content: @Composable () -> Unit) {
 @Composable
 private fun HomeHeroSection(
     payload: HomePayload,
+    onSettingsClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
     ) {
         HeroBackground(
             payload = payload,
+            onSettingsClick = onSettingsClick,
         )
         Box(
             modifier = Modifier
@@ -239,6 +242,7 @@ private fun HomeHeroSection(
 @Composable
 private fun HeroBackground(
     payload: HomePayload,
+    onSettingsClick: () -> Unit,
 ) {
     val hero = payload.visuals.hero
     val gradientBrush = Brush.verticalGradient(
@@ -257,6 +261,7 @@ private fun HeroBackground(
         HomeHeader(
             greeting = payload.greeting,
             coupleDisplayName = payload.coupleDisplayName,
+            onSettingsClick = onSettingsClick,
         )
 
         Box(
@@ -265,7 +270,9 @@ private fun HeroBackground(
                 .height(hero.heightDp.dp),
         ) {
             CoupleIllustration(hero = hero)
-            BottomFadeOverlay(hero = hero)
+            if (hero.bottomFadeHeightDp > 0) {
+                BottomFadeOverlay(hero = hero)
+            }
         }
     }
 }
@@ -274,6 +281,7 @@ private fun HeroBackground(
 private fun HomeHeader(
     greeting: String,
     coupleDisplayName: String,
+    onSettingsClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -292,7 +300,10 @@ private fun HomeHeader(
                 style = MaterialTheme.typography.bodyMedium.homeToken(HomeTypographyScale.Greeting),
                 color = WarmGray,
             )
-            CoupleNameTitle(coupleDisplayName = coupleDisplayName)
+            CoupleNameTitle(
+                coupleDisplayName = coupleDisplayName,
+                modifier = Modifier.clickable(onClick = onSettingsClick),
+            )
         }
     }
 }
@@ -492,7 +503,10 @@ private fun RelationshipCard(
 }
 
 @Composable
-private fun CoupleNameTitle(coupleDisplayName: String) {
+private fun CoupleNameTitle(
+    coupleDisplayName: String,
+    modifier: Modifier = Modifier,
+) {
     val heartToken = "\u2764\uFE0F"
     val names = when {
         coupleDisplayName.contains(heartToken) -> coupleDisplayName.split(heartToken)
@@ -502,6 +516,7 @@ private fun CoupleNameTitle(coupleDisplayName: String) {
 
     if (names.size == 2) {
         Row(
+            modifier = modifier,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
@@ -525,6 +540,7 @@ private fun CoupleNameTitle(coupleDisplayName: String) {
     } else {
         Text(
             text = coupleDisplayName,
+            modifier = modifier,
             style = MaterialTheme.typography.headlineMedium.homeToken(HomeTypographyScale.HeroName),
             color = InkBlack,
             maxLines = 2,
@@ -805,7 +821,6 @@ private fun HomeBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
                 .padding(horizontal = 10.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
@@ -850,17 +865,17 @@ private fun BottomNavItem(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.height(52.dp),
+        modifier = modifier.heightIn(min = 56.dp),
         onClick = onClick,
         color = Color.Transparent,
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp, vertical = 5.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             DrawableOrFallback(
                 resId = iconRes,

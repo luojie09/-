@@ -78,10 +78,6 @@ jobs:
           grep -q 'SUPABASE_URL = "https://rcdcfvlvjxkeipysxbjt.supabase.co"' app/build/generated/source/buildConfig/debug/com/secretbase/app/BuildConfig.java
           grep -q 'SUPABASE_PUBLISHABLE_KEY = "sb_publishable_' app/build/generated/source/buildConfig/debug/com/secretbase/app/BuildConfig.java
 
-      - name: Generate Compose preview screenshots
-        if: ${{ steps.assemble.outcome == 'success' }}
-        run: ./gradlew :app:updateDebugScreenshotTest --stacktrace
-
       - name: Validate Compose preview screenshots
         id: screenshot_test
         if: ${{ steps.assemble.outcome == 'success' }}
@@ -104,6 +100,7 @@ jobs:
           path: |
             app/build/reports/screenshotTest/preview/debug/**
             app/build/outputs/screenshotTest/**
+            app/build/outputs/screenshotTest-results/**
           if-no-files-found: warn
 
       - name: Fail workflow when screenshot validation fails

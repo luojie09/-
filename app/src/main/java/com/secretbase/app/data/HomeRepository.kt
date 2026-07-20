@@ -6,6 +6,13 @@ import com.secretbase.app.data.supabase.SupabaseRestClient
 import com.secretbase.app.data.supabase.isoInstantToMillis
 import com.secretbase.app.data.supabase.millisToIsoDate
 import com.secretbase.app.data.supabase.millisToIsoInstant
+import com.secretbase.app.data.sync.MoodSyncPayload
+import com.secretbase.app.data.sync.QuickNoteSyncPayload
+import com.secretbase.app.data.sync.SecretBaseSyncManager
+import com.secretbase.app.data.sync.SyncModules
+import com.secretbase.app.data.sync.SyncOperations
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.json.JSONArray
@@ -21,11 +28,13 @@ class HomeRepository(
     private val context: Context,
     private val currentUserId: String,
     private val client: SupabaseRestClient? = null,
+    private val syncManager: SecretBaseSyncManager? = null,
 ) {
 
     private val sharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val zoneId: ZoneId = ZoneId.systemDefault()
+    private val json = Json { encodeDefaults = true }
 
     suspend fun loadSnapshot(): HomeSnapshot {
         val visuals = parseVisualConfig(readAssetJson(VISUAL_CONFIG_ASSET))
@@ -114,6 +123,7 @@ class HomeRepository(
                 iconSlot = json.getString("iconSlot"),
                 timestamp = parseDateTime(json.getString("timestamp")),
                 clickMessage = json.getString("clickMessage"),
+                sourceAction = null,
             )
         }
 
@@ -135,67 +145,59 @@ class HomeRepository(
     }
 
     suspend fun saveMood(userId: String, mood: MoodOption) {
-        if (SupabaseConfig.isConfigured && client != null) {
-            val supabaseClient = client
-            runCatching {
-                supabaseClient.delete(MOODS_TABLE, supabaseClient.eq("user_id", userId))
-                supabaseClient.insert(
-                    MOODS_TABLE,
-                    MoodRow(
-                        userId = userId,
-                        moodLabel = mood.label,
-                        recordedDate = millisToIsoDate(System.currentTimeMillis()),
-                        updatedAt = millisToIsoInstant(System.currentTimeMillis()),
-                    ),
-                )
-            }.onSuccess {
-                return
-            }.onFailure { error ->
-                throw IllegalStateException("心情同步到云端失败，请稍后重试", error)
-            }
-        }
-
+        val now = System.currentTimeMillis()
         val root = loadJsonObject(sharedPreferences.getString(KEY_MOOD_RECORDS, null))
         val record = JSONObject()
             .put("label", mood.label)
             .put("date", LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE))
         root.put(userId, record)
         sharedPreferences.edit().putString(KEY_MOOD_RECORDS, root.toString()).apply()
+        syncManager?.enqueue(
+            module = SyncModules.HOME,
+            operation = SyncOperations.MOOD_UPSERT,
+            entityId = userId,
+            payload = json.encodeToString(
+                MoodSyncPayload(
+                    userId = userId,
+                    moodLabel = mood.label,
+                    recordedDate = millisToIsoDate(now),
+                    updatedAt = millisToIsoInstant(now),
+                ),
+            ),
+            dedupeKey = "mood:$userId",
+        )
     }
 
     suspend fun addQuickNote(note: String) {
-        if (SupabaseConfig.isConfigured && client != null) {
-            val supabaseClient = client
-            runCatching {
-                supabaseClient.insert(
-                    NOTES_TABLE,
-                    QuickNoteRow(
-                        id = "note-${UUID.randomUUID()}",
-                        title = note,
-                        iconSlot = "activityNote",
-                        createdAt = millisToIsoInstant(System.currentTimeMillis()),
-                        clickMessage = "待接入动态详情页",
-                    ),
-                )
-            }.onSuccess {
-                return
-            }.onFailure { error ->
-                throw IllegalStateException("记录同步到云端失败，请稍后重试", error)
-            }
-        }
-
+        val id = "note-${UUID.randomUUID()}"
+        val now = System.currentTimeMillis()
         val root = loadJsonArray(sharedPreferences.getString(KEY_USER_ACTIVITIES, null))
         val activity = JSONObject()
-            .put("id", "note-${UUID.randomUUID()}")
+            .put("id", id)
             .put("title", note)
             .put("iconSlot", "activityNote")
-            .put("timestamp", Instant.now().toEpochMilli())
-            .put("clickMessage", "待接入动态详情页")
+            .put("timestamp", now)
+            .put("clickMessage", "")
         root.put(activity)
         sharedPreferences.edit().putString(KEY_USER_ACTIVITIES, root.toString()).apply()
+        syncManager?.enqueue(
+            module = SyncModules.HOME,
+            operation = SyncOperations.QUICK_NOTE_UPSERT,
+            entityId = id,
+            payload = json.encodeToString(
+                QuickNoteSyncPayload(
+                    id = id,
+                    title = note,
+                    iconSlot = "activityNote",
+                    createdAt = millisToIsoInstant(now),
+                    clickMessage = "",
+                ),
+            ),
+        )
     }
 
     private suspend fun loadPersistedMoods(): Map<String, PersistedMood> {
+        val local = loadLocalMoods()
         if (SupabaseConfig.isConfigured && client != null) {
             val supabaseClient = client
             runCatching {
@@ -210,9 +212,12 @@ class HomeRepository(
                             date = LocalDate.parse(row.recordedDate),
                         )
                     }
-            }.onSuccess { return it }
+            }.onSuccess { return it + local }
         }
+        return local
+    }
 
+    private fun loadLocalMoods(): Map<String, PersistedMood> {
         val root = loadJsonObject(sharedPreferences.getString(KEY_MOOD_RECORDS, null))
         return buildMap {
             val iterator = root.keys()
@@ -231,6 +236,7 @@ class HomeRepository(
     }
 
     private suspend fun loadUserActivities(): List<ActivityRecord> {
+        val local = loadLocalActivities()
         if (SupabaseConfig.isConfigured && client != null) {
             val supabaseClient = client
             runCatching {
@@ -246,11 +252,17 @@ class HomeRepository(
                             iconSlot = row.iconSlot,
                             timestamp = Instant.ofEpochMilli(isoInstantToMillis(row.createdAt)),
                             clickMessage = row.clickMessage,
+                            sourceAction = row.clickMessage.takeIf { it.startsWith("__open_") },
                         )
                     }
-            }.onSuccess { return it }
+            }.onSuccess { remote ->
+                return (local + remote).distinctBy(ActivityRecord::id)
+            }
         }
+        return local
+    }
 
+    private fun loadLocalActivities(): List<ActivityRecord> {
         val root = loadJsonArray(sharedPreferences.getString(KEY_USER_ACTIVITIES, null))
         return root.mapObjects { json ->
             ActivityRecord(
@@ -259,6 +271,7 @@ class HomeRepository(
                 iconSlot = json.getString("iconSlot"),
                 timestamp = Instant.ofEpochMilli(json.getLong("timestamp")),
                 clickMessage = json.getString("clickMessage"),
+                sourceAction = json.getString("clickMessage").takeIf { it.startsWith("__open_") },
             )
         }
     }
@@ -292,7 +305,7 @@ class HomeRepository(
                 gradientMiddleHex = json.optString("heroGradientMiddle", "#FFF0F4"),
                 gradientEndHex = json.optString("heroGradientEnd", "#FFF4F7"),
                 heightDp = json.optInt("heroHeightDp", 250),
-                bottomFadeHeightDp = json.optInt("heroBottomFadeHeightDp", 72),
+                bottomFadeHeightDp = json.optInt("heroBottomFadeHeightDp", 0),
                 relationshipCardOverlapDp = json.optInt("relationshipCardOverlapDp", 0),
             ),
             backgroundOverlayRes = resolveDrawable(json.optString("backgroundOverlay")),

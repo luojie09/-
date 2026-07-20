@@ -41,10 +41,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -54,6 +56,8 @@ import com.secretbase.app.ui.common.SecretBasePageBackground
 import com.secretbase.app.ui.common.SecretBasePageTopBar
 import com.secretbase.app.ui.common.SecretBaseSnackbarHost
 import com.secretbase.app.ui.theme.CherryPink
+import com.secretbase.app.data.local.PendingMediaStore
+import kotlinx.coroutines.launch
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
@@ -73,6 +77,7 @@ fun MessageWallScreen(
     onDeleteMessage: (String) -> Unit,
     onDeleteReply: (String) -> Unit,
     onStartEditing: (String) -> Unit,
+    onToggleLike: (String) -> Unit,
     onMarkMessageRead: (String) -> Unit,
     onUpdateEditingText: (String) -> Unit,
     onCancelEditing: () -> Unit,
@@ -141,6 +146,7 @@ fun MessageWallScreen(
                                 onDeleteMessage = { onDeleteMessage(message.id) },
                                 onDeleteReply = onDeleteReply,
                                 onStartEditing = { onStartEditing(message.id) },
+                                onLikeClick = { onToggleLike(message.id) },
                                 onImageClick = { onMarkMessageRead(message.id) },
                                 onCardOpened = { onMarkMessageRead(message.id) },
                             )
@@ -355,11 +361,17 @@ fun MessageWallEditorScreen(
     onRemoveSelectedImage: (String) -> Unit,
     onPublish: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val mediaScope = rememberCoroutineScope()
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents(),
     ) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
-            onAddImages(uris.map(Uri::toString))
+            mediaScope.launch {
+                runCatching { PendingMediaStore.importAll(context, uris) }
+                    .onSuccess(onAddImages)
+                    .onFailure { snackbarHostState.showSnackbar(it.message ?: "图片读取失败") }
+            }
         }
     }
 

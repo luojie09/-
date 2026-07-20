@@ -1,6 +1,8 @@
 package com.secretbase.app.ui.home
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -42,12 +44,19 @@ internal object HomeTypographyScale {
     val PickerTitle = HomeTextToken(22.sp, 28.sp, SecretBaseDesignTokens.FontWeights.Title, SecretBaseSerifFontFamily, letterSpacing = (-0.25).sp)
 }
 
-internal fun TextStyle.homeToken(token: HomeTextToken): TextStyle =
-    copy(
-        fontFamily = token.fontFamily,
+@Composable
+internal fun TextStyle.homeToken(token: HomeTextToken): TextStyle {
+    val inspectionFontFamily = if (token.fontFamily == SecretBaseSerifFontFamily) {
+        FontFamily.Serif
+    } else {
+        FontFamily.SansSerif
+    }
+    return copy(
+        fontFamily = if (LocalInspectionMode.current) inspectionFontFamily else token.fontFamily,
         fontSize = token.fontSize,
         lineHeight = token.lineHeight,
         fontWeight = token.fontWeight,
         letterSpacing = token.letterSpacing,
         platformStyle = PlatformTextStyle(includeFontPadding = false),
     )
+}

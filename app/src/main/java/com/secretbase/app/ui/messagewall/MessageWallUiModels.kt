@@ -30,6 +30,8 @@ data class MessageUiModel(
     val isMine: Boolean,
     val isEdited: Boolean,
     val replyCount: Int,
+    val likeCount: Int,
+    val isLiked: Boolean,
     val visibleReplies: List<MessageReplyUiModel>,
     val hiddenReplyCount: Int,
     val canReply: Boolean = true,

@@ -26,7 +26,7 @@
       --font-body:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
       --font-heading:"Playfair Display","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
       --font-song:"Songti SC","STSong","SimSun","Noto Serif SC",serif;
-      --font-number:var(--font-body);
+      --font-number:"SecretBase Sans","Noto Sans SC",sans-serif;
     }
 
     *{box-sizing:border-box}
@@ -145,15 +145,6 @@
       transition:opacity .45s ease;
     }
 
-    .hero-fade{
-      position:absolute;
-      left:0;
-      right:0;
-      bottom:0;
-      height:64px;
-      background:linear-gradient(180deg,rgba(255,251,250,0),var(--hero-end));
-    }
-
     .relationship-wrap{
       margin-top:6px;
       padding:0 20px;
@@ -195,13 +186,14 @@
       line-height:52px;
       font-family:var(--font-number);
       font-weight:800;
-      letter-spacing:-.03em;
+      letter-spacing:-1.1px;
       font-variant-numeric:tabular-nums;
     }
 
     .days-unit{
       font-size:18px;
       line-height:22px;
+      font-family:var(--font-number);
       font-weight:700;
       padding-bottom:7px;
     }
@@ -531,7 +523,6 @@
 
         <div class="hero-illustration">
           <img id="heroCarouselImage" src="../app/src/main/res/drawable-nodpi/home_carousel_current.png" alt="小羊和小耶">
-          <div class="hero-fade"></div>
         </div>
 
         <div class="relationship-wrap">

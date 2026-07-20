@@ -88,3 +88,17 @@ val SecretBaseTypography = Typography(
         fontWeight = SecretBaseDesignTokens.FontWeights.Weak,
     ),
 )
+
+// The alpha screenshot renderer cannot load variable font resources. This
+// inspection-only typography preserves our sizes and weights with platform fonts.
+val SecretBasePreviewTypography = Typography(
+    headlineLarge = SecretBaseTypography.headlineLarge.copy(fontFamily = FontFamily.Serif),
+    titleLarge = SecretBaseTypography.titleLarge.copy(fontFamily = FontFamily.Serif),
+    titleMedium = SecretBaseTypography.titleMedium.copy(fontFamily = FontFamily.Serif),
+    bodyLarge = SecretBaseTypography.bodyLarge.copy(fontFamily = FontFamily.SansSerif),
+    bodyMedium = SecretBaseTypography.bodyMedium.copy(fontFamily = FontFamily.SansSerif),
+    bodySmall = SecretBaseTypography.bodySmall.copy(fontFamily = FontFamily.SansSerif),
+    labelLarge = SecretBaseTypography.labelLarge.copy(fontFamily = FontFamily.SansSerif),
+    labelMedium = SecretBaseTypography.labelMedium.copy(fontFamily = FontFamily.SansSerif),
+    labelSmall = SecretBaseTypography.labelSmall.copy(fontFamily = FontFamily.SansSerif),
+)

@@ -1,6 +1,6 @@
 # Our Secret Base Android
 
-Jetpack Compose Android homepage prototype for "我们的秘密基地".
+Jetpack Compose Android client for "我们的秘密基地".
 
 ## Stack
 
@@ -28,7 +28,7 @@ If you need to refresh screenshot baselines locally:
 
 ## Preview data
 
-The homepage preview data is fully static and does not depend on:
+The preview data is fully static and does not depend on:
 
 - network
 - DataStore
@@ -39,6 +39,9 @@ Preview entry points:
 
 - `app/src/main/java/com/secretbase/app/ui/home/HomeScreenPreviews.kt`
 - `app/src/screenshotTest/kotlin/com/secretbase/app/ui/home/HomeScreenScreenshotPreviews.kt`
+- `app/src/screenshotTest/kotlin/com/secretbase/app/ui/messagewall/MessageWallScreenshotPreviews.kt`
+- `app/src/screenshotTest/kotlin/com/secretbase/app/ui/wishlist/WishListScreenshotPreviews.kt`
+- `app/src/screenshotTest/kotlin/com/secretbase/app/ui/anniversary/AnniversaryScreenshotPreviews.kt`
 
 ## Screenshot testing
 
@@ -53,6 +56,7 @@ Generated reports and outputs:
 ```text
 app/build/reports/screenshotTest/preview/debug/
 app/build/outputs/screenshotTest/
+app/build/outputs/screenshotTest-results/
 ```
 
 ## GitHub Actions

@@ -172,6 +172,27 @@ class FakeMessageRepository(
         }
     }
 
+    override suspend fun toggleLike(messageId: String): Result<Boolean> = runCatching {
+        var liked = false
+        var found = false
+        messages.update { current ->
+            current.map { message ->
+                if (message.id != messageId) return@map message
+                found = true
+                liked = currentUserId !in message.likedByUserIds
+                message.copy(
+                    likedByUserIds = if (liked) {
+                        (message.likedByUserIds + currentUserId).distinct()
+                    } else {
+                        message.likedByUserIds.filterNot { it == currentUserId }
+                    },
+                )
+            }
+        }
+        check(found) { "留言不存在" }
+        liked
+    }
+
     private fun seedDraft(): MessageDraft =
         MessageDraft(
             content = "",

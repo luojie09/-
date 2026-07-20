@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +30,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +57,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.secretbase.app.data.message.SecretBaseUsers
 import com.secretbase.app.data.supabase.SupabaseConfig
 import com.secretbase.app.data.supabase.SupabaseAuthManager
+import com.secretbase.app.data.sync.SyncPhase
+import com.secretbase.app.data.sync.SyncStatus
 import com.secretbase.app.data.user.UserIdentityStore
 import com.secretbase.app.data.wish.WishStatus
 import com.secretbase.app.ui.anniversary.AnniversaryScreen
@@ -62,9 +66,11 @@ import com.secretbase.app.ui.anniversary.AnniversaryViewModel
 import com.secretbase.app.ui.home.HomeScreen
 import com.secretbase.app.ui.home.HomeViewModel
 import com.secretbase.app.ui.home.RecentActivityScreen
+import com.secretbase.app.ui.home.RecentActivityDetailScreen
 import com.secretbase.app.ui.messagewall.MessageWallEditorScreen
 import com.secretbase.app.ui.messagewall.MessageWallScreen
 import com.secretbase.app.ui.messagewall.MessageWallViewModel
+import com.secretbase.app.ui.settings.IdentitySettingsScreen
 import com.secretbase.app.ui.wishlist.WishCompletionDetailScreen
 import com.secretbase.app.ui.wishlist.WishCompletionScreen
 import com.secretbase.app.ui.wishlist.WishDetailScreen
@@ -76,7 +82,10 @@ import com.secretbase.app.ui.theme.WarmGray
 import kotlinx.coroutines.launch
 
 @Composable
-fun SecretBaseApp() {
+fun SecretBaseApp(
+    initialRoute: String? = null,
+    onInitialRouteConsumed: () -> Unit = {},
+) {
     val appContext = LocalContext.current.applicationContext
     val userIdentityStore = remember(appContext) { UserIdentityStore(appContext) }
     val authManager = remember(userIdentityStore) { SupabaseAuthManager(userIdentityStore) }
@@ -90,6 +99,8 @@ fun SecretBaseApp() {
     }
     var isBindingIdentity by rememberSaveable { mutableStateOf(false) }
     var identityError by rememberSaveable { mutableStateOf<String?>(null) }
+    var identitySettingsError by rememberSaveable { mutableStateOf<String?>(null) }
+    var isSwitchingIdentity by rememberSaveable { mutableStateOf(false) }
     var isValidatingIdentity by rememberSaveable {
         mutableStateOf(SupabaseConfig.isConfigured && userIdentityStore.hasAuthenticatedIdentity())
     }
@@ -176,8 +187,19 @@ fun SecretBaseApp() {
         StartupErrorScreen(error = dependencyResult.exceptionOrNull())
         return
     }
+    DisposableEffect(dependencies) {
+        onDispose(dependencies::close)
+    }
     val snackbarHostState = remember { SnackbarHostState() }
+    val syncStatus by dependencies.syncStatus.collectAsStateWithLifecycle(initialValue = SyncStatus())
     var backStack by rememberSaveable { mutableStateOf(listOf(AppRoute.Home.route)) }
+
+    LaunchedEffect(initialRoute) {
+        initialRoute?.let { route ->
+            backStack = listOf(route)
+            onInitialRouteConsumed()
+        }
+    }
 
     val currentRoute = remember(backStack) { AppRoute.parse(backStack.last()) }
 
@@ -212,6 +234,7 @@ fun SecretBaseApp() {
         popBack()
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     when (currentRoute) {
         AppRoute.Home -> HomeRoute(
             dependencies = dependencies,
@@ -345,6 +368,124 @@ fun SecretBaseApp() {
             onBack = ::popBack,
             onNavigate = { route -> navigate(route) },
         )
+
+        is AppRoute.ActivityDetail -> {
+            val homeViewModel: HomeViewModel = viewModel(
+                key = "home-${dependencies.currentUserId}",
+                factory = HomeViewModel.factory(
+                    homeRepository = dependencies.homeRepository,
+                    messageRepository = dependencies.messageRepository,
+                    wishRepository = dependencies.wishRepository,
+                    anniversaryRepository = dependencies.anniversaryRepository,
+                    currentUserId = dependencies.currentUserId,
+                    remoteRefreshEvents = dependencies.remoteRefreshEvents,
+                ),
+            )
+            val homeState = homeViewModel.uiState.collectAsStateWithLifecycle()
+            CollectSnackbarMessages(homeViewModel, snackbarHostState)
+            val activity = homeState.value.payload?.allActivities
+                ?.firstOrNull { it.id == currentRoute.activityId }
+            if (activity != null) {
+                RecentActivityDetailScreen(
+                    activity = activity,
+                    snackbarHostState = snackbarHostState,
+                    onBack = ::popBack,
+                    onOpenSource = activity.sourceAction?.let { action ->
+                        {
+                        val wishId = AppActions.wishCompletionDetailId(action)
+                        when {
+                            wishId != null -> navigate(AppRoute.WishCompletionDetail(wishId).route)
+                            action == AppActions.OpenMessageWall -> navigateTopLevel(AppRoute.MessageWall.route)
+                            action == AppActions.OpenWishList -> navigateTopLevel(AppRoute.WishList.route)
+                            action == AppActions.OpenAnniversary -> navigateTopLevel(AppRoute.Anniversary.route)
+                            else -> homeViewModel.onPlaceholderAction(action)
+                        }
+                        }
+                    },
+                )
+            } else if (!homeState.value.isLoading) {
+                LaunchedEffect(currentRoute.activityId) { popBack() }
+            }
+        }
+
+        AppRoute.IdentitySettings -> IdentitySettingsScreen(
+            currentUserId = selectedUserId,
+            coupleId = userIdentityStore.coupleId(),
+            sheepAvatarRes = R.drawable.avatar_sheep,
+            chickAvatarRes = R.drawable.avatar_chick,
+            requiresPairingCode = SupabaseConfig.isConfigured,
+            isSaving = isSwitchingIdentity,
+            errorMessage = identitySettingsError,
+            onBack = ::popBack,
+            onSwitchIdentity = { role, pairingCode ->
+                identitySettingsError = null
+                if (!SupabaseConfig.isConfigured) {
+                    userIdentityStore.saveCurrentUserId(role)
+                    currentUserId = role
+                    backStack = listOf(AppRoute.Home.route)
+                } else {
+                    appScope.launch {
+                        isSwitchingIdentity = true
+                        authManager.bindIdentity(role, pairingCode)
+                            .onSuccess { identity ->
+                                currentUserId = identity.role
+                                backStack = listOf(AppRoute.Home.route)
+                            }
+                            .onFailure { error ->
+                                identitySettingsError = error.message ?: "身份切换失败，请检查配对码和网络"
+                            }
+                        isSwitchingIdentity = false
+                    }
+                }
+            },
+        )
+    }
+        SyncStatusIndicator(
+            status = syncStatus,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 76.dp),
+        )
+    }
+}
+
+@Composable
+private fun SyncStatusIndicator(
+    status: SyncStatus,
+    modifier: Modifier = Modifier,
+) {
+    if (status.phase == SyncPhase.SYNCED) return
+    val label = when (status.phase) {
+        SyncPhase.SYNCING -> "正在同步"
+        SyncPhase.PENDING -> "${status.pendingCount} 项等待同步"
+        SyncPhase.ERROR -> "同步失败，将自动重试"
+        SyncPhase.SYNCED -> return
+    }
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = SurfaceWhite.copy(alpha = 0.96f),
+        shadowElevation = 4.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            if (status.phase == SyncPhase.SYNCING) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(12.dp),
+                    strokeWidth = 1.5.dp,
+                    color = CherryPink,
+                )
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = if (status.phase == SyncPhase.ERROR) CherryPink else WarmGray,
+            )
+        }
     }
 }
 
@@ -363,6 +504,7 @@ private fun HomeRoute(
             wishRepository = dependencies.wishRepository,
             anniversaryRepository = dependencies.anniversaryRepository,
             currentUserId = dependencies.currentUserId,
+            remoteRefreshEvents = dependencies.remoteRefreshEvents,
         ),
     )
     val homeState = homeViewModel.uiState.collectAsStateWithLifecycle()
@@ -378,11 +520,14 @@ private fun HomeRoute(
         onQuickNoteChange = homeViewModel::updateQuickNote,
         onQuickNoteSubmit = homeViewModel::submitQuickNote,
         onPlaceholderAction = { action ->
-            when (action) {
-                AppActions.OpenMessageWall -> onSelectTopTab(AppRoute.MessageWall.route)
-                AppActions.OpenWishList -> onSelectTopTab(AppRoute.WishList.route)
-                AppActions.OpenAnniversary -> onSelectTopTab(AppRoute.Anniversary.route)
-                AppActions.OpenRecentActivities -> onNavigate(AppRoute.RecentActivities.route)
+            val activityId = AppActions.activityDetailId(action)
+            when {
+                activityId != null -> onNavigate(AppRoute.ActivityDetail(activityId).route)
+                action == AppActions.OpenMessageWall -> onSelectTopTab(AppRoute.MessageWall.route)
+                action == AppActions.OpenWishList -> onSelectTopTab(AppRoute.WishList.route)
+                action == AppActions.OpenAnniversary -> onSelectTopTab(AppRoute.Anniversary.route)
+                action == AppActions.OpenRecentActivities -> onNavigate(AppRoute.RecentActivities.route)
+                action == AppActions.OpenIdentitySettings -> onNavigate(AppRoute.IdentitySettings.route)
                 else -> homeViewModel.onPlaceholderAction(action)
             }
         },
@@ -414,10 +559,12 @@ private fun RecentActivityRoute(
         snackbarHostState = snackbarHostState,
         onBack = onBack,
         onActivityClick = { action ->
-            when (action) {
-                AppActions.OpenMessageWall -> onNavigate(AppRoute.MessageWall.route)
-                AppActions.OpenWishList -> onNavigate(AppRoute.WishList.route)
-                AppActions.OpenAnniversary -> onNavigate(AppRoute.Anniversary.route)
+            val activityId = AppActions.activityDetailId(action)
+            when {
+                activityId != null -> onNavigate(AppRoute.ActivityDetail(activityId).route)
+                action == AppActions.OpenMessageWall -> onNavigate(AppRoute.MessageWall.route)
+                action == AppActions.OpenWishList -> onNavigate(AppRoute.WishList.route)
+                action == AppActions.OpenAnniversary -> onNavigate(AppRoute.Anniversary.route)
                 else -> homeViewModel.onPlaceholderAction(action)
             }
         },
@@ -462,6 +609,7 @@ private fun MessageWallRoute(
         onDeleteMessage = messageWallViewModel::deleteMessage,
         onDeleteReply = messageWallViewModel::deleteReply,
         onStartEditing = messageWallViewModel::startEditing,
+        onToggleLike = messageWallViewModel::toggleLike,
         onMarkMessageRead = messageWallViewModel::markMessageRead,
         onUpdateEditingText = messageWallViewModel::updateEditingText,
         onCancelEditing = messageWallViewModel::cancelEditing,
@@ -561,6 +709,7 @@ private fun AnniversaryRoute(
         factory = AnniversaryViewModel.factory(
             homeRepository = dependencies.homeRepository,
             anniversaryRepository = dependencies.anniversaryRepository,
+            notificationScheduler = dependencies.anniversaryNotificationScheduler,
         ),
     )
     val anniversaryState = anniversaryViewModel.uiState.collectAsStateWithLifecycle()
@@ -590,7 +739,7 @@ private fun AnniversaryRoute(
 }
 
 @Composable
-private fun MainBottomTabBar(
+internal fun MainBottomTabBar(
     activeRoute: String,
     onSelect: (String) -> Unit,
 ) {
@@ -605,7 +754,6 @@ private fun MainBottomTabBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
                 .padding(horizontal = 10.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
@@ -647,17 +795,17 @@ private fun RowScope.MainBottomTabItem(
     Surface(
         modifier = Modifier
             .weight(1f)
-            .height(52.dp),
+            .heightIn(min = 56.dp),
         onClick = onClick,
         color = Color.Transparent,
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp, vertical = 5.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Image(
                 painter = painterResource(id = iconRes),
@@ -732,6 +880,8 @@ private sealed class AppRoute(val route: String) {
     data object WishList : AppRoute("wish-list")
     data object Anniversary : AppRoute("anniversary")
     data object RecentActivities : AppRoute("recent-activities")
+    data object IdentitySettings : AppRoute("identity-settings")
+    data class ActivityDetail(val activityId: String) : AppRoute("activity-detail/$activityId")
     data class WishDetail(val wishId: String) : AppRoute("wish-detail/$wishId")
     data class WishCompletion(val wishId: String) : AppRoute("wish-complete/$wishId")
     data class WishCompletionDetail(val wishId: String) : AppRoute("wish-completion-detail/$wishId")
@@ -744,6 +894,8 @@ private sealed class AppRoute(val route: String) {
             route == WishList.route -> WishList
             route == Anniversary.route -> Anniversary
             route == RecentActivities.route -> RecentActivities
+            route == IdentitySettings.route -> IdentitySettings
+            route.startsWith("activity-detail/") -> ActivityDetail(route.substringAfter("activity-detail/"))
             route.startsWith("wish-detail/") -> WishDetail(route.substringAfter("wish-detail/"))
             route.startsWith("wish-complete/") -> WishCompletion(route.substringAfter("wish-complete/"))
             route.startsWith("wish-completion-detail/") -> WishCompletionDetail(route.substringAfter("wish-completion-detail/"))

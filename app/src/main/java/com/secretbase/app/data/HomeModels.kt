@@ -32,7 +32,7 @@ data class HomeVisuals(
                 gradientMiddleHex = "#FFF0F4",
                 gradientEndHex = "#FFF4F7",
                 heightDp = 250,
-                bottomFadeHeightDp = 64,
+                bottomFadeHeightDp = 0,
                 relationshipCardOverlapDp = 0,
             ),
             backgroundOverlayRes = null,
@@ -101,6 +101,9 @@ data class ActivityRecord(
     val iconSlot: String,
     val timestamp: Instant,
     val clickMessage: String,
+    val detail: String = title,
+    val imagePaths: List<String> = emptyList(),
+    val sourceAction: String? = clickMessage,
 )
 
 data class HomeSnapshot(

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.secretbase.app.data.HomeRepository
 import com.secretbase.app.data.HomeVisuals
 import com.secretbase.app.data.anniversary.Anniversary
+import com.secretbase.app.data.anniversary.AnniversaryNotificationScheduler
 import com.secretbase.app.data.anniversary.AnniversaryReminder
 import com.secretbase.app.data.anniversary.AnniversaryRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -28,12 +30,14 @@ import java.util.UUID
 class AnniversaryViewModel(
     private val homeRepository: HomeRepository,
     private val anniversaryRepository: AnniversaryRepository,
+    private val notificationScheduler: AnniversaryNotificationScheduler? = null,
+    private val todayProvider: () -> LocalDate = LocalDate::now,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AnniversaryUiState())
     private val _messages = MutableSharedFlow<String>()
     private var latestItems: List<Anniversary> = emptyList()
-    private var relationshipStart: LocalDate = LocalDate.now()
+    private var relationshipStart: LocalDate = todayProvider()
     private var visuals: HomeVisuals = HomeVisuals.EMPTY
 
     val uiState: StateFlow<AnniversaryUiState> = _uiState.asStateFlow()
@@ -171,6 +175,7 @@ class AnniversaryViewModel(
             anniversaryRepository.observeAnniversaries().collectLatest { items ->
                 runCatching {
                     latestItems = items
+                    notificationScheduler?.sync(items)
                     updateUi()
                 }.onFailure { error ->
                     Log.e(TAG, "Failed to render anniversary state", error)
@@ -181,7 +186,7 @@ class AnniversaryViewModel(
     }
 
     private fun updateUi() {
-        val today = LocalDate.now()
+        val today = todayProvider()
         val relationshipDays = ChronoUnit.DAYS.between(relationshipStart, today).toInt() + 1
         _uiState.update { state ->
             state.copy(
@@ -209,12 +214,14 @@ class AnniversaryViewModel(
         fun factory(
             homeRepository: HomeRepository,
             anniversaryRepository: AnniversaryRepository,
+            notificationScheduler: AnniversaryNotificationScheduler? = null,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T =
                 AnniversaryViewModel(
                     homeRepository = homeRepository,
                     anniversaryRepository = anniversaryRepository,
+                    notificationScheduler = notificationScheduler,
                 ) as T
         }
     }
@@ -222,15 +229,7 @@ class AnniversaryViewModel(
 
 private fun Anniversary.toUiModel(today: LocalDate): AnniversaryUiModel {
     val eventDate = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDate()
-    val effectiveDate = if (repeatYearly) {
-        val thisYear = eventDate.withYear(today.year)
-        when {
-            thisYear.isBefore(today) -> thisYear.plusYears(1)
-            else -> thisYear
-        }
-    } else {
-        eventDate
-    }
+    val effectiveDate = effectiveAnniversaryDate(eventDate, repeatYearly, today)
     val days = ChronoUnit.DAYS.between(today, effectiveDate).toInt()
     val (statusText, tone) = when {
         days == 0 -> "就是今天" to AnniversaryStatusTone.TODAY
@@ -252,12 +251,7 @@ private fun Anniversary.toUiModel(today: LocalDate): AnniversaryUiModel {
 
 private fun anniversarySortBucket(item: Anniversary, today: LocalDate): Int {
     val eventDate = Instant.ofEpochMilli(item.date).atZone(ZoneId.systemDefault()).toLocalDate()
-    val effectiveDate = if (item.repeatYearly) {
-        val thisYear = eventDate.withYear(today.year)
-        if (thisYear.isBefore(today)) thisYear.plusYears(1) else thisYear
-    } else {
-        eventDate
-    }
+    val effectiveDate = effectiveAnniversaryDate(eventDate, item.repeatYearly, today)
     val days = ChronoUnit.DAYS.between(today, effectiveDate).toInt()
     return when {
         days == 0 -> 0
@@ -269,11 +263,22 @@ private fun anniversarySortBucket(item: Anniversary, today: LocalDate): Int {
 
 private fun anniversaryDistance(item: Anniversary, today: LocalDate): Int {
     val eventDate = Instant.ofEpochMilli(item.date).atZone(ZoneId.systemDefault()).toLocalDate()
-    val effectiveDate = if (item.repeatYearly) {
-        val thisYear = eventDate.withYear(today.year)
-        if (thisYear.isBefore(today)) thisYear.plusYears(1) else thisYear
-    } else {
-        eventDate
-    }
+    val effectiveDate = effectiveAnniversaryDate(eventDate, item.repeatYearly, today)
     return kotlin.math.abs(ChronoUnit.DAYS.between(today, effectiveDate).toInt())
 }
+
+internal fun effectiveAnniversaryDate(
+    originalDate: LocalDate,
+    repeatYearly: Boolean,
+    today: LocalDate,
+): LocalDate {
+    if (!repeatYearly) return originalDate
+    val thisYear = originalDate.atYear(today.year)
+    return if (thisYear.isBefore(today)) originalDate.atYear(today.year + 1) else thisYear
+}
+
+private fun LocalDate.atYear(year: Int): LocalDate = LocalDate.of(
+    year,
+    month,
+    dayOfMonth.coerceAtMost(YearMonth.of(year, month).lengthOfMonth()),
+)

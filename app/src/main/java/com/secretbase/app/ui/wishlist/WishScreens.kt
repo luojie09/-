@@ -57,6 +57,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -81,6 +82,8 @@ import com.secretbase.app.ui.messagewall.MessageMedia
 import com.secretbase.app.ui.messagewall.SelectedImageStrip
 import com.secretbase.app.ui.messagewall.WallIllustration
 import com.secretbase.app.ui.theme.CherryPink
+import com.secretbase.app.data.local.PendingMediaStore
+import kotlinx.coroutines.launch
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.OutlinePink
 import com.secretbase.app.ui.theme.SoftPink
@@ -111,8 +114,17 @@ fun WishListScreen(
     onSaveWish: () -> Unit,
 ) {
     val context = LocalContext.current
+    val mediaScope = rememberCoroutineScope()
     val coverPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        onEditorCoverChange(uri?.toString())
+        if (uri == null) {
+            onEditorCoverChange(null)
+        } else {
+            mediaScope.launch {
+                runCatching { PendingMediaStore.import(context, uri) }
+                    .onSuccess(onEditorCoverChange)
+                    .onFailure { snackbarHostState.showSnackbar(it.message ?: "图片读取失败") }
+            }
+        }
     }
 
     val datePicker = remember<(Long?) -> Unit> {
@@ -386,9 +398,15 @@ fun WishCompletionScreen(
     onSave: () -> Unit,
 ) {
     val context = LocalContext.current
+    val mediaScope = rememberCoroutineScope()
     val canSaveCompletion = !isSaving && (completionText.isNotBlank() || completionImages.isNotEmpty())
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-        if (uris.isNotEmpty()) onAddImages(uris.map(Uri::toString))
+        if (uris.isNotEmpty()) {
+            mediaScope.launch {
+                runCatching { PendingMediaStore.importAll(context, uris) }
+                    .onSuccess(onAddImages)
+            }
+        }
     }
     val datePicker = remember<(Long) -> Unit> {
         { initial ->

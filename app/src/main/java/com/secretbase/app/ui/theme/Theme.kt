@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.platform.LocalInspectionMode
 
 private val SecretBaseColorScheme = lightColorScheme(
     primary = CherryPink,
@@ -22,10 +23,15 @@ private val SecretBaseColorScheme = lightColorScheme(
 
 @Composable
 fun SecretBaseTheme(content: @Composable () -> Unit) {
+    val typography = if (LocalInspectionMode.current) {
+        SecretBasePreviewTypography
+    } else {
+        SecretBaseTypography
+    }
     CompositionLocalProvider(LocalIndication provides NoGrayPressIndication) {
         MaterialTheme(
             colorScheme = SecretBaseColorScheme,
-            typography = SecretBaseTypography,
+            typography = typography,
             content = content,
         )
     }

@@ -1,6 +1,11 @@
 ﻿package com.secretbase.app.ui.anniversary
 
+import android.Manifest
 import android.app.DatePickerDialog
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,16 +46,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.secretbase.app.data.anniversary.AnniversaryReminder
 import com.secretbase.app.ui.common.SecretBaseCardSurface
 import com.secretbase.app.ui.common.SecretBaseInputSurface
@@ -69,6 +78,7 @@ import com.secretbase.app.ui.theme.WarmGray
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,8 +99,35 @@ fun AnniversaryScreen(
     onSaveEditor: () -> Unit,
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
+    var pendingReminder by remember { mutableStateOf<AnniversaryReminder?>(null) }
     val canSaveEditor = !uiState.isSaving && uiState.title.isNotBlank() && uiState.date != null
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        val reminder = pendingReminder
+        pendingReminder = null
+        if (granted && reminder != null) {
+            onReminderChange(reminder)
+        } else if (!granted) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("需要通知权限才能按时提醒纪念日")
+            }
+        }
+    }
+    val selectReminder: (AnniversaryReminder) -> Unit = { reminder ->
+        val needsPermission = reminder != AnniversaryReminder.NONE &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        if (needsPermission) {
+            pendingReminder = reminder
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            onReminderChange(reminder)
+        }
+    }
 
     val openDatePicker: (Long?) -> Unit = { initial ->
         val base = Instant.ofEpochMilli(initial ?: System.currentTimeMillis())
@@ -232,7 +269,7 @@ fun AnniversaryScreen(
                 SheetLabel("提醒时间")
                 ReminderRow(
                     selected = uiState.reminderType,
-                    onSelect = onReminderChange,
+                    onSelect = selectReminder,
                 )
                 SecretBasePrimaryButton(
                     text = if (uiState.isSaving) "保存中..." else "保存",
@@ -301,7 +338,11 @@ private fun AnniversaryHero(
                         text = relationshipDays.toString(),
                         style = MaterialTheme.typography.headlineLarge.copy(
                             color = InkBlack,
-                            fontFamily = SecretBaseSansFontFamily,
+                            fontFamily = if (LocalInspectionMode.current) {
+                                FontFamily.SansSerif
+                            } else {
+                                SecretBaseSansFontFamily
+                            },
                             fontWeight = FontWeight.Black,
                             lineHeight = 42.sp,
                         ),

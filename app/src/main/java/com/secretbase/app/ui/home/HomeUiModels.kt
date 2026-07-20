@@ -82,6 +82,9 @@ data class ActivityUiModel(
     val relativeTime: String,
     val clickMessage: String,
     @DrawableRes val iconRes: Int?,
+    val detail: String = title,
+    val imagePaths: List<String> = emptyList(),
+    val sourceAction: String? = clickMessage,
 )
 
 fun HomeSnapshot.toUiState(
@@ -103,8 +106,11 @@ fun HomeSnapshot.toUiState(
                 id = activity.id,
                 title = activity.title,
                 relativeTime = formatRelativeTime(activity.timestamp, now),
-                clickMessage = activity.clickMessage,
+                clickMessage = AppActions.openActivityDetail(activity.id),
                 iconRes = visuals.icon(activity.iconSlot),
+                detail = activity.detail,
+                imagePaths = activity.imagePaths,
+                sourceAction = activity.sourceAction,
             )
         }
     return HomeUiState(

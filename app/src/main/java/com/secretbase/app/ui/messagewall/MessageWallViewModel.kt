@@ -162,6 +162,7 @@ class MessageWallViewModel(
             }
             state.copy(expandedReplyMessageIds = expanded)
         }
+        updateUi()
         markMessageRead(messageId)
     }
 
@@ -228,6 +229,15 @@ class MessageWallViewModel(
     fun markMessageRead(messageId: String) {
         viewModelScope.launch {
             messageRepository.markMessageRead(messageId)
+        }
+    }
+
+    fun toggleLike(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.toggleLike(messageId)
+                .onFailure { error ->
+                    emitMessage(error.message ?: "点赞失败，请稍后重试")
+                }
         }
     }
 
@@ -372,6 +382,8 @@ private fun Message.toUiModel(
         isMine = isMine,
         isEdited = updatedAt != null,
         replyCount = replies.size,
+        likeCount = likedByUserIds.size,
+        isLiked = currentUserId in likedByUserIds,
         visibleReplies = repliesToShow.map { reply ->
             MessageReplyUiModel(
                 id = reply.id,

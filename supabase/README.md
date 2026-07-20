@@ -17,14 +17,18 @@ The Android app now uses an anonymous Supabase Auth session plus a private pairi
    Both result columns must contain a function name. If either is `null`, rerun
    the complete migration and fix its first reported error before continuing.
 
-4. In SQL Editor, set a private pairing code with at least 8 characters:
+4. Run `phase4_features.sql` to add persistent likes and secure RLS policies.
+5. Run `realtime_setup.sql` in SQL Editor to enable live updates.
+6. Run `rls_verification.sql`; it must return `RLS verification passed`.
+
+7. In SQL Editor, set a private pairing code with at least 8 characters:
 
    ```sql
    select public.configure_secret_base_pairing_code('your-private-pairing-code'::text);
    ```
 
-5. Build and install the new APK.
-6. On each phone, select `小羊` or `小耶` and enter the same pairing code once.
+8. Build and install the new APK.
+9. On each phone, select `小羊` or `小耶` and enter the same pairing code once.
 
 Never add the pairing code to GitHub Actions, `BuildConfig`, source code, or a committed properties file.
 
@@ -32,7 +36,10 @@ Never add the pairing code to GitHub Actions, `BuildConfig`, source code, or a c
 
 1. Run `full_app_setup.sql` to create the original tables and seed data.
 2. Immediately run `secure_couple_auth_migration.sql` before distributing an APK.
-3. Follow the pairing-code steps above.
+3. Run `phase4_features.sql` to add persistent likes.
+4. Run `realtime_setup.sql` to enable live updates for messages, wishes, and anniversaries.
+5. Run `rls_verification.sql` and confirm it passes.
+6. Follow the pairing-code steps above.
 
 `full_app_setup.sql` contains legacy demo policies so that old development databases can be recreated. The secure migration removes every policy on the application tables and replaces it with authenticated couple-scoped policies.
 

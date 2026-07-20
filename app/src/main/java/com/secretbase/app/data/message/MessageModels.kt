@@ -1,5 +1,8 @@
 package com.secretbase.app.data.message
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Message(
     val id: String,
     val authorId: String,
@@ -12,8 +15,10 @@ data class Message(
     val readAt: Long? = null,
     val counterpartReadAt: Long? = null,
     val replies: List<MessageReply> = emptyList(),
+    val likedByUserIds: List<String> = emptyList(),
 )
 
+@Serializable
 data class MessageReply(
     val id: String,
     val messageId: String,
@@ -25,10 +30,18 @@ data class MessageReply(
     val readAt: Long? = null,
 )
 
+@Serializable
 data class MessageDraft(
     val content: String = "",
     val imagePaths: List<String> = emptyList(),
     val updatedAt: Long = 0L,
+)
+
+@Serializable
+data class MessageLike(
+    val messageId: String,
+    val userId: String,
+    val createdAt: Long,
 )
 
 object SecretBaseUsers {
