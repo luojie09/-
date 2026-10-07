@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>最近动态</title>
+  <link rel="stylesheet" href="./secretbase-preview.css" />
   <style>
     *{box-sizing:border-box}
     html,body{margin:0;min-height:100%;background:#f5f1f2;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#202128}
@@ -21,9 +22,18 @@
     .time{margin-top:4px;font-size:13px;line-height:18px;font-weight:700;color:#8f8991}
     .arrow{font-size:24px;font-weight:800;color:#8f8991}
     .empty{margin:36px 18px;padding:28px 22px;border-radius:28px;background:rgba(255,255,255,.92);text-align:center;color:#8f8991;font-weight:700}
+    .hidden{display:none!important}
+    .detail{padding:4px 20px 32px}
+    .detail-card{padding:20px;border-radius:26px;background:#fffefc;box-shadow:0 5px 18px rgba(91,61,56,.07)}
+    .detail-icon{width:48px;height:48px;margin-bottom:14px;border-radius:16px;background:#fff5f1;display:grid;place-items:center}
+    .detail-icon img{width:30px;height:30px;object-fit:contain}
+    .detail-card h2{margin:0;font-family:var(--font-heading);font-size:21px;line-height:1.4}
+    .detail-time{margin-top:5px;color:#88736f;font-size:13px;font-weight:600}
+    .detail-copy{margin:18px 0 0;color:#302725;font-size:15px;line-height:1.8;font-weight:500}
+    .source-btn{width:100%;margin-top:16px;padding:13px 18px;border:0;border-radius:18px;background:#e98998;color:#fffefc;font:600 15px/1 var(--font-body);cursor:pointer}
   </style>
 </head>
-<body>
+<body class="theme-secondary">
   <main class="phone">
     <header class="top">
       <button class="back" data-route="./homepage_preview.html" aria-label="返回">‹</button>
@@ -31,46 +41,55 @@
     </header>
 
     <section class="list">
-      <article class="card" data-route="./message_wall_preview.html">
-        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt=""></div>
+      <article class="card" data-route="./message_wall_preview.html" data-detail="小耶写下了一条新的悄悄话，打开留言墙可以查看完整内容。">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png?v=20261003-icon-redraw-2" alt=""></div>
         <div class="copy">
           <div class="title">小耶发布了一条新留言</div>
           <div class="time">刚刚</div>
         </div>
         <div class="arrow">›</div>
       </article>
-      <article class="card" data-route="./message_wall_preview.html">
-        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_message_bubble.png" alt=""></div>
+      <article class="card" data-route="./message_wall_preview.html" data-detail="小羊回复了留言，这条回复已经同步到你们的留言墙。">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_message_bubble.png?v=20261003-icon-redraw-2" alt=""></div>
         <div class="copy">
           <div class="title">小羊回复了你的留言</div>
           <div class="time">12 分钟前</div>
         </div>
         <div class="arrow">›</div>
       </article>
-      <article class="card" data-route="./wish_list.html">
-        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_activity_checklist.png" alt=""></div>
+      <article class="card" data-route="./wish_list.html" data-detail="愿望已经完成，完成日期、感想和照片都保存在愿望清单中。">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_activity_checklist.png?v=20261003-icon-redraw-2" alt=""></div>
         <div class="copy">
           <div class="title">愿望「一起去旅行」实现啦</div>
           <div class="time">昨天</div>
         </div>
         <div class="arrow">›</div>
       </article>
-      <article class="card" data-route="./anniversary.html">
-        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png" alt=""></div>
+      <article class="card" data-route="./anniversary.html" data-detail="新的纪念日已经加入日历，可以在纪念日页面查看日期与提醒设置。">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png?v=20261003-icon-redraw-2" alt=""></div>
         <div class="copy">
           <div class="title">新增了纪念日「生日 - 小羊」</div>
           <div class="time">3天前</div>
         </div>
         <div class="arrow">›</div>
       </article>
-      <article class="card" data-route="./message_wall_preview.html">
-        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_activity_photo.png" alt=""></div>
+      <article class="card" data-route="./message_wall_preview.html" data-detail="这组照片已经被记录下来，打开原内容可以继续查看。">
+        <div class="icon"><img src="../app/src/main/res/drawable-nodpi/ic_activity_photo.png?v=20261003-icon-redraw-2" alt=""></div>
         <div class="copy">
           <div class="title">小耶上传了 3 张新照</div>
           <div class="time">6月22日</div>
         </div>
         <div class="arrow">›</div>
       </article>
+    </section>
+    <section class="detail hidden" id="detailView">
+      <article class="detail-card">
+        <div class="detail-icon"><img id="detailIcon" src="" alt=""></div>
+        <h2 id="detailTitle"></h2>
+        <div class="detail-time" id="detailTime"></div>
+        <p class="detail-copy" id="detailCopy"></p>
+      </article>
+      <button class="source-btn" id="sourceButton" type="button">查看原内容</button>
     </section>
   </main>
 
@@ -81,6 +100,13 @@
       "./wish_list.html": "wishList",
       "./anniversary.html": "anniversary"
     };
+    const list = document.querySelector(".list");
+    const detailView = document.getElementById("detailView");
+    const pageTitle = document.querySelector("h1");
+    const backButton = document.querySelector(".back");
+    const sourceButton = document.getElementById("sourceButton");
+    let sourceRoute = "";
+
     function openPreview(route) {
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({
@@ -92,11 +118,29 @@
       }
       window.location.href = route;
     }
-    document.querySelectorAll("[data-route]").forEach(node => {
-      node.addEventListener("click", event => {
-        event.preventDefault();
-        openPreview(node.dataset.route);
+    document.querySelectorAll(".card[data-route]").forEach(card => {
+      card.addEventListener("click", () => {
+        sourceRoute = card.dataset.route;
+        document.getElementById("detailIcon").src = card.querySelector("img").src;
+        document.getElementById("detailTitle").textContent = card.querySelector(".title").textContent;
+        document.getElementById("detailTime").textContent = card.querySelector(".time").textContent;
+        document.getElementById("detailCopy").textContent = card.dataset.detail;
+        pageTitle.textContent = "动态详情";
+        list.classList.add("hidden");
+        detailView.classList.remove("hidden");
       });
+    });
+    sourceButton.addEventListener("click", () => openPreview(sourceRoute));
+    backButton.addEventListener("click", event => {
+      event.preventDefault();
+      if (!detailView.classList.contains("hidden")) {
+        detailView.classList.add("hidden");
+        list.classList.remove("hidden");
+        pageTitle.textContent = "最近动态";
+        sourceRoute = "";
+      } else {
+        openPreview(backButton.dataset.route);
+      }
     });
   </script>
 </body>

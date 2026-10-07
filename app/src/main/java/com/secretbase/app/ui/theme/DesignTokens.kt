@@ -6,10 +6,10 @@ import androidx.compose.ui.unit.dp
 
 object SecretBaseDesignTokens {
     object FontWeights {
-        val Weak = FontWeight.SemiBold
-        val Body = FontWeight.Bold
-        val Title = FontWeight.ExtraBold
-        val Display = FontWeight.ExtraBold
+        val Weak = FontWeight.Medium
+        val Body = FontWeight.SemiBold
+        val Title = FontWeight.Bold
+        val Display = FontWeight.Bold
     }
 
     object Radius {
@@ -25,10 +25,10 @@ object SecretBaseDesignTokens {
     }
 
     object Alpha {
-        const val ProminentSurface = 0.98f
-        const val FloatingSurface = 0.80f
+        const val ProminentSurface = 0.99f
+        const val FloatingSurface = 0.88f
         const val SoftIconSurface = 0.78f
-        const val CardBorder = 0.38f
+        const val CardBorder = 0.24f
         const val Divider = 0.42f
     }
 

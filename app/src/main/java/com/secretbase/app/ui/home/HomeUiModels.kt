@@ -27,6 +27,7 @@ data class HomeUiState(
 
 data class HomePayload(
     val greeting: String,
+    val todayText: String,
     val coupleDisplayName: String,
     val relationship: RelationshipUiModel,
     val visuals: HomeVisuals,
@@ -120,6 +121,7 @@ fun HomeSnapshot.toUiState(
         editingMoodUserId = editingMoodUserId,
         payload = HomePayload(
             greeting = greetingAt(now.hour),
+            todayText = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd")),
             coupleDisplayName = "${couple.leftName}\u2764\uFE0F${couple.rightName}",
             relationship = relationship,
             visuals = visuals,

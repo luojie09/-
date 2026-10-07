@@ -16,7 +16,9 @@ data class HeroVisualConfig(
 
 data class HomeVisuals(
     val hero: HeroVisualConfig,
+    @DrawableRes val immersiveBackgroundRes: Int?,
     @DrawableRes val backgroundOverlayRes: Int?,
+    val immersiveBackgroundCarouselRes: List<Int>,
     val avatarResByUserId: Map<String, Int>,
     val iconResBySlot: Map<String, Int>,
 ) {
@@ -35,7 +37,9 @@ data class HomeVisuals(
                 bottomFadeHeightDp = 0,
                 relationshipCardOverlapDp = 0,
             ),
+            immersiveBackgroundRes = null,
             backgroundOverlayRes = null,
+            immersiveBackgroundCarouselRes = emptyList(),
             avatarResByUserId = emptyMap(),
             iconResBySlot = emptyMap(),
         )

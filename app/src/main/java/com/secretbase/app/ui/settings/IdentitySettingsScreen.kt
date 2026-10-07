@@ -198,11 +198,9 @@ private fun IdentityChoice(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(22.dp),
-        color = if (selected) SoftPink.copy(alpha = 0.38f) else SurfaceWhite,
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            if (selected) CherryPink.copy(alpha = 0.38f) else Color(0xFFF1E8EB),
-        ),
+        color = if (selected) SoftPink.copy(alpha = 0.48f) else SurfaceWhite,
+        shadowElevation = if (selected) 0.dp else 1.dp,
+        border = null,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 13.dp),

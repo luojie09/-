@@ -9,8 +9,8 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
     :root{
-      --bg:#fbf8f9;
-      --bg-top:#fdf3f6;
+      --bg:#fdeef3;
+      --bg-top:#fffefe;
       --surface:rgba(255,255,255,.92);
       --line:#f2e7eb;
       --ink:#202128;
@@ -31,7 +31,7 @@
     *{box-sizing:border-box}
     html,body{
       margin:0;
-      background:#f6f2f4;
+      background:#fff;
       color:var(--ink);
       font-family:var(--font-body);
       -webkit-font-smoothing:antialiased;
@@ -43,7 +43,7 @@
     .phone{
       width:min(100%,430px);
       min-height:calc(100vh - 48px);
-      background:linear-gradient(180deg,var(--bg-top),var(--bg));
+      background:#fff;
       border-radius:38px;
       border:1px solid rgba(255,255,255,.84);
       box-shadow:0 20px 56px rgba(49,34,41,.12);
@@ -55,6 +55,7 @@
       min-height:100%;
       padding:calc(14px + env(safe-area-inset-top)) 16px calc(112px + env(safe-area-inset-bottom));
       overflow:auto;
+      background:#fff;
     }
 
     .topbar{
@@ -86,9 +87,8 @@
       height:40px;
       border:none;
       border-radius:50%;
-      background:rgba(255,255,255,.82);
-      border:1px solid rgba(242,231,235,.96);
-      box-shadow:0 8px 18px rgba(116,61,78,.06);
+      background:transparent;
+      box-shadow:none;
       display:grid;
       place-items:center;
       color:var(--ink);
@@ -107,29 +107,55 @@
     }
 
     .hero{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 156px;
-      align-items:center;
-      gap:4px;
-      border-radius:28px;
-      padding:12px 8px 12px 18px;
-      margin-bottom:14px;
+      position:relative;
+      display:block;
+      height:192px;
+      border:0;
+      border-radius:0;
+      padding:0;
+      margin-bottom:2px;
+      background:transparent;
+      box-shadow:none;
+      overflow:hidden;
     }
 
-    .hero-copy{min-width:0}
+    .hero-art{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      transform:scale(1.12);
+      transform-origin:center;
+      pointer-events:none;
+    }
+
+    .hero-copy{
+      position:absolute;
+      inset:0;
+      z-index:1;
+      display:flex;
+      min-width:0;
+      padding:8px 100px;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      pointer-events:none;
+    }
 
     .hero-ill{
       grid-column:2;
       grid-row:1 / span 3;
-      width:156px;
-      height:122px;
+      width:108px;
+      height:92px;
       border-radius:0;
       overflow:visible;
       background:transparent;
       display:flex;
       align-items:center;
       justify-content:center;
-      margin:0 -8px 0 auto;
+      margin:0 0 0 auto;
     }
 
     .hero-ill img{
@@ -139,44 +165,37 @@
     }
 
     .hero-label{
-      grid-column:1;
       margin:0;
       color:var(--muted);
       font-size:13px;
-      font-weight:700;
+      font-weight:600;
       letter-spacing:.01em;
     }
 
     .hero-days{
-      grid-column:1;
       display:flex;
       align-items:flex-end;
-      justify-content:flex-start;
+      justify-content:center;
       gap:4px;
-      margin:8px 0 4px;
+      margin:2px 0 3px;
     }
 
     .hero-days strong{
-      font-size:42px;
+      font-size:52px;
       line-height:1;
       font-family:var(--font-number);
-      font-weight:900;
-      color:var(--ink);
+      font-weight:700;
+      color:#64a1e3;
       letter-spacing:-.025em;
       font-variant-numeric:tabular-nums;
     }
 
     @media (max-width:360px){
       .hero{
-        grid-template-columns:minmax(0,1fr) 140px;
-        padding-right:6px;
+        height:168px;
       }
 
-      .hero-ill{
-        width:140px;
-        height:114px;
-        margin-right:-8px;
-      }
+      .hero-copy{padding:6px 82px}
 
       .hero-days strong{
         font-size:38px;
@@ -191,7 +210,6 @@
     }
 
     .hero-sub{
-      grid-column:1;
       margin:0;
       font-size:14px;
       color:var(--muted);
@@ -229,23 +247,45 @@
     .list{
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:0;
     }
 
     .card{
-      border-radius:24px;
-      padding:14px 16px;
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      border:0;
+      border-bottom:1px solid #e7e2e4;
+      border-radius:0;
+      padding:15px 0;
+      background:transparent;
+      box-shadow:none;
+      cursor:pointer;
+      touch-action:manipulation;
+      -webkit-user-select:none;
+      user-select:none;
     }
+
+    .card:last-child{border-bottom:0}
 
     .card-head{
       display:flex;
       align-items:flex-start;
       gap:12px;
+      min-width:0;
+      flex:1;
+      padding:0;
+      border:0;
+      background:transparent;
+      color:inherit;
+      font:inherit;
+      text-align:left;
+      cursor:pointer;
     }
 
     .icon-box{
-      width:42px;
-      height:42px;
+      width:38px;
+      height:38px;
       border-radius:50%;
       display:grid;
       place-items:center;
@@ -254,10 +294,16 @@
       border:none;
     }
 
+    .icon-box svg{
+      width:20px;
+      height:20px;
+      display:block;
+    }
+
     .icon-box.today,
-    .icon-box.upcoming{background:rgba(255,111,149,.14)}
-    .icon-box.past{background:rgba(77,182,172,.14)}
-    .icon-box.expired{background:rgba(176,190,197,.14)}
+    .icon-box.upcoming{background:rgba(255,111,149,.14);color:#df7893}
+    .icon-box.past{background:rgba(77,182,172,.14);color:#4b978e}
+    .icon-box.expired{background:rgba(176,190,197,.14);color:#8d99a1}
 
     .card-main{min-width:0;flex:1}
     .card-title-row{
@@ -270,7 +316,7 @@
       margin:0;
       font-size:17px;
       font-family:var(--font-body);
-      font-weight:800;
+      font-weight:700;
       line-height:1.35;
       flex:1;
       letter-spacing:-.008em;
@@ -279,7 +325,7 @@
     .card-date{
       color:var(--muted);
       font-size:13px;
-      font-weight:700;
+      font-weight:500;
       margin:4px 0 0;
       font-family:var(--font-number);
       font-variant-numeric:tabular-nums;
@@ -394,7 +440,7 @@
       display:flex;
       flex-direction:column;
       align-items:flex-end;
-      gap:6px;
+      gap:4px;
       flex:none;
     }
 
@@ -406,13 +452,13 @@
     }
 
     .mini-action{
-      width:28px;
-      height:28px;
+      width:36px;
+      height:36px;
       border:none;
-      border-radius:50%;
+      border-radius:0;
       display:grid;
       place-items:center;
-      background:rgba(255,255,255,.86);
+      background:transparent;
       color:var(--muted);
       cursor:pointer;
     }
@@ -423,6 +469,55 @@
     }
 
     .mini-action.danger{color:var(--pink)}
+
+    .card-meta{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      margin-top:5px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:500;
+      font-family:var(--font-number);
+      font-variant-numeric:tabular-nums;
+    }
+
+    .status-text{
+      font-size:12px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .status-text.today,
+    .status-text.upcoming{color:var(--pink)}
+    .status-text.past{color:#4d9d88}
+    .status-text.expired{color:var(--muted)}
+
+    .section-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 0 6px;
+    }
+
+    .section-head strong{font-size:17px;font-weight:700}
+    .section-head span{font-size:12px;color:var(--muted)}
+
+    body.theme-secondary .hero,
+    body.theme-secondary .card{
+      border:0 !important;
+      border-radius:0 !important;
+      background:transparent !important;
+      box-shadow:none !important;
+    }
+
+    body.theme-secondary .card{
+      border-bottom:1px solid #e7e2e4 !important;
+    }
+
+    body.theme-secondary .card:last-child{
+      border-bottom:0 !important;
+    }
 
     .empty-card{
       border-radius:24px;
@@ -554,19 +649,22 @@
 
     .emoji-option{
       height:44px;
-      border-radius:999px;
+      border-radius:14px;
       border:1px solid rgba(242,231,235,.92);
       background:#fffbfd;
       display:grid;
       place-items:center;
-      font-size:21px;
+      color:#67707a;
       cursor:pointer;
       transition:background .18s ease,border-color .18s ease,transform .18s ease;
     }
 
+    .emoji-option svg{width:21px;height:21px;display:block}
+
     .emoji-option.active{
       background:#fff0f4;
       border-color:rgba(255,111,149,.36);
+      color:#df7893;
       transform:translateY(-1px);
     }
 
@@ -638,7 +736,7 @@
       bottom:0;
       display:grid;
       grid-template-columns:repeat(4,1fr);
-      padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+      padding:6px 10px calc(6px + env(safe-area-inset-bottom));
       border-radius:26px 26px 0 0;
       border-top:1px solid var(--line);
       background:rgba(255,255,255,.96);
@@ -651,7 +749,7 @@
       background:transparent;
       color:var(--muted);
       font:700 12px/16px var(--font-body);
-      padding:6px 4px;
+      padding:4px;
       cursor:pointer;
     }
 
@@ -660,23 +758,26 @@
       font-weight:800;
     }
 
+    .main-tab-item img{ opacity:.5; }
+    .main-tab-item.active img{ opacity:1; }
+
     .main-tab-item img{
       display:block;
-      width:24px;
-      height:24px;
-      margin:0 auto 4px;
+      width:32px;
+      height:32px;
+      margin:0 auto 2px;
       object-fit:contain;
     }
   </style>
 </head>
-<body>
+<body class="theme-secondary">
   <div class="phone">
     <div class="screen" id="screen"></div>
     <nav class="main-tab-nav">
-      <button class="main-tab-item" type="button" data-main-tab="./homepage_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_home_nav_active.png" alt="">首页</button>
-      <button class="main-tab-item" type="button" data-main-tab="./message_wall_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="">留言墙</button>
-      <button class="main-tab-item" type="button" data-main-tab="./wish_list.html"><img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="">愿望清单</button>
-      <button class="main-tab-item active" type="button" data-main-tab="./anniversary.html"><img src="../app/src/main/res/drawable-nodpi/ic_calendar_nav.png" alt="">纪念日</button>
+      <button class="main-tab-item" type="button" data-main-tab="./homepage_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_home_plan_b.png?v=20261003-icon-crop" alt="">首页</button>
+      <button class="main-tab-item" type="button" data-main-tab="./message_wall_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_message_wall_plan_b.png?v=20261003-icon-crop" alt="">留言墙</button>
+      <button class="main-tab-item" type="button" data-main-tab="./wish_list.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_wishlist_plan_b.png?v=20261003-icon-crop" alt="">愿望清单</button>
+      <button class="main-tab-item active" type="button" data-main-tab="./anniversary.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_anniversary_plan_b.png?v=20261003-icon-crop" alt="">纪念日</button>
     </nav>
   </div>
 
@@ -732,6 +833,7 @@
     const overlayEl = document.getElementById("editorOverlay");
     const confirmOverlayEl = document.getElementById("confirmOverlay");
     const heroImage = "../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero";
+    const anniversaryPeopleImage = "../app/src/main/res/drawable-nodpi/anniversary_header_dynamic_note.png";
     const relationshipStart = "2026-05-06";
     const today = toDateString(Date.now());
 
@@ -743,22 +845,31 @@
     ];
 
     const iconMap = {
-      "在一起的日子": "💗",
-      "第一次约会": "🌸",
-      "第一次旅行": "✈️",
-      "第一次见家长": "🏠",
-      "生日 - 小羊": "🎂",
-      "生日 - 小耶": "🎁"
+      "在一起的日子": "together",
+      "第一次约会": "date",
+      "第一次旅行": "trip",
+      "第一次见家长": "home",
+      "生日 - 小羊": "birthday",
+      "生日 - 小耶": "gift"
     };
 
-    const iconOptions = ["💗","🌸","🎂","🎁","✈️","🌊","⭐","🍀","🏠","📷","🍰","🎬","🌙","☀️","💌","🦋","🐑","🐥"];
+    const iconOptions = ["together","date","trip","birthday","gift","home","photo","movie","dinner","music","flower","star"];
+    const iconLabels = {
+      together: "相伴", date: "约会", trip: "旅行", birthday: "生日", gift: "礼物", home: "回家",
+      photo: "拍照", movie: "电影", dinner: "晚餐", music: "音乐", flower: "花", star: "星标"
+    };
+    const legacyIconAliases = {
+      "💗":"together", "🌸":"date", "🎂":"birthday", "🎁":"gift", "✈️":"trip", "🌊":"trip",
+      "⭐":"star", "🍀":"flower", "🏠":"home", "📷":"photo", "🍰":"birthday", "🎬":"movie",
+      "🌙":"star", "☀️":"star", "💌":"together", "🦋":"flower", "🐑":"together", "🐥":"together"
+    };
 
     const appState = {
       editorOpen: false,
       editingId: null,
       name: "",
       date: today,
-      iconEmoji: "💗",
+      iconEmoji: "together",
       repeatYearly: true,
       reminderType: "NONE",
       menuId: null
@@ -769,12 +880,12 @@
 
     function seedItems() {
       return [
-        { id: "anniversary-love", title: "在一起的日子", date: "2026-05-06", repeatYearly: false, reminderType: "NONE", createdAt: "2026-05-06", iconEmoji: "💗" },
-        { id: "anniversary-first-date", title: "第一次约会", date: "2026-06-15", repeatYearly: true, reminderType: "SAME_DAY", createdAt: "2026-05-20", iconEmoji: "🌸" },
-        { id: "anniversary-first-trip", title: "第一次旅行", date: "2026-10-01", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-23", iconEmoji: "✈️" },
-        { id: "anniversary-first-growth", title: "第一次见家长", date: "2026-10-20", repeatYearly: false, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-26", iconEmoji: "🏠" },
-        { id: "anniversary-sheep-birthday", title: "生日 - 小羊", date: "2026-08-15", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-28", iconEmoji: "🎂" },
-        { id: "anniversary-chick-birthday", title: "生日 - 小耶", date: "2026-11-02", repeatYearly: true, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-28", iconEmoji: "🎁" }
+        { id: "anniversary-love", title: "在一起的日子", date: "2026-05-06", repeatYearly: false, reminderType: "NONE", createdAt: "2026-05-06", iconEmoji: "together" },
+        { id: "anniversary-first-date", title: "第一次约会", date: "2026-06-15", repeatYearly: true, reminderType: "SAME_DAY", createdAt: "2026-05-20", iconEmoji: "date" },
+        { id: "anniversary-first-trip", title: "第一次旅行", date: "2026-10-01", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-23", iconEmoji: "trip" },
+        { id: "anniversary-first-growth", title: "第一次见家长", date: "2026-10-20", repeatYearly: false, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-26", iconEmoji: "home" },
+        { id: "anniversary-sheep-birthday", title: "生日 - 小羊", date: "2026-08-15", repeatYearly: true, reminderType: "ONE_DAY_BEFORE", createdAt: "2026-05-28", iconEmoji: "birthday" },
+        { id: "anniversary-chick-birthday", title: "生日 - 小耶", date: "2026-11-02", repeatYearly: true, reminderType: "THREE_DAYS_BEFORE", createdAt: "2026-05-28", iconEmoji: "gift" }
       ];
     }
 
@@ -851,14 +962,38 @@
     }
 
     function defaultIconForTitle(title) {
-      if (title.includes("生日")) return "🎂";
-      if (title.includes("旅行")) return "✈️";
-      if (title.includes("约会")) return "🌸";
-      if (title.includes("见家长")) return "🏠";
-      if (title.includes("照片") || title.includes("相册")) return "📷";
-      if (title.includes("电影")) return "🎬";
-      if (title.includes("海")) return "🌊";
-      return iconMap[title] || "💗";
+      if (title.includes("生日")) return "birthday";
+      if (title.includes("旅行") || title.includes("海")) return "trip";
+      if (title.includes("约会")) return "date";
+      if (title.includes("见家长") || title.includes("回家")) return "home";
+      if (title.includes("照片") || title.includes("相册")) return "photo";
+      if (title.includes("电影")) return "movie";
+      if (title.includes("吃") || title.includes("餐")) return "dinner";
+      if (title.includes("音乐") || title.includes("演唱会")) return "music";
+      return iconMap[title] || "together";
+    }
+
+    function normalizeSceneIcon(icon) {
+      return legacyIconAliases[icon] || (iconOptions.includes(icon) ? icon : "together");
+    }
+
+    function sceneIconSvg(icon) {
+      const key = normalizeSceneIcon(icon);
+      const paths = {
+        together: '<path d="M20.8 4.6c-1.7-1.6-4.4-1.4-5.9.4L12 8.1 9.1 5C7.6 3.2 4.9 3 3.2 4.6c-1.9 1.8-2 4.9-.2 6.8L12 20l9-8.6c1.8-1.9 1.7-5-.2-6.8Z"/>',
+        date: '<path d="M4 8h13a3 3 0 0 1 3 3v2a5 5 0 0 1-5 5H8a4 4 0 0 1-4-4V8Z"/><path d="M4 11H2"/><path d="M8 4v4"/><path d="M12 4v4"/>',
+        trip: '<path d="M3 13.5 21 4l-6.5 16-3.1-6.4L3 13.5Z"/><path d="m11.4 13.6 3.4-3.4"/>',
+        birthday: '<path d="M5 11h14v9H5z"/><path d="M4 15h16"/><path d="M8 11c-1.6-1.4.6-3.8 2-2.1 1.4-1.7 3.6.7 2 2.1"/><path d="M12 8V4"/><path d="M10.6 5.5 12 4l1.4 1.5"/>',
+        gift: '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M3 8h18v4H3zM12 8v12"/><path d="M12 8H8.7A2.1 2.1 0 1 1 12 5.5V8ZM12 8h3.3A2.1 2.1 0 1 0 12 5.5V8Z"/>',
+        home: '<path d="m3 11 9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/>',
+        photo: '<rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3"/><path d="M8 6l1-2h6l1 2"/>',
+        movie: '<rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M7 6l3 4m2-4 3 4m2-4 3 4"/>',
+        dinner: '<path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3v18M17 3c2.2 1.1 3 3.5 2 6h-2"/>',
+        music: '<path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/>',
+        flower: '<path d="M12 21V11"/><path d="M12 11c-4.5 0-6-5.5-2.5-7.3C10.7 3 12 4.2 12 5.6 12 4.2 13.3 3 14.5 3.7 18 5.5 16.5 11 12 11Z"/><path d="M12 16c-2.5-2.1-5.3-1.6-6.5.7 2.7.7 4.8.4 6.5-.7Z"/>',
+        star: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2-4.5-4.4 6.2-.9L12 3Z"/>'
+      };
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[key]}</svg>`;
     }
 
     function legend() {
@@ -875,25 +1010,20 @@
     function renderCard(item) {
       const meta = item.meta;
       return `
-        <article class="card">
-          <div class="card-head">
-            <div class="icon-box ${meta.tone}">${item.iconEmoji || defaultIconForTitle(item.title)}</div>
+        <article class="card" data-id="${item.id}">
+          <button class="card-head" type="button" data-action="edit" data-id="${item.id}" aria-label="编辑 ${escapeHtml(item.title)}">
+            <div class="icon-box ${meta.tone}">${sceneIconSvg(item.iconEmoji || defaultIconForTitle(item.title))}</div>
             <div class="card-main">
               <div class="card-title">${escapeHtml(item.title)}</div>
-              <div class="card-date">${formatDate(item.date)}</div>
-              <div class="pill repeat">${item.repeatYearly ? "每年重复" : "不重复"}</div>
-            </div>
-            <div class="card-side">
-              <span class="pill ${meta.tone}">${meta.text}</span>
-              <div class="card-actions">
-                <button class="mini-action" type="button" data-action="edit" data-id="${item.id}" aria-label="编辑">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                </button>
-                <button class="mini-action danger" type="button" data-action="delete" data-id="${item.id}" aria-label="删除">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
-                </button>
+              <div class="card-meta">
+                <span>${formatDate(item.date)}</span>
+                <span>·</span>
+                <span>${item.repeatYearly ? "每年重复" : "不重复"}</span>
               </div>
             </div>
+          </button>
+          <div class="card-side">
+            <span class="status-text ${meta.tone}">${meta.text}</span>
           </div>
         </article>
       `;
@@ -910,15 +1040,20 @@
         </div>
 
         <section class="hero">
-          <div class="hero-ill"><img src="${heroImage}" alt="插画"></div>
-          <p class="hero-label">我们在一起已经</p>
-          <div class="hero-days"><strong>${relationshipDays()}</strong><span>天</span></div>
-          <p class="hero-sub">从 ${formatDate(relationshipStart)} 开始</p>
+          <img class="hero-art" src="${anniversaryPeopleImage}" alt="">
+          <div class="hero-copy">
+            <p class="hero-label">我们在一起已经</p>
+            <div class="hero-days"><strong>${relationshipDays()}</strong><span>天</span></div>
+            <p class="hero-sub">${formatDate(relationshipStart)}</p>
+          </div>
         </section>
 
         ${legend()}
 
-        ${items.length ? `<section class="list">${items.map(renderCard).join("")}</section>` : `
+        ${items.length ? `
+          <div class="section-head"><strong>重要日子</strong><span>${items.length} 个 · 长按删除</span></div>
+          <section class="list">${items.map(renderCard).join("")}</section>
+        ` : `
           <section class="empty-card">
             <div class="hero-ill"><img src="${heroImage}" alt="插画"></div>
             <h3>还没有纪念日</h3>
@@ -934,7 +1069,7 @@
       appState.editingId = item ? item.id : null;
       appState.name = item ? item.title : "";
       appState.date = item ? item.date : today;
-      appState.iconEmoji = item ? (item.iconEmoji || defaultIconForTitle(item.title)) : "💗";
+      appState.iconEmoji = item ? normalizeSceneIcon(item.iconEmoji || defaultIconForTitle(item.title)) : "together";
       appState.repeatYearly = item ? item.repeatYearly : true;
       appState.reminderType = item ? item.reminderType : "NONE";
       document.getElementById("editorTitle").textContent = item ? "编辑纪念日" : "新增纪念日";
@@ -956,8 +1091,8 @@
     }
 
     function renderIconPicker() {
-      document.getElementById("iconPicker").innerHTML = iconOptions.map(emoji => `
-        <button class="emoji-option ${appState.iconEmoji === emoji ? "active" : ""}" type="button" data-action="pick-icon" data-value="${emoji}" aria-label="选择 ${emoji}">${emoji}</button>
+      document.getElementById("iconPicker").innerHTML = iconOptions.map(icon => `
+        <button class="emoji-option ${appState.iconEmoji === icon ? "active" : ""}" type="button" data-action="pick-icon" data-value="${icon}" aria-label="选择${iconLabels[icon]}">${sceneIconSvg(icon)}</button>
       `).join("");
     }
 
@@ -982,7 +1117,7 @@
         id: appState.editingId || `anniversary-${crypto.randomUUID()}`,
         title,
         date,
-        iconEmoji: appState.iconEmoji || defaultIconForTitle(title),
+        iconEmoji: normalizeSceneIcon(appState.iconEmoji || defaultIconForTitle(title)),
         repeatYearly: appState.repeatYearly,
         reminderType: appState.reminderType,
         createdAt: appState.editingId ? anniversaries.find(item => item.id === appState.editingId)?.createdAt || today : today
@@ -1017,6 +1152,43 @@
         .replace(/"/g, "&quot;");
     }
 
+    const longPressDuration = 650;
+    let longPressTimer = null;
+    let suppressedEditId = null;
+
+    function cancelLongPress() {
+      if (longPressTimer !== null) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+
+    screenEl.addEventListener("pointerdown", event => {
+      const card = event.target.closest(".card[data-id]");
+      if (!card || event.pointerType === "mouse" && event.button !== 0) return;
+      const id = card.dataset.id;
+      longPressTimer = setTimeout(() => {
+        longPressTimer = null;
+        suppressedEditId = id;
+        openConfirm("删除这个纪念日？", "删除后不会再出现在列表中，后续可以重新新增。", () => {
+          anniversaries = anniversaries.filter(item => item.id !== id);
+          persist();
+          closeConfirm();
+          render();
+        });
+      }, longPressDuration);
+    });
+
+    screenEl.addEventListener("pointerup", () => {
+      cancelLongPress();
+      window.setTimeout(() => { suppressedEditId = null; }, 0);
+    });
+    screenEl.addEventListener("pointercancel", () => {
+      cancelLongPress();
+      suppressedEditId = null;
+    });
+    screenEl.addEventListener("pointerleave", cancelLongPress);
+
     screenEl.addEventListener("click", event => {
       const actionEl = event.target.closest("[data-action]");
       if (!actionEl) {
@@ -1042,17 +1214,12 @@
         return;
       }
       if (action === "edit") {
+        if (suppressedEditId === id) {
+          suppressedEditId = null;
+          return;
+        }
         const item = anniversaries.find(entry => entry.id === id);
         if (item) openEditor(item);
-        return;
-      }
-      if (action === "delete") {
-        openConfirm("删除这个纪念日？", "删除后不会再出现在列表中，后续可以重新新增。", () => {
-          anniversaries = anniversaries.filter(item => item.id !== id);
-          persist();
-          closeConfirm();
-          render();
-        });
         return;
       }
     });
@@ -1072,7 +1239,7 @@
     document.getElementById("iconPicker").addEventListener("click", event => {
       const button = event.target.closest("[data-action='pick-icon']");
       if (!button) return;
-      appState.iconEmoji = button.dataset.value;
+      appState.iconEmoji = normalizeSceneIcon(button.dataset.value);
       renderIconPicker();
     });
 

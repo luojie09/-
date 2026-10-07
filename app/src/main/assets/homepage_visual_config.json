@@ -1,5 +1,14 @@
 {
   "heroImageRes": "home_couple_hero",
+  "immersiveBackgroundRes": "home_plan_b_living_room",
+  "immersiveBackgroundCarouselRes": [
+    "home_plan_b_living_room",
+    "home_carousel_autumn_bench",
+    "home_carousel_lakeside_picnic",
+    "home_carousel_night_reading",
+    "home_carousel_game_night",
+    "home_carousel_stargazing"
+  ],
   "heroGradientStart": "#FFE4EC",
   "heroGradientMiddle": "#FFF0F4",
   "heroGradientEnd": "#FFF4F7",

@@ -43,6 +43,7 @@ fun buildHomePreviewUiState(
 ): HomeUiState {
     val payload = HomePayload(
         greeting = "Good morning",
+        todayText = "2026/09/08",
         coupleDisplayName = "\u5c0f\u7f8a\u2764\uFE0F\u5c0f\u8036",
         relationship = RelationshipUiModel(
             label = "\u6211\u4eec\u5df2\u7ecf\u5728\u4e00\u8d77",
@@ -218,6 +219,15 @@ internal fun buildPreviewHomeVisuals(): HomeVisuals =
             heightDp = 250,
             bottomFadeHeightDp = 0,
             relationshipCardOverlapDp = 0,
+        ),
+        immersiveBackgroundRes = R.drawable.home_plan_b_living_room,
+        immersiveBackgroundCarouselRes = listOf(
+            R.drawable.home_plan_b_living_room,
+            R.drawable.home_carousel_autumn_bench,
+            R.drawable.home_carousel_lakeside_picnic,
+            R.drawable.home_carousel_night_reading,
+            R.drawable.home_carousel_game_night,
+            R.drawable.home_carousel_stargazing,
         ),
         backgroundOverlayRes = null,
         avatarResByUserId = mapOf(

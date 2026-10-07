@@ -297,6 +297,12 @@ class HomeRepository(
 
         val heroImageName = json.optString("heroImageRes")
             .ifBlank { json.optString("heroIllustration") }
+        val carouselResources = mutableListOf<Int>()
+        json.optJSONArray("immersiveBackgroundCarouselRes")?.let { carousel ->
+            for (index in 0 until carousel.length()) {
+                resolveDrawable(carousel.optString(index))?.let(carouselResources::add)
+            }
+        }
 
         return HomeVisuals(
             hero = HeroVisualConfig(
@@ -308,6 +314,8 @@ class HomeRepository(
                 bottomFadeHeightDp = json.optInt("heroBottomFadeHeightDp", 0),
                 relationshipCardOverlapDp = json.optInt("relationshipCardOverlapDp", 0),
             ),
+            immersiveBackgroundRes = resolveDrawable(json.optString("immersiveBackgroundRes")),
+            immersiveBackgroundCarouselRes = carouselResources,
             backgroundOverlayRes = resolveDrawable(json.optString("backgroundOverlay")),
             avatarResByUserId = avatarResByUserId,
             iconResBySlot = iconResBySlot,

@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -77,7 +77,11 @@ import com.secretbase.app.ui.wishlist.WishDetailScreen
 import com.secretbase.app.ui.wishlist.WishListScreen
 import com.secretbase.app.ui.wishlist.WishListViewModel
 import com.secretbase.app.ui.theme.CherryPink
+import com.secretbase.app.ui.theme.InkBlack
+import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SurfaceWhite
+import com.secretbase.app.ui.theme.WarmBackground
+import com.secretbase.app.ui.theme.WarmBackgroundTop
 import com.secretbase.app.ui.theme.WarmGray
 import kotlinx.coroutines.launch
 
@@ -524,6 +528,7 @@ private fun HomeRoute(
             when {
                 activityId != null -> onNavigate(AppRoute.ActivityDetail(activityId).route)
                 action == AppActions.OpenMessageWall -> onSelectTopTab(AppRoute.MessageWall.route)
+                action == AppActions.OpenMessageWallEditor -> onNavigate(AppRoute.MessageWallEditor.route)
                 action == AppActions.OpenWishList -> onSelectTopTab(AppRoute.WishList.route)
                 action == AppActions.OpenAnniversary -> onSelectTopTab(AppRoute.Anniversary.route)
                 action == AppActions.OpenRecentActivities -> onNavigate(AppRoute.RecentActivities.route)
@@ -686,7 +691,8 @@ private fun WishListRoute(
         onEditWish = wishListViewModel::editWish,
         onDeleteWish = wishListViewModel::deleteWish,
         onCompleteWish = { wishId ->
-            onNavigate(AppRoute.WishDetail(wishId).route)
+            wishListViewModel.startCompletion(wishId)
+            onNavigate(AppRoute.WishCompletion(wishId).route)
         },
         onEditorTitleChange = wishListViewModel::updateEditorTitle,
         onEditorDescriptionChange = wishListViewModel::updateEditorDescription,
@@ -759,25 +765,25 @@ internal fun MainBottomTabBar(
         ) {
             MainBottomTabItem(
                 label = "首页",
-                iconRes = R.drawable.ic_home_nav_active,
+                iconRes = R.drawable.ic_nav_home_plan_b,
                 active = activeRoute == AppRoute.Home.route,
                 onClick = { onSelect(AppRoute.Home.route) },
             )
             MainBottomTabItem(
                 label = "留言墙",
-                iconRes = R.drawable.ic_message_wall_card,
+                iconRes = R.drawable.ic_nav_message_wall_plan_b,
                 active = activeRoute == AppRoute.MessageWall.route,
                 onClick = { onSelect(AppRoute.MessageWall.route) },
             )
             MainBottomTabItem(
                 label = "愿望清单",
-                iconRes = R.drawable.ic_wishlist_card,
+                iconRes = R.drawable.ic_nav_wishlist_plan_b,
                 active = activeRoute == AppRoute.WishList.route,
                 onClick = { onSelect(AppRoute.WishList.route) },
             )
             MainBottomTabItem(
                 label = "纪念日",
-                iconRes = R.drawable.ic_calendar_nav,
+                iconRes = R.drawable.ic_nav_anniversary_plan_b,
                 active = activeRoute == AppRoute.Anniversary.route,
                 onClick = { onSelect(AppRoute.Anniversary.route) },
             )
@@ -795,7 +801,7 @@ private fun RowScope.MainBottomTabItem(
     Surface(
         modifier = Modifier
             .weight(1f)
-            .heightIn(min = 56.dp),
+            .heightIn(min = 64.dp),
         onClick = onClick,
         color = Color.Transparent,
         shape = RoundedCornerShape(16.dp),
@@ -803,14 +809,16 @@ private fun RowScope.MainBottomTabItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .padding(horizontal = 8.dp, vertical = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Image(
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier
+                    .size(36.dp)
+                    .alpha(if (active) 1f else 0.5f),
                 contentScale = ContentScale.Fit,
             )
             Text(
@@ -912,8 +920,8 @@ private fun IdentityConnectionProgress() {
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFFFF3F6),
-                        Color(0xFFFFFAFB),
+                        WarmBackgroundTop,
+                        WarmBackground,
                     ),
                 ),
             ),
@@ -952,8 +960,8 @@ private fun IdentitySelectionGate(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFFFF3F6),
-                        Color(0xFFFFFAFB),
+                        WarmBackgroundTop,
+                        WarmBackground,
                     ),
                 ),
             ),
@@ -968,8 +976,8 @@ private fun IdentitySelectionGate(
     ) {
         Surface(
             shape = RoundedCornerShape(30.dp),
-            color = Color.White,
-            shadowElevation = 22.dp,
+            color = SurfaceWhite,
+            shadowElevation = 8.dp,
         ) {
             Column(
                 modifier = Modifier
@@ -1038,7 +1046,7 @@ private fun IdentitySelectionGate(
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
-                            color = Color.White,
+                            color = SurfaceWhite,
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = "正在连接")
@@ -1086,14 +1094,14 @@ private fun StartupErrorScreen(error: Throwable?) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFF8FA))
+            .background(WarmBackground)
             .padding(28.dp),
         contentAlignment = Alignment.Center,
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = Color.White,
-            shadowElevation = 14.dp,
+            color = SurfaceWhite,
+            shadowElevation = 6.dp,
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -1103,7 +1111,7 @@ private fun StartupErrorScreen(error: Throwable?) {
                     text = "\u4e91\u7aef\u8fde\u63a5\u5931\u8d25",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF242128),
+                    color = InkBlack,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
@@ -1143,16 +1151,14 @@ private fun IdentityOptionCard(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val borderColor = if (selected) Color(0xFFFF91AF) else Color(0xFFEAE5E9)
-    val backgroundColor = if (selected) Color(0xFFFFF4F7) else Color.White
-    val accentColor = if (selected) Color(0xFFFF7FA2) else Color(0xFFB9B2BA)
+    val backgroundColor = if (selected) SoftPink.copy(alpha = 0.48f) else SurfaceWhite
+    val accentColor = if (selected) CherryPink else WarmGray
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
             .background(backgroundColor)
-            .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(22.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1161,7 +1167,7 @@ private fun IdentityOptionCard(
             modifier = Modifier
                 .size(42.dp)
                 .clip(CircleShape)
-                .background(if (selected) Color(0xFFFFE6EE) else Color(0xFFF6F4F6)),
+                .background(if (selected) SoftPink.copy(alpha = 0.72f) else Color(0xFFF5EFEC)),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -1178,7 +1184,7 @@ private fun IdentityOptionCard(
                 text = SecretBaseUsers.nameFor(userId),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF2B2630),
+                color = InkBlack,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -1188,14 +1194,14 @@ private fun IdentityOptionCard(
                     "\u4ee5\u5c0f\u8036\u7684\u8eab\u4efd\u8fdb\u5165"
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF8C8690),
+                color = WarmGray,
             )
         }
         Box(
             modifier = Modifier
                 .size(18.dp)
                 .clip(CircleShape)
-                .background(if (selected) Color(0xFFFF86A8) else Color(0xFFF2EDF0)),
+                .background(if (selected) CherryPink else Color(0xFFEDE4E1)),
         )
     }
 }

@@ -44,7 +44,7 @@ class FakeAnniversaryRepository : AnniversaryRepository {
                 repeatYearly = false,
                 reminderType = AnniversaryReminder.NONE,
                 createdAt = now - 500L * 24 * 60 * 60 * 1000,
-                iconEmoji = "💗",
+                iconEmoji = "together",
             ),
             Anniversary(
                 id = "anniversary-first-date",
@@ -53,7 +53,7 @@ class FakeAnniversaryRepository : AnniversaryRepository {
                 repeatYearly = true,
                 reminderType = AnniversaryReminder.SAME_DAY,
                 createdAt = now - 460L * 24 * 60 * 60 * 1000,
-                iconEmoji = "🌸",
+                iconEmoji = "date",
             ),
             Anniversary(
                 id = "anniversary-first-trip",
@@ -62,7 +62,7 @@ class FakeAnniversaryRepository : AnniversaryRepository {
                 repeatYearly = true,
                 reminderType = AnniversaryReminder.ONE_DAY_BEFORE,
                 createdAt = now - 390L * 24 * 60 * 60 * 1000,
-                iconEmoji = "✈️",
+                iconEmoji = "trip",
             ),
             Anniversary(
                 id = "anniversary-first-growth",
@@ -71,7 +71,7 @@ class FakeAnniversaryRepository : AnniversaryRepository {
                 repeatYearly = false,
                 reminderType = AnniversaryReminder.THREE_DAYS_BEFORE,
                 createdAt = now - 260L * 24 * 60 * 60 * 1000,
-                iconEmoji = "🍀",
+                iconEmoji = "home",
             ),
             Anniversary(
                 id = "anniversary-sheep-bday",
@@ -80,7 +80,7 @@ class FakeAnniversaryRepository : AnniversaryRepository {
                 repeatYearly = true,
                 reminderType = AnniversaryReminder.ONE_DAY_BEFORE,
                 createdAt = now - 300L * 24 * 60 * 60 * 1000,
-                iconEmoji = "🎂",
+                iconEmoji = "birthday",
             ),
             Anniversary(
                 id = "anniversary-chick-bday",
@@ -89,7 +89,7 @@ class FakeAnniversaryRepository : AnniversaryRepository {
                 repeatYearly = true,
                 reminderType = AnniversaryReminder.THREE_DAYS_BEFORE,
                 createdAt = now - 300L * 24 * 60 * 60 * 1000,
-                iconEmoji = "🎁",
+                iconEmoji = "gift",
             ),
         )
     }

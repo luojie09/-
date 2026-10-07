@@ -7,7 +7,9 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,19 +20,30 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Cake
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Celebration
-import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Flight
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LocalCafe
+import androidx.compose.material.icons.outlined.LocalFlorist
+import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Restaurant
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,28 +64,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.secretbase.app.R
 import com.secretbase.app.data.anniversary.AnniversaryReminder
 import com.secretbase.app.ui.common.SecretBaseCardSurface
 import com.secretbase.app.ui.common.SecretBaseInputSurface
-import com.secretbase.app.ui.common.SecretBaseMiniActionButton
-import com.secretbase.app.ui.common.SecretBasePageBackground
 import com.secretbase.app.ui.common.SecretBasePageTopBar
 import com.secretbase.app.ui.common.SecretBasePrimaryButton
 import com.secretbase.app.ui.common.SecretBaseSnackbarHost
 import com.secretbase.app.ui.messagewall.WallIllustration
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
-import com.secretbase.app.ui.theme.SecretBaseSansFontFamily
-import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
 import java.time.Instant
@@ -154,14 +163,18 @@ fun AnniversaryScreen(
         bottomBar = bottomBar,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        SecretBasePageBackground {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White),
+        ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding() + 32.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
                 item {
                     SecretBasePageTopBar(
@@ -175,17 +188,16 @@ fun AnniversaryScreen(
                     )
                 }
                 item {
-                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
                         AnniversaryHero(
                             relationshipDays = uiState.relationshipDays,
                             relationshipStartText = uiState.relationshipStartText,
-                            illustrationRes = uiState.visuals.hero.imageRes,
                         )
                     }
                 }
                 if (uiState.items.isEmpty()) {
                     item {
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                             AnniversaryEmptyState(
                                 illustrationRes = uiState.visuals.hero.imageRes,
                                 onAdd = onAdd,
@@ -193,13 +205,42 @@ fun AnniversaryScreen(
                         }
                     }
                 } else {
-                    items(uiState.items, key = AnniversaryUiModel::id) { item ->
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "重要日子",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = InkBlack,
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = "${uiState.items.size} 个 · 长按删除",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = WarmGray,
+                            )
+                        }
+                    }
+                    itemsIndexed(uiState.items, key = { _, item -> item.id }) { index, item ->
+                        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                             AnniversaryCard(
                                 item = item,
                                 onEdit = { onEdit(item.id) },
                                 onDelete = { pendingDeleteId = item.id },
                             )
+                            if (index < uiState.items.lastIndex) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 50.dp)
+                                        .height(1.dp)
+                                        .background(Color(0xFFE7E2E4)),
+                                )
+                            }
                         }
                     }
                 }
@@ -211,7 +252,7 @@ fun AnniversaryScreen(
         ModalBottomSheet(
             onDismissRequest = onDismissEditor,
             containerColor = SurfaceWhite,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
         ) {
             Column(
                 modifier = Modifier
@@ -299,8 +340,8 @@ fun AnniversaryScreen(
                     Text("取消", color = WarmGray)
                 }
             },
-            shape = RoundedCornerShape(16.dp),
-            containerColor = SoftPink.copy(alpha = 0.96f),
+            shape = RoundedCornerShape(24.dp),
+            containerColor = SurfaceWhite,
             title = { Text("删除这个纪念日？") },
             text = { Text("删除后将无法恢复。", color = WarmGray) },
         )
@@ -311,159 +352,121 @@ fun AnniversaryScreen(
 private fun AnniversaryHero(
     relationshipDays: Int,
     relationshipStartText: String,
-    illustrationRes: Int?,
 ) {
-    SecretBaseCardSurface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(192.dp)
+            .clipToBounds(),
     ) {
-        Row(
+        Image(
+            painter = painterResource(R.drawable.anniversary_header_dynamic_note),
+            contentDescription = null,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 18.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                .fillMaxSize()
+                .graphicsLayer {
+                    scaleX = 1.12f
+                    scaleY = 1.12f
+                },
+            contentScale = ContentScale.Fit,
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(start = 100.dp, top = 8.dp, end = 100.dp, bottom = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            Text(
+                text = "我们在一起已经",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = WarmGray,
+            )
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    text = "我们在一起已经",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = WarmGray,
+                    text = relationshipDays.toString(),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontSize = 52.sp,
+                        color = Color(0xFF64A1E3),
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 56.sp,
+                    ),
                 )
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = relationshipDays.toString(),
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            color = InkBlack,
-                            fontFamily = if (LocalInspectionMode.current) {
-                                FontFamily.SansSerif
-                            } else {
-                                SecretBaseSansFontFamily
-                            },
-                            fontWeight = FontWeight.Black,
-                            lineHeight = 42.sp,
-                        ),
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "天",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = WarmGray,
-                    )
-                }
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "从 $relationshipStartText 开始",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "天",
+                    modifier = Modifier.padding(bottom = 5.dp),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                     color = WarmGray,
                 )
             }
-            AnniversaryHeroIllustration(
-                illustrationRes = illustrationRes,
-                modifier = Modifier
-                    .width(154.dp)
-                    .height(122.dp),
+            Text(
+                text = relationshipStartText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = WarmGray,
             )
         }
     }
 }
 
 @Composable
-private fun AnniversaryHeroIllustration(
-    illustrationRes: Int?,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center,
-    ) {
-        if (illustrationRes != null) {
-            Image(
-                painter = painterResource(id = illustrationRes),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit,
-            )
-        }
-    }
-}
-
-@Composable
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 private fun AnniversaryCard(
     item: AnniversaryUiModel,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    SecretBaseCardSurface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            AnniversaryIcon(
-                emoji = item.iconEmoji,
-                tone = item.statusTone,
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = onEdit,
+                onLongClick = onDelete,
+                onLongClickLabel = "删除 ${item.title}",
             )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(vertical = 15.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AnniversaryIcon(
+            icon = item.iconEmoji,
+            tone = item.statusTone,
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = InkBlack,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
             ) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = InkBlack,
-                )
                 Text(
                     text = item.dateText,
                     style = MaterialTheme.typography.bodySmall,
                     color = WarmGray,
                 )
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = Color(0xFFF9F4F6),
-                ) {
-                    Text(
-                        text = item.repeatLabel,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = WarmGray,
-                    )
-                }
+                Text(text = "·", style = MaterialTheme.typography.bodySmall, color = WarmGray)
+                Text(
+                    text = item.repeatLabel,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = WarmGray,
+                )
             }
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                AnniversaryStatusPill(item)
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    SecretBaseMiniActionButton(
-                        icon = Icons.Outlined.Edit,
-                        label = "编辑",
-                        onClick = onEdit,
-                        showLabel = false,
-                    )
-                    SecretBaseMiniActionButton(
-                        icon = Icons.Outlined.DeleteOutline,
-                        label = "删除",
-                        onClick = onDelete,
-                        showLabel = false,
-                    )
-                }
-            }
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            AnniversaryStatusText(item)
         }
     }
 }
 
 @Composable
 private fun AnniversaryIcon(
-    emoji: String,
+    icon: String,
     tone: AnniversaryStatusTone,
 ) {
     val color = when (tone) {
@@ -473,38 +476,50 @@ private fun AnniversaryIcon(
         AnniversaryStatusTone.EXPIRED -> Color(0xFFB0BEC5)
     }
     Surface(
-        modifier = Modifier.size(42.dp),
+        modifier = Modifier.size(38.dp),
         color = color.copy(alpha = 0.14f),
         shape = CircleShape,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = emoji,
-                fontSize = 20.sp,
+            Icon(
+                imageVector = anniversarySceneIcon(icon),
+                contentDescription = anniversaryIconLabel(icon),
+                modifier = Modifier.size(20.dp),
+                tint = color,
             )
         }
     }
 }
 
+private fun anniversarySceneIcon(icon: String) = when (normalizeAnniversaryIcon(icon)) {
+    "together" -> Icons.Outlined.FavoriteBorder
+    "date" -> Icons.Outlined.LocalCafe
+    "trip" -> Icons.Outlined.Flight
+    "birthday" -> Icons.Outlined.Cake
+    "gift" -> Icons.Outlined.CardGiftcard
+    "home" -> Icons.Outlined.Home
+    "photo" -> Icons.Outlined.PhotoCamera
+    "movie" -> Icons.Outlined.Movie
+    "dinner" -> Icons.Outlined.Restaurant
+    "music" -> Icons.Outlined.MusicNote
+    "flower" -> Icons.Outlined.LocalFlorist
+    "star" -> Icons.Outlined.StarBorder
+    else -> Icons.Outlined.FavoriteBorder
+}
+
 @Composable
-private fun AnniversaryStatusPill(item: AnniversaryUiModel) {
+private fun AnniversaryStatusText(item: AnniversaryUiModel) {
     val color = when (item.statusTone) {
         AnniversaryStatusTone.TODAY -> CherryPink
         AnniversaryStatusTone.UPCOMING -> CherryPink
         AnniversaryStatusTone.PASSED -> Color(0xFF4DB6AC)
         AnniversaryStatusTone.EXPIRED -> WarmGray
     }
-    Surface(
-        color = color.copy(alpha = if (item.statusTone == AnniversaryStatusTone.UPCOMING) 0.12f else 0.1f),
-        shape = RoundedCornerShape(999.dp),
-    ) {
-        Text(
-            text = item.statusText,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = color,
-        )
-    }
+    Text(
+        text = item.statusText,
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+        color = color,
+    )
 }
 
 @Composable
@@ -596,13 +611,13 @@ private fun AnniversaryEmojiPicker(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                row.forEach { emoji ->
-                    val selected = emoji == selectedEmoji
+                row.forEach { icon ->
+                    val selected = icon == normalizeAnniversaryIcon(selectedEmoji)
                     Surface(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp)
-                            .clickable { onSelect(emoji) },
+                            .clickable { onSelect(icon) },
                         shape = CircleShape,
                         color = if (selected) Color(0xFFFFF0F4) else Color(0xFFFFFBFC),
                         border = androidx.compose.foundation.BorderStroke(
@@ -611,9 +626,11 @@ private fun AnniversaryEmojiPicker(
                         ),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = emoji,
-                                fontSize = 21.sp,
+                            Icon(
+                                imageVector = anniversarySceneIcon(icon),
+                                contentDescription = anniversaryIconLabel(icon),
+                                modifier = Modifier.size(21.dp),
+                                tint = if (selected) CherryPink else WarmGray,
                             )
                         }
                     }

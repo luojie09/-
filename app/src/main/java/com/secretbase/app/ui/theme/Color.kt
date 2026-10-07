@@ -2,15 +2,14 @@ package com.secretbase.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val WarmBackground = Color(0xFFFFFBFA)
-val WarmBackgroundTop = Color(0xFFFFF4F6)
-val SurfaceWhite = Color(0xFFFFFFFF)
-val CherryPink = Color(0xFFFF6F95)
-val SoftPink = Color(0xFFFFD8E4)
-val SoftPinkStrong = Color(0xFFFFB7CC)
-val WarmGray = Color(0xFF8C8892)
-val InkBlack = Color(0xFF1F2024)
-val OutlinePink = Color(0xFFF3DFE6)
-val ShadowPink = Color(0x1F7A3949)
-val SuccessGreen = Color(0xFF63B574)
-
+val WarmBackground = Color(0xFFFFF8F5)
+val WarmBackgroundTop = Color(0xFFFFF0EC)
+val SurfaceWhite = Color(0xFFFFFEFC)
+val CherryPink = Color(0xFFE98998)
+val SoftPink = Color(0xFFF8D9DC)
+val SoftPinkStrong = Color(0xFFF1B8BF)
+val WarmGray = Color(0xFF88736F)
+val InkBlack = Color(0xFF302725)
+val OutlinePink = Color(0xFFEFE3DF)
+val ShadowPink = Color(0x196F4A45)
+val SuccessGreen = Color(0xFF5F9674)

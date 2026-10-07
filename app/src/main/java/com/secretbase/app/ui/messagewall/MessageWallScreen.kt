@@ -4,11 +4,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -22,12 +23,17 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +58,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secretbase.app.ui.common.SecretBasePageBackground
 import com.secretbase.app.ui.common.SecretBasePageTopBar
 import com.secretbase.app.ui.common.SecretBaseSnackbarHost
 import com.secretbase.app.ui.theme.CherryPink
@@ -61,6 +66,18 @@ import kotlinx.coroutines.launch
 import com.secretbase.app.ui.theme.InkBlack
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
+
+@Composable
+private fun MessageWallPageBackground(
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        content = content,
+    )
+}
 
 @Composable
 fun MessageWallScreen(
@@ -91,7 +108,7 @@ fun MessageWallScreen(
         bottomBar = bottomBar,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        SecretBasePageBackground {
+        MessageWallPageBackground {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
@@ -99,7 +116,7 @@ fun MessageWallScreen(
                     top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding() + 36.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 item {
                     SecretBasePageTopBar(
@@ -112,7 +129,14 @@ fun MessageWallScreen(
                         onActionClick = onOpenEditor,
                     )
                 }
-                if (uiState.messages.isEmpty()) {
+                if (uiState.isLoading) {
+                    item {
+                        MessageWallLoadingState(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                        )
+                    }
+                }
+                if (!uiState.isLoading && uiState.messages.isEmpty()) {
                     item {
                         Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                             MessageWallEmptyState(
@@ -121,7 +145,7 @@ fun MessageWallScreen(
                             )
                         }
                     }
-                } else {
+                } else if (!uiState.isLoading) {
                     items(
                         items = uiState.messages,
                         key = MessageUiModel::id,
@@ -129,19 +153,10 @@ fun MessageWallScreen(
                         Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                             MinimalMessageCard(
                                 message = message,
-                                isReplyActive = uiState.activeReplyMessageId == message.id,
-                                replyText = if (uiState.activeReplyMessageId == message.id) {
-                                    uiState.replyText
-                                } else {
-                                    ""
-                                },
                                 onReplyClick = {
                                     onReplyClick(message.id)
                                     onMarkMessageRead(message.id)
                                 },
-                                onReplyTextChange = onReplyTextChange,
-                                onSendReply = onSendReply,
-                                onCancelReply = onCancelReply,
                                 onToggleReplies = { onToggleReplies(message.id) },
                                 onDeleteMessage = { onDeleteMessage(message.id) },
                                 onDeleteReply = onDeleteReply,
@@ -156,7 +171,7 @@ fun MessageWallScreen(
             }
 
             AnimatedVisibility(
-                visible = uiState.errorMessage != null,
+                visible = uiState.errorMessage != null && uiState.activeReplyMessageId == null,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
@@ -178,6 +193,25 @@ fun MessageWallScreen(
                     }
                 }
             }
+
+            AnimatedVisibility(
+                visible = uiState.activeReplyMessageId != null,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .imePadding()
+                    .padding(
+                        start = 12.dp,
+                        end = 12.dp,
+                        bottom = innerPadding.calculateBottomPadding() + 8.dp,
+                    ),
+            ) {
+                MessageWallReplyBar(
+                    value = uiState.replyText,
+                    onValueChange = onReplyTextChange,
+                    onCancel = onCancelReply,
+                    onSend = onSendReply,
+                )
+            }
         }
     }
 
@@ -195,14 +229,11 @@ fun MessageWallScreen(
 private fun QuickMessageComposer(
     draftText: String,
     selectedImages: List<String>,
-    isPublishing: Boolean,
     onDraftTextChange: (String) -> Unit,
     onAddImages: () -> Unit,
     onRemoveSelectedImage: (String) -> Unit,
-    onPublish: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val canPublish = !isPublishing && (draftText.isNotBlank() || selectedImages.isNotEmpty())
     var editorValue by remember {
         mutableStateOf(
             TextFieldValue(
@@ -221,132 +252,95 @@ private fun QuickMessageComposer(
         }
     }
 
-    Surface(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        color = SurfaceWhite,
-        shadowElevation = 0.dp,
-        tonalElevation = 0.dp,
-        shape = RoundedCornerShape(24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        Column(
+        BasicTextField(
+            value = editorValue,
+            onValueChange = { nextValue ->
+                editorValue = nextValue
+                onDraftTextChange(nextValue.text)
+            },
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            BasicTextField(
-                value = editorValue,
-                onValueChange = { nextValue ->
-                    editorValue = nextValue
-                    onDraftTextChange(nextValue.text)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .heightIn(min = 180.dp),
-                textStyle = MaterialTheme.typography.titleMedium.copy(
-                    color = InkBlack,
-                    fontWeight = FontWeight.Medium,
-                    lineHeight = 28.sp,
-                ),
-                decorationBox = { innerTextField ->
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        if (editorValue.text.isEmpty()) {
-                            Text(
-                                text = "写下你想说的......",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    color = WarmGray,
-                                    fontWeight = FontWeight.Medium,
-                                ),
-                            )
-                        }
-                        innerTextField()
+                .fillMaxWidth()
+                .heightIn(min = 220.dp),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = InkBlack,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 26.sp,
+            ),
+            decorationBox = { innerTextField ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    if (editorValue.text.isEmpty()) {
+                        Text(
+                            text = "这一刻的想法...",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = WarmGray,
+                                fontWeight = FontWeight.Medium,
+                            ),
+                        )
                     }
-                },
-            )
-
-            if (selectedImages.isNotEmpty()) {
-                SelectedImageStrip(
-                    images = selectedImages,
-                    onRemove = onRemoveSelectedImage,
-                )
+                    innerTextField()
+                }
             }
+        )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(Color(0xFFF3EDEF)),
+        EditorSelectedImageGrid(
+            images = selectedImages,
+            onRemove = onRemoveSelectedImage,
+            onAdd = onAddImages,
+        )
+    }
+}
+
+@Composable
+private fun MessageEditorTopBar(
+    canPublish: Boolean,
+    isPublishing: Boolean,
+    onBack: () -> Unit,
+    onPublish: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .height(56.dp)
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clickable(onClick = onBack),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = "返回",
+                tint = InkBlack,
+                modifier = Modifier.size(22.dp),
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                EditorPhotoAction(onClick = onAddImages)
-                EditorPublishButton(
-                    text = when {
-                        isPublishing && selectedImages.any(String::isLocalImageReference) -> "上传图片中…"
-                        isPublishing -> "发布中…"
-                        else -> "发布"
-                    },
-                    enabled = canPublish,
+        }
+        Text(
+            text = "写留言",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            color = InkBlack,
+        )
+        Text(
+            text = if (isPublishing) "发表中" else "发表",
+            modifier = Modifier
+                .heightIn(min = 48.dp)
+                .clickable(
+                    enabled = canPublish && !isPublishing,
                     onClick = onPublish,
                 )
-            }
-        }
-    }
-}
-
-private fun String.isLocalImageReference(): Boolean =
-    startsWith("content://", ignoreCase = true) || startsWith("file://", ignoreCase = true)
-
-@Composable
-private fun EditorPhotoAction(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.clickable(onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Image,
-            contentDescription = "添加照片",
-            tint = WarmGray,
-            modifier = Modifier.size(20.dp),
-        )
-        Text(
-            text = "照片",
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-            color = WarmGray,
-        )
-    }
-}
-
-@Composable
-private fun EditorPublishButton(
-    text: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
-        color = if (enabled) CherryPink else Color(0xFFEDE7EA),
-        shape = RoundedCornerShape(999.dp),
-        shadowElevation = 0.dp,
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (enabled) CherryPink.copy(alpha = 0.18f) else Color(0xFFE4DDE1),
-        ),
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 11.dp),
+                .padding(horizontal = 12.dp, vertical = 13.dp),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.SemiBold,
             ),
-            color = if (enabled) SurfaceWhite else WarmGray,
+            color = if (canPublish && !isPublishing) CherryPink else WarmGray.copy(alpha = 0.55f),
         )
     }
 }
@@ -380,31 +374,168 @@ fun MessageWallEditorScreen(
         snackbarHost = { SecretBaseSnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        SecretBasePageBackground {
+        MessageWallPageBackground {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = innerPadding.calculateBottomPadding() + 28.dp)
                     .imePadding(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                SecretBasePageTopBar(
-                    title = "写留言",
+                MessageEditorTopBar(
+                    canPublish = uiState.draftText.isNotBlank() || uiState.selectedImages.isNotEmpty(),
+                    isPublishing = uiState.isPublishing,
                     onBack = onBack,
+                    onPublish = onPublish,
                 )
                 QuickMessageComposer(
                     draftText = uiState.draftText,
                     selectedImages = uiState.selectedImages,
-                    isPublishing = uiState.isPublishing,
                     onDraftTextChange = onDraftTextChange,
                     onAddImages = { imagePickerLauncher.launch("image/*") },
                     onRemoveSelectedImage = onRemoveSelectedImage,
-                    onPublish = onPublish,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .weight(1f),
+                        .padding(horizontal = 20.dp, vertical = 18.dp)
+                        .padding(bottom = innerPadding.calculateBottomPadding()),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MessageWallLoadingState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        repeat(2) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xFFFFFCFB),
+                shape = RoundedCornerShape(22.dp),
+                shadowElevation = 0.dp,
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .background(Color(0xFFF4ECEC), RoundedCornerShape(999.dp)),
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .width(72.dp)
+                                    .height(12.dp)
+                                    .background(Color(0xFFF1E9E9), RoundedCornerShape(999.dp)),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .width(108.dp)
+                                    .height(9.dp)
+                                    .background(Color(0xFFF5EEEE), RoundedCornerShape(999.dp)),
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(14.dp)
+                            .background(Color(0xFFF2EAEA), RoundedCornerShape(999.dp)),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.72f)
+                            .height(14.dp)
+                            .background(Color(0xFFF5EEEE), RoundedCornerShape(999.dp)),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditorSelectedImageGrid(
+    images: List<String>,
+    onRemove: (String) -> Unit,
+    onAdd: () -> Unit,
+) {
+    val cells = buildList<String?> {
+        addAll(images)
+        if (images.size < 9) add(null)
+    }
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        cells.chunked(3).forEach { rowImages ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                rowImages.forEach { imagePath ->
+                    if (imagePath == null) {
+                        Surface(
+                            onClick = onAdd,
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f),
+                            color = Color(0xFFF5F1F2),
+                            shape = RoundedCornerShape(12.dp),
+                            shadowElevation = 0.dp,
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Image,
+                                    contentDescription = "添加照片",
+                                    tint = WarmGray,
+                                    modifier = Modifier.size(28.dp),
+                                )
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f),
+                        ) {
+                            MessageMedia(
+                                imagePath = imagePath,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(12.dp)),
+                            )
+                            Surface(
+                                onClick = { onRemove(imagePath) },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(5.dp)
+                                    .size(28.dp),
+                                shape = RoundedCornerShape(999.dp),
+                                color = Color.Black.copy(alpha = 0.48f),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = "移除图片",
+                                        tint = SurfaceWhite,
+                                        modifier = Modifier.size(15.dp),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                repeat(3 - rowImages.size) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
     }
@@ -438,10 +569,18 @@ private fun MessageWallEmptyState(
             style = MaterialTheme.typography.bodyMedium,
             color = WarmGray,
         )
-        EditorPublishButton(
-            text = "写留言",
-            enabled = true,
+        Surface(
             onClick = onWriteMessage,
-        )
+            color = CherryPink,
+            shape = RoundedCornerShape(18.dp),
+            shadowElevation = 0.dp,
+        ) {
+            Text(
+                text = "写留言",
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 11.dp),
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = SurfaceWhite,
+            )
+        }
     }
 }

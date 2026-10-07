@@ -29,6 +29,8 @@ data class MessageUiModel(
     val timeText: String,
     val isMine: Boolean,
     val isEdited: Boolean,
+    val readStatusText: String? = null,
+    val isUnread: Boolean = false,
     val replyCount: Int,
     val likeCount: Int,
     val isLiked: Boolean,

@@ -1,30 +1,35 @@
 package com.secretbase.app.ui.messagewall
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.animation.core.Spring
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material3.AlertDialog
@@ -37,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,26 +51,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
-import com.secretbase.app.ui.theme.SoftPink
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmGray
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun MinimalMessageCard(
     message: MessageUiModel,
-    isReplyActive: Boolean,
-    replyText: String,
     onReplyClick: () -> Unit,
-    onReplyTextChange: (String) -> Unit,
-    onSendReply: () -> Unit,
-    onCancelReply: () -> Unit,
     onToggleReplies: () -> Unit,
     onDeleteMessage: () -> Unit,
     onDeleteReply: (String) -> Unit,
@@ -77,15 +91,6 @@ fun MinimalMessageCard(
     var confirmDeleteMessage by remember(message.id) { mutableStateOf(false) }
     var confirmDeleteReplyId by remember(message.id) { mutableStateOf<String?>(null) }
     var viewerIndex by remember(message.id) { mutableIntStateOf(-1) }
-    val likeScale by animateFloatAsState(
-        targetValue = if (message.isLiked) 1.16f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "message-like-scale",
-    )
-
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -94,17 +99,17 @@ fun MinimalMessageCard(
                 indication = null,
                 onClick = onCardOpened,
             ),
-        color = Color(0xFFFFFDFC),
+        color = SurfaceWhite,
         shape = RoundedCornerShape(22.dp),
         tonalElevation = 0.dp,
-        shadowElevation = 2.dp,
-        border = BorderStroke(1.dp, Color(0xFFF3ECEF)),
+        shadowElevation = 0.dp,
+        border = null,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -112,47 +117,59 @@ fun MinimalMessageCard(
             ) {
                 AvatarBubble(
                     avatarRes = message.avatarRes,
-                    modifier = Modifier.size(42.dp),
+                    modifier = Modifier.size(40.dp),
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
                 ) {
                     Text(
                         text = message.authorName,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontSize = 18.sp,
-                            lineHeight = 22.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp,
+                            lineHeight = 21.sp,
+                            fontWeight = FontWeight.SemiBold,
                         ),
                         color = InkBlack,
                     )
-                    Text(
-                        text = buildString {
-                            append(message.timeText)
-                            if (message.isEdited) {
-                                append(" · 已编辑")
-                            }
-                        },
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Medium,
-                        ),
-                        color = WarmGray,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            text = message.timeText,
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                            color = WarmGray,
+                        )
+                        if (message.isEdited) {
+                            Text(
+                                text = "已编辑",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                                color = WarmGray,
+                            )
+                        }
+                        message.readStatusText?.let { status ->
+                            Text(
+                                text = status,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = if (message.isUnread) CherryPink else WarmGray,
+                            )
+                        }
+                    }
                 }
                 Box {
                     IconButton(
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(40.dp),
                         onClick = { showActions = true },
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.MoreHoriz,
                             contentDescription = "更多操作",
-                            tint = WarmGray.copy(alpha = 0.46f),
-                            modifier = Modifier.size(10.dp),
+                            tint = WarmGray.copy(alpha = 0.72f),
+                            modifier = Modifier.size(19.dp),
                         )
                     }
                     DropdownMenu(
@@ -180,6 +197,7 @@ fun MinimalMessageCard(
                                 onClick = {
                                     showActions = false
                                     onReplyClick()
+                                    onCardOpened()
                                 },
                             )
                         }
@@ -193,7 +211,7 @@ fun MinimalMessageCard(
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontSize = 15.sp,
                         lineHeight = 25.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Medium,
                     ),
                     color = InkBlack,
                 )
@@ -202,6 +220,7 @@ fun MinimalMessageCard(
             if (message.imagePaths.isNotEmpty()) {
                 MessageImageGrid(
                     imagePaths = message.imagePaths,
+                    maxVisibleImages = 4,
                     modifier = Modifier.fillMaxWidth(),
                     onImageClick = { index ->
                         viewerIndex = index
@@ -211,15 +230,13 @@ fun MinimalMessageCard(
             }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(22.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                MinimalMessageAction(
-                    icon = if (message.isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                AnimatedLikeAction(
                     label = if (message.likeCount > 0) "赞 ${message.likeCount}" else "赞",
-                    tint = if (message.isLiked) CherryPink else WarmGray,
                     selected = message.isLiked,
-                    iconScale = likeScale,
                     onClick = {
                         onLikeClick()
                         onCardOpened()
@@ -229,20 +246,21 @@ fun MinimalMessageCard(
                     icon = Icons.Outlined.ChatBubbleOutline,
                     label = if (message.replyCount > 0) "评论 ${message.replyCount}" else "评论",
                     tint = WarmGray,
-                    onClick = onReplyClick,
+                    onClick = {
+                        onReplyClick()
+                        onCardOpened()
+                    },
                 )
             }
 
-            MinimalReplySection(
+            FeedReplyPreview(
                 message = message,
-                isReplyActive = isReplyActive,
-                replyText = replyText,
-                onReplyTextChange = onReplyTextChange,
-                onSendReply = onSendReply,
-                onCancelReply = onCancelReply,
-                onDeleteReply = { confirmDeleteReplyId = it },
+                onOpenReply = {
+                    onReplyClick()
+                    onCardOpened()
+                },
                 onToggleReplies = onToggleReplies,
-                onReplyClick = onReplyClick,
+                onDeleteReply = { confirmDeleteReplyId = it },
             )
         }
     }
@@ -278,10 +296,134 @@ fun MinimalMessageCard(
             onDismiss = { viewerIndex = -1 },
         )
     }
+
+}
+
+@Composable
+private fun AnimatedLikeAction(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.9f else 1f,
+        animationSpec = tween(
+            durationMillis = if (isPressed) 70 else 150,
+            easing = FastOutSlowInEasing,
+        ),
+        label = "like-press-scale",
+    )
+    val heartColor by animateColorAsState(
+        targetValue = if (selected) CherryPink else WarmGray,
+        animationSpec = tween(durationMillis = 180),
+        label = "like-color",
+    )
+    val heartScale = remember { Animatable(1f) }
+    val burstProgress = remember { Animatable(1f) }
+    var previousSelected by remember { mutableStateOf(selected) }
+    val haptics = LocalHapticFeedback.current
+
+    LaunchedEffect(selected) {
+        val shouldCelebrate = selected && !previousSelected
+        previousSelected = selected
+        if (shouldCelebrate) {
+            heartScale.snapTo(0.72f)
+            burstProgress.snapTo(0f)
+            coroutineScope {
+                launch {
+                    heartScale.animateTo(
+                        targetValue = 1f,
+                        animationSpec = keyframes {
+                            durationMillis = 430
+                            1.28f at 140 using LinearOutSlowInEasing
+                            0.94f at 270 using FastOutSlowInEasing
+                            1f at 430
+                        },
+                    )
+                }
+                launch {
+                    burstProgress.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(
+                            durationMillis = 390,
+                            easing = LinearOutSlowInEasing,
+                        ),
+                    )
+                }
+            }
+        } else if (!selected) {
+            heartScale.snapTo(1f)
+            burstProgress.snapTo(1f)
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .heightIn(min = 44.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = {
+                    if (!selected) {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    }
+                    onClick()
+                },
+            )
+            .padding(horizontal = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier.size(26.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Canvas(modifier = Modifier.size(26.dp)) {
+                val progress = burstProgress.value
+                if (progress < 1f) {
+                    val fade = (1f - progress).coerceIn(0f, 1f)
+                    val centerRadius = size.minDimension * (0.2f + 0.3f * progress)
+                    drawCircle(
+                        color = CherryPink.copy(alpha = fade * 0.42f),
+                        radius = centerRadius,
+                        style = Stroke(width = 1.4.dp.toPx()),
+                    )
+                    repeat(8) { index ->
+                        val angle = (2.0 * PI * index / 8.0) - (PI / 2.0)
+                        val distance = size.minDimension * (0.25f + 0.24f * progress)
+                        drawCircle(
+                            color = CherryPink.copy(alpha = fade * 0.76f),
+                            radius = (1.7.dp.toPx() * fade).coerceAtLeast(0.35.dp.toPx()),
+                            center = center + androidx.compose.ui.geometry.Offset(
+                                x = (cos(angle) * distance).toFloat(),
+                                y = (sin(angle) * distance).toFloat(),
+                            ),
+                        )
+                    }
+                }
+            }
+            Icon(
+                imageVector = if (selected) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                contentDescription = label,
+                tint = heartColor,
+                modifier = Modifier
+                    .size(18.dp)
+                    .scale(pressScale * heartScale.value),
+            )
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+            color = if (selected) CherryPink else WarmGray,
+        )
+    }
 }
 
 @Composable
 private fun MinimalMessageAction(
+    modifier: Modifier = Modifier,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     tint: Color,
@@ -290,9 +432,10 @@ private fun MinimalMessageAction(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
+            .heightIn(min = 44.dp)
             .clickable(onClick = onClick)
-            .padding(vertical = 4.dp),
+            .padding(horizontal = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -313,204 +456,167 @@ private fun MinimalMessageAction(
 }
 
 @Composable
-private fun MinimalReplySection(
+private fun FeedReplyPreview(
     message: MessageUiModel,
-    isReplyActive: Boolean,
-    replyText: String,
-    onReplyTextChange: (String) -> Unit,
-    onSendReply: () -> Unit,
-    onCancelReply: () -> Unit,
-    onDeleteReply: (String) -> Unit,
+    onOpenReply: () -> Unit,
     onToggleReplies: () -> Unit,
-    onReplyClick: () -> Unit,
+    onDeleteReply: (String) -> Unit,
 ) {
-    Column(
+    if (message.replyCount == 0) return
+
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        color = Color(0xFFFFF5F3),
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 0.dp,
     ) {
-        if (message.replyCount > 0) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Box(
-                    modifier = Modifier
-                        .padding(top = 6.dp, bottom = 6.dp, start = 2.dp)
-                        .width(1.dp)
-                        .fillMaxHeight()
-                        .background(Color(0xFFEFE7EB)),
-                )
-                Column(
-                    modifier = Modifier.padding(start = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    message.visibleReplies.forEach { reply ->
-                        MinimalReplyItem(
-                            reply = reply,
-                            onDelete = { onDeleteReply(reply.id) },
-                            onClick = onReplyClick,
-                        )
-                    }
-                    if (message.hiddenReplyCount > 0) {
-                        ReplyTogglePill(
-                            text = "查看全部 ${message.replyCount} 条评论",
-                            onClick = onToggleReplies,
-                        )
-                    } else if (message.replyCount > 3) {
-                        ReplyTogglePill(
-                            text = "收起评论",
-                            onClick = onToggleReplies,
-                        )
-                    }
-                }
-            }
-        }
-
-        if (isReplyActive) {
-            MinimalReplyComposer(
-                value = replyText,
-                onValueChange = onReplyTextChange,
-                onCancel = onCancelReply,
-                onSend = onSendReply,
-            )
-        }
-    }
-}
-
-@Composable
-private fun MinimalReplyItem(
-    reply: MessageReplyUiModel,
-    onDelete: () -> Unit,
-    onClick: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 2.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp),
         ) {
-            Text(
-                text = reply.authorName,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = InkBlack,
-            )
-            reply.replyToAuthorName?.let { targetName ->
-                Spacer(modifier = Modifier.size(6.dp))
-                Text(
-                    text = "回复 $targetName",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                    color = CherryPink.copy(alpha = 0.78f),
+            message.visibleReplies.forEach { reply ->
+                MomentCommentLine(
+                    reply = reply,
+                    onClick = onOpenReply,
+                    onDelete = { onDeleteReply(reply.id) },
                 )
             }
-            Spacer(modifier = Modifier.size(6.dp))
-            Text(
-                text = reply.timeText,
-                style = MaterialTheme.typography.labelSmall,
-                color = WarmGray,
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            if (reply.canDelete) {
+            if (message.hiddenReplyCount > 0) {
                 Text(
-                    text = "删除",
-                    modifier = Modifier.clickable(onClick = onDelete),
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                    text = "查看全部 ${message.replyCount} 条评论",
+                    modifier = Modifier
+                        .clickable(onClick = onToggleReplies)
+                        .padding(top = 2.dp, bottom = 1.dp),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+                    color = WarmGray,
+                )
+            } else if (message.replyCount > 3) {
+                Text(
+                    text = "收起评论",
+                    modifier = Modifier
+                        .clickable(onClick = onToggleReplies)
+                        .padding(top = 2.dp, bottom = 1.dp),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
                     color = WarmGray,
                 )
             }
         }
-        Text(
-            text = reply.content,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Medium,
-                lineHeight = 22.sp,
-            ),
-            color = InkBlack,
-        )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ReplyTogglePill(
-    text: String,
+private fun MomentCommentLine(
+    reply: MessageReplyUiModel,
     onClick: () -> Unit,
+    onDelete: () -> Unit,
 ) {
-    Surface(
-        onClick = onClick,
-        color = Color.Transparent,
-        shape = RoundedCornerShape(999.dp),
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 2.dp, vertical = 7.dp),
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-            color = WarmGray,
-        )
-    }
+    Text(
+        text = buildAnnotatedString {
+            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                append(reply.authorName)
+            }
+            append("：")
+            append(reply.content)
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = if (reply.canDelete) onDelete else null,
+            )
+            .padding(vertical = 1.dp),
+        style = MaterialTheme.typography.bodyMedium.copy(
+            fontWeight = FontWeight.Normal,
+            lineHeight = 20.sp,
+        ),
+        color = InkBlack,
+    )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MinimalReplyComposer(
+fun MessageWallReplyBar(
     value: String,
     onValueChange: (String) -> Unit,
     onCancel: () -> Unit,
     onSend: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        delay(120)
+        focusRequester.requestFocus()
+        bringIntoViewRequester.bringIntoView()
+    }
+
     Surface(
-        color = Color(0xFFFAF7F8),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFFF1EAEE)),
+        modifier = modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester),
+        color = SurfaceWhite,
+        shape = RoundedCornerShape(22.dp),
+        shadowElevation = 5.dp,
+        border = null,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    color = InkBlack,
-                    fontWeight = FontWeight.Medium,
-                ),
-                decorationBox = { innerTextField ->
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        if (value.isEmpty()) {
-                            Text(
-                                text = "回复…",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = WarmGray,
-                            )
-                        }
-                        innerTextField()
-                    }
-                },
-            )
-            TextButton(onClick = onCancel) {
-                Text("取消", color = WarmGray)
+            IconButton(onClick = onCancel) {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = "取消评论",
+                    tint = WarmGray,
+                    modifier = Modifier.size(19.dp),
+                )
             }
             Surface(
+                modifier = Modifier.weight(1f),
+                color = Color(0xFFFFF5F3),
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester)
+                        .padding(horizontal = 12.dp, vertical = 11.dp),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        color = InkBlack,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                    decorationBox = { innerTextField ->
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            if (value.isEmpty()) {
+                                Text(
+                                    text = "评论…",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = WarmGray,
+                                )
+                            }
+                            innerTextField()
+                        }
+                    },
+                )
+            }
+            TextButton(
                 onClick = onSend,
                 enabled = value.isNotBlank(),
-                shape = CircleShape,
-                color = if (value.isNotBlank()) CherryPink else Color(0xFFF0EAED),
+                modifier = Modifier.heightIn(min = 48.dp),
             ) {
-                Box(
-                    modifier = Modifier.size(32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.Send,
-                        contentDescription = "发送回复",
-                        tint = if (value.isNotBlank()) SurfaceWhite else WarmGray.copy(alpha = 0.62f),
-                        modifier = Modifier.size(15.dp),
-                    )
-                }
+                Text(
+                    text = "发送",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = if (value.isNotBlank()) CherryPink else WarmGray.copy(alpha = 0.56f),
+                )
             }
         }
     }
@@ -548,7 +654,7 @@ private fun MinimalConfirmationDialog(
                 Text("取消", color = WarmGray)
             }
         },
-        containerColor = SoftPink.copy(alpha = 0.96f),
-        shape = RoundedCornerShape(16.dp),
+        containerColor = SurfaceWhite,
+        shape = RoundedCornerShape(20.dp),
     )
 }

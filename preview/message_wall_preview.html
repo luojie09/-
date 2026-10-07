@@ -9,8 +9,8 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
     :root{
-      --bg:#fffdfd;
-      --bg-top:#fff6f8;
+      --bg:#fff;
+      --bg-top:#fff;
       --surface:rgba(255,255,255,.94);
       --surface-strong:#fffdfd;
       --line:#f2eaee;
@@ -33,7 +33,7 @@
     *{box-sizing:border-box}
     html,body{
       margin:0;
-      background:#f6f1f3;
+      background:#fff;
       font-family:var(--font-body);
       color:var(--ink);
       -webkit-font-smoothing:antialiased;
@@ -45,7 +45,7 @@
     .phone{
       width:min(100%,var(--phone-width));
       min-height:var(--phone-height);
-      background:linear-gradient(180deg,var(--bg-top) 0%, var(--bg) 100%);
+      background:#fff;
       border-radius:38px;
       border:1px solid rgba(255,255,255,.88);
       overflow:hidden;
@@ -55,8 +55,20 @@
 
     .scroll{
       min-height:100%;
+      background:#fff;
       padding:calc(18px + env(safe-area-inset-top)) 20px calc(112px + env(safe-area-inset-bottom));
       overflow:auto;
+    }
+
+    /* Keep this preview route aligned with the white Android message-wall canvas. */
+    body.theme-secondary{
+      --bg:#fff !important;
+      --bg-top:#fff !important;
+      background:#fff !important;
+    }
+    .theme-secondary .phone,
+    .theme-secondary .scroll{
+      background:#fff !important;
     }
 
     .topbar{
@@ -79,11 +91,11 @@
       width:44px;
       height:44px;
       border-radius:50%;
-      border:1px solid rgba(236,230,234,.9);
-      background:rgba(255,255,255,.82);
+      border:0;
+      background:transparent;
       display:grid;
       place-items:center;
-      box-shadow:0 1px 6px rgba(53,37,45,.04);
+      box-shadow:none;
       color:var(--pink);
       cursor:pointer;
       backdrop-filter:blur(12px);
@@ -139,15 +151,15 @@
     .feed{
       display:flex;
       flex-direction:column;
-      gap:18px;
+      gap:12px;
     }
 
     .message-card{
       background:var(--surface);
-      border:1px solid var(--line);
+      border:0;
       border-radius:var(--radius-xl);
-      box-shadow:var(--shadow);
-      padding:18px;
+      box-shadow:none;
+      padding:16px;
     }
 
     .message-head{
@@ -157,8 +169,8 @@
     }
 
     .avatar{
-      width:42px;
-      height:42px;
+      width:40px;
+      height:40px;
       border-radius:50%;
       border:1px solid #f2eaee;
       background:#fff;
@@ -183,9 +195,9 @@
     }
 
     .author-name{
-      font-size:18px;
+      font-size:17px;
       font-family:var(--font-heading);
-      font-weight:700;
+      font-weight:600;
       line-height:1.2;
       letter-spacing:-.008em;
     }
@@ -197,6 +209,8 @@
       font-family:var(--font-number);
       font-variant-numeric:tabular-nums;
     }
+    .read-status{margin-left:6px;font-weight:600}
+    .read-status.unread{color:var(--pink)}
 
     .text-btn{
       border:none;
@@ -209,14 +223,14 @@
 
     .more-wrap{position:relative}
     .more-btn{
-      width:28px;
-      height:28px;
+      width:40px;
+      height:40px;
       display:grid;
       place-items:center;
-      font-size:10px;
+      font-size:16px;
       letter-spacing:.02em;
       line-height:1;
-      color:rgba(143,137,145,.48);
+      color:rgba(143,137,145,.72);
     }
 
     .more-menu{
@@ -250,7 +264,7 @@
     .more-menu button.danger{color:var(--pink)}
 
     .message-content{
-      margin:14px 0 0;
+      margin:12px 0 0;
       font-size:15px;
       line-height:1.72;
       font-weight:500;
@@ -258,15 +272,26 @@
 
     .message-images{
       width:100%;
-      margin-top:16px;
+      margin-top:12px;
       display:grid;
-      gap:8px;
+      gap:6px;
     }
 
-    .message-images > div{min-width:0}
+    .message-images > div{min-width:0;position:relative}
     .message-images.cols-1{grid-template-columns:minmax(0,1fr)}
     .message-images.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
     .message-images.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+    .media-overflow{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      background:rgba(26,20,24,.48);
+      color:#fff;
+      font-size:24px;
+      font-weight:700;
+    }
 
     .media{
       width:100%;
@@ -324,7 +349,7 @@
     .mock-note{background:linear-gradient(135deg,#f6d6ff,#ffd6e8)}
 
     .message-actions{
-      margin-top:16px;
+      margin-top:8px;
       display:flex;
       align-items:center;
       gap:16px;
@@ -335,7 +360,8 @@
     .reply-toggle{
       border:none;
       background:none;
-      padding:0;
+      min-height:44px;
+      padding:0 2px;
       display:flex;
       align-items:center;
       gap:6px;
@@ -344,61 +370,152 @@
       cursor:pointer;
       font-variant-numeric:tabular-nums;
     }
+    .message-actions button{flex:none;justify-content:flex-start}
 
     .message-actions svg{width:18px;height:18px}
     .message-actions .heart svg{color:var(--pink)}
     .message-actions .heart{
-      transition:color .18s ease, transform .18s ease;
+      transition:color .18s ease;
     }
-    .message-actions .heart svg{
-      transition:transform .22s cubic-bezier(.2,1.4,.4,1), fill .18s ease;
+    .message-actions .heart:active .heart-visual{
+      transform:scale(.9);
     }
     .message-actions .heart.liked{
       color:var(--pink);
     }
     .message-actions .heart.liked svg{
       fill:currentColor;
-      transform:scale(1.16);
     }
-    .message-actions .heart.pop svg{
-      animation:heart-pop .28s cubic-bezier(.2,1.45,.35,1);
+
+    .heart-visual{
+      width:26px;
+      height:26px;
+      position:relative;
+      display:grid;
+      place-items:center;
+      transition:transform .14s cubic-bezier(.22,1,.36,1);
+    }
+
+    .heart-visual svg{
+      position:relative;
+      z-index:2;
+      width:18px;
+      height:18px;
+      transition:fill .18s ease,color .18s ease;
+    }
+
+    .heart-ring,
+    .heart-particles{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+    }
+
+    .heart-ring{
+      border:1.5px solid var(--pink);
+      border-radius:50%;
+      opacity:0;
+      transform:scale(.28);
+    }
+
+    .heart-particles i{
+      --angle:0deg;
+      position:absolute;
+      top:50%;
+      left:50%;
+      width:4px;
+      height:4px;
+      margin:-2px;
+      border-radius:50%;
+      background:var(--pink);
+      opacity:0;
+      transform:rotate(var(--angle)) translateY(-5px) scale(.8);
+    }
+
+    .heart-particles i:nth-child(1){--angle:0deg}
+    .heart-particles i:nth-child(2){--angle:45deg}
+    .heart-particles i:nth-child(3){--angle:90deg}
+    .heart-particles i:nth-child(4){--angle:135deg}
+    .heart-particles i:nth-child(5){--angle:180deg}
+    .heart-particles i:nth-child(6){--angle:225deg}
+    .heart-particles i:nth-child(7){--angle:270deg}
+    .heart-particles i:nth-child(8){--angle:315deg}
+
+    .message-actions .heart.pop .heart-visual svg{
+      animation:heart-pop .43s both;
+    }
+    .message-actions .heart.pop .heart-ring{
+      animation:heart-ring .39s cubic-bezier(.22,1,.36,1) both;
+    }
+    .message-actions .heart.pop .heart-particles i{
+      animation:heart-spark .39s cubic-bezier(.22,1,.36,1) both;
     }
 
     @keyframes heart-pop{
-      0%{transform:scale(.86)}
-      58%{transform:scale(1.28)}
-      100%{transform:scale(1.08)}
+      0%{transform:scale(.72)}
+      33%{transform:scale(1.28)}
+      63%{transform:scale(.94)}
+      100%{transform:scale(1)}
+    }
+    @keyframes heart-ring{
+      0%{opacity:.48;transform:scale(.28)}
+      100%{opacity:0;transform:scale(1.08)}
+    }
+    @keyframes heart-spark{
+      0%{opacity:.8;transform:rotate(var(--angle)) translateY(-5px) scale(.85)}
+      100%{opacity:0;transform:rotate(var(--angle)) translateY(-13px) scale(.2)}
     }
 
-    .reply-list{
-      position:relative;
-      margin-top:14px;
-      padding-left:16px;
+    .comment-preview{
+      margin-top:2px;
+      padding:10px 12px;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:7px;
+      border-radius:12px;
+      background:#fff5f3;
+      cursor:pointer;
     }
 
-    .reply-list::before{
-      content:"";
-      position:absolute;
-      left:2px;
-      top:6px;
-      bottom:6px;
-      width:1px;
-      background:#efe7eb;
+    .comment-preview-all{font-size:12px;color:var(--muted);font-weight:500}
+    .comment-preview-line{display:flex;align-items:flex-start;gap:0;font-size:13px;line-height:1.5}
+    .comment-preview-name{font-weight:700;white-space:nowrap}
+    .comment-preview-target{color:var(--ink);white-space:nowrap}
+    .comment-preview-text{min-width:0;margin-left:2px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+
+    .moment-reply-bar{
+      position:fixed;
+      left:50%;
+      bottom:78px;
+      transform:translateX(-50%);
+      width:min(calc(100% - 24px),369px);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px;
+      border-radius:22px;
+      background:var(--surface-strong);
+      box-shadow:0 8px 28px rgba(55,31,39,.16);
+      z-index:80;
     }
+    .moment-reply-bar textarea{flex:1;min-height:42px;max-height:88px;resize:none;border:0;outline:0;border-radius:16px;background:#fff5f3;padding:10px 12px;color:var(--ink);font:500 14px/1.45 var(--font-body)}
+    .moment-reply-bar .cancel-reply{width:40px;height:40px;color:var(--muted);backdrop-filter:none}
+    .moment-send{min-width:52px;height:44px;border:0;background:transparent;color:rgba(143,137,145,.58);font:700 14px/1 var(--font-body);cursor:pointer}
+    .moment-send.active{color:var(--pink)}
 
     .reply-item{
       display:flex;
-      flex-direction:column;
-      gap:4px;
+      align-items:flex-start;
+      gap:9px;
       padding:3px 0;
       border-radius:10px;
       cursor:pointer;
       transition:background .16s ease;
     }
     .reply-item:active{background:rgba(255,111,149,.05)}
+    .reply-avatar{width:28px;height:28px;flex:none;border-radius:50%;overflow:hidden;background:#fff;border:1px solid var(--line)}
+    .reply-avatar img{width:100%;height:100%;display:block;object-fit:cover}
+    .reply-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
 
     .reply-meta{
       display:flex;
@@ -449,11 +566,14 @@
     }
 
     .reply-box{
-      margin-top:14px;
-      border-radius:16px;
-      background:#faf7f8;
-      border:1px solid var(--line);
+      margin-top:10px;
+      border-radius:18px;
+      background:#fff7f4;
+      border:0;
       padding:10px 12px;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
 
     .reply-box textarea,
@@ -468,7 +588,7 @@
       font:500 15px/1.5 var(--font-body);
     }
 
-    .reply-box textarea{min-height:22px}
+    .reply-box textarea{min-height:22px;flex:1}
     .reply-box textarea::placeholder,
     .edit-sheet textarea::placeholder{color:var(--muted)}
 
@@ -477,12 +597,12 @@
       justify-content:flex-end;
       align-items:center;
       gap:8px;
-      margin-top:8px;
+      margin-top:0;
     }
 
     .reply-send{
-      width:32px;
-      height:32px;
+      width:40px;
+      height:40px;
       border:none;
       border-radius:50%;
       display:grid;
@@ -497,7 +617,38 @@
       color:#fff;
     }
 
-    .reply-send svg{width:15px;height:15px}
+    .reply-send svg{width:17px;height:17px}
+
+    .comments-overlay{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      background:rgba(29,25,28,.34);
+      z-index:100;
+    }
+
+    .comments-overlay.show{display:flex}
+    .comments-sheet{
+      width:min(100%,393px);
+      height:min(82vh,700px);
+      display:flex;
+      flex-direction:column;
+      background:var(--surface-strong);
+      border-radius:24px 24px 0 0;
+      overflow:hidden;
+      box-shadow:0 -14px 40px rgba(42,24,32,.14);
+    }
+    .comments-head{display:flex;align-items:center;padding:12px 10px 10px 20px;border-bottom:1px solid var(--line)}
+    .comments-head strong{flex:1;font-size:16px}
+    .comments-close{color:var(--muted);backdrop-filter:none}
+    .comments-list{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:18px}
+    .comments-list .reply-item{cursor:default}
+    .comments-empty{margin:auto;color:var(--muted);font-size:13px}
+    .comments-composer{display:flex;align-items:center;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--surface-strong)}
+    .comments-composer textarea{flex:1;min-height:42px;max-height:96px;resize:none;border:0;outline:0;border-radius:18px;background:#fff6f7;padding:10px 13px;color:var(--ink);font:500 14px/1.45 var(--font-body)}
+    .confirm-overlay{z-index:120}
 
     .viewer,
     .edit-overlay,
@@ -577,8 +728,8 @@
 
     .sheet{
       width:min(100%,408px);
-      border-radius:24px;
-      background:#fff;
+      border-radius:20px;
+      background:#fffdfc;
       box-shadow:0 18px 44px rgba(33,18,24,.20);
       padding:18px;
     }
@@ -610,7 +761,7 @@
       bottom:0;
       display:grid;
       grid-template-columns:repeat(4,1fr);
-      padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+      padding:6px 10px calc(6px + env(safe-area-inset-bottom));
       border-radius:26px 26px 0 0;
       border-top:1px solid var(--line);
       background:rgba(255,255,255,.96);
@@ -623,7 +774,7 @@
       background:transparent;
       color:var(--muted);
       font:700 12px/16px var(--font-body);
-      padding:6px 4px;
+      padding:4px;
       cursor:pointer;
     }
 
@@ -632,16 +783,19 @@
       font-weight:800;
     }
 
+    .main-tab-item img{ opacity:.5; }
+    .main-tab-item.active img{ opacity:1; }
+
     .main-tab-item img{
       display:block;
-      width:24px;
-      height:24px;
-      margin:0 auto 4px;
+      width:36px;
+      height:36px;
+      margin:0 auto 2px;
       object-fit:contain;
     }
   </style>
 </head>
-<body>
+<body class="theme-secondary">
   <div class="phone">
     <div class="scroll">
       <div class="topbar">
@@ -663,10 +817,10 @@
       <section class="feed" id="feed"></section>
     </div>
     <nav class="main-tab-nav">
-      <button class="main-tab-item" type="button" data-main-tab="./homepage_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_home_nav_active.png" alt="">首页</button>
-      <button class="main-tab-item active" type="button" data-main-tab="./message_wall_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="">留言墙</button>
-      <button class="main-tab-item" type="button" data-main-tab="./wish_list.html"><img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="">愿望清单</button>
-      <button class="main-tab-item" type="button" data-main-tab="./anniversary.html"><img src="../app/src/main/res/drawable-nodpi/ic_calendar_nav.png" alt="">纪念日</button>
+      <button class="main-tab-item" type="button" data-main-tab="./homepage_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_home_plan_b.png?v=20261003-icon-crop" alt="">首页</button>
+      <button class="main-tab-item active" type="button" data-main-tab="./message_wall_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_message_wall_plan_b.png?v=20261003-icon-crop" alt="">留言墙</button>
+      <button class="main-tab-item" type="button" data-main-tab="./wish_list.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_wishlist_plan_b.png?v=20261003-icon-crop" alt="">愿望清单</button>
+      <button class="main-tab-item" type="button" data-main-tab="./anniversary.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_anniversary_plan_b.png?v=20261003-icon-crop" alt="">纪念日</button>
     </nav>
   </div>
 
@@ -681,6 +835,14 @@
       </div>
       <div class="viewer-stage" id="viewerStage"></div>
     </div>
+  </div>
+
+  <div class="moment-reply-bar hidden" id="replyBar">
+    <button class="icon-circle cancel-reply" id="commentsClose" type="button" aria-label="取消评论">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6L18 18"/><path d="M18 6L6 18"/></svg>
+    </button>
+    <textarea id="commentsInput" maxlength="300" rows="1" placeholder="评论…"></textarea>
+    <button class="moment-send" id="commentsSend" type="button" onclick="sendActiveComment()">发送</button>
   </div>
 
   <div class="edit-overlay" id="editOverlay">
@@ -708,12 +870,12 @@
   <script>
     const currentUserId = "sheep";
     const currentUserName = "小羊";
-    const MESSAGE_STORAGE_KEY = "secretbase-preview-messages-v1";
+    const MESSAGE_STORAGE_KEY = "secretbase-preview-messages-v3";
     const PENDING_MESSAGE_KEY = "secretbase-preview-pending-message-v1";
     const LIKED_STORAGE_KEY = "secretbase-preview-liked-messages-v1";
     const avatars = {
-      sheep: "../app/src/main/res/drawable-nodpi/avatar_sheep.png?v=20260710-new-avatar",
-      chick: "../app/src/main/res/drawable-nodpi/avatar_chick.png?v=20260710-new-avatar"
+      sheep: "../app/src/main/res/drawable-nodpi/avatar_sheep.png?v=20261003-avatar-v2",
+      chick: "../app/src/main/res/drawable-nodpi/avatar_chick.png?v=20261003-avatar-v2"
     };
 
     let activeReplyMessageId = null;
@@ -723,6 +885,9 @@
     let poppingLikeId = null;
     let editingMessageId = null;
     let viewerState = { open: false, messageId: null, index: 0 };
+    let activeCommentsMessageId = null;
+    let replyLongPressTimer = null;
+    let suppressReplyClick = false;
     let confirmState = null;
 
     const now = Date.now();
@@ -845,6 +1010,9 @@
     const viewerEl = document.getElementById("viewer");
     const viewerStageEl = document.getElementById("viewerStage");
     const viewerCountEl = document.getElementById("viewerCount");
+    const replyBarEl = document.getElementById("replyBar");
+    const commentsInputEl = document.getElementById("commentsInput");
+    const commentsSendEl = document.getElementById("commentsSend");
     const editOverlayEl = document.getElementById("editOverlay");
     const editInputEl = document.getElementById("editInput");
     const confirmOverlayEl = document.getElementById("confirmOverlay");
@@ -881,17 +1049,6 @@
       }));
     }
 
-    function replyTargetName(message, replyIndex) {
-      const reply = message.replies[replyIndex];
-      if (!reply) return null;
-      const previousDifferent = message.replies
-        .slice(0, replyIndex)
-        .reverse()
-        .find(item => item.authorId !== reply.authorId);
-      if (previousDifferent) return previousDifferent.authorName;
-      return message.authorId !== reply.authorId ? message.authorName : null;
-    }
-
     function imageCols(count) {
       if (count === 1) return 1;
       if (count === 2) return 2;
@@ -925,19 +1082,24 @@
       emptyStateEl.classList.add("hidden");
       feedEl.innerHTML = messages.map(message => {
         const replies = visibleReplies(message);
+        const previewImages = message.imagePaths.slice(0, 4);
+        const hiddenImageCount = Math.max(0, message.imagePaths.length - previewImages.length);
         const liked = likedMessageIds.has(message.id);
-        const cols = imageCols(message.imagePaths.length);
+        const cols = imageCols(previewImages.length);
         const metaBits = [
           formatTime(message.createdAt),
           message.updatedAt ? "已编辑" : ""
         ].filter(Boolean).join(" · ");
+        const readStatus = message.authorId === currentUserId
+          ? (message.counterpartReadAt ? "对方已读" : "对方未读")
+          : (!message.isRead ? "新留言" : "");
         return `
           <article class="message-card" data-message-id="${message.id}">
             <div class="message-head">
               <div class="avatar"><img src="${avatars[message.authorId]}" alt="${message.authorName}头像"></div>
               <div class="author">
                 <div class="author-name">${message.authorName}</div>
-                <div class="author-time">${metaBits}</div>
+                <div class="author-time">${metaBits}${readStatus ? `<span class="read-status ${!message.isRead && message.authorId !== currentUserId ? "unread" : ""}">${readStatus}</span>` : ""}</div>
               </div>
               <div class="more-wrap">
                 <button class="text-btn more-btn" type="button" data-more="${message.id}" aria-label="更多操作">•••</button>
@@ -946,7 +1108,7 @@
                     <button type="button" data-edit="${message.id}">编辑留言</button>
                     <button class="danger" type="button" data-delete-message="${message.id}">删除留言</button>
                   ` : `
-                    <button type="button" data-reply="${message.id}">回复留言</button>
+                    <button type="button" data-open-comments="${message.id}">回复留言</button>
                   `}
                 </div>
               </div>
@@ -956,45 +1118,28 @@
 
             ${message.imagePaths.length ? `
               <div class="message-images cols-${cols}">
-                ${message.imagePaths.map((path, index) => `<div data-open-viewer="${message.id}" data-image-index="${index}">${renderMedia(path, message.imagePaths.length === 1)}</div>`).join("")}
+                ${previewImages.map((path, index) => `<div data-open-viewer="${message.id}" data-image-index="${index}">${renderMedia(path, message.imagePaths.length === 1)}${hiddenImageCount && index === previewImages.length - 1 ? `<span class="media-overflow">+${hiddenImageCount}</span>` : ""}</div>`).join("")}
               </div>` : ""}
 
             <div class="message-actions">
               <button class="heart ${liked ? "liked" : ""} ${poppingLikeId === message.id ? "pop" : ""}" type="button" data-like="${message.id}" aria-label="赞">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.3L4.7 13C2.4 10.7 2.4 6.9 4.7 4.7C7 2.4 10.8 2.4 13.1 4.7L12 5.8L10.9 4.7C8.6 2.4 4.8 2.4 2.5 4.7C.2 7 .2 10.8 2.5 13.1L12 22.6L21.5 13.1C23.8 10.8 23.8 7 21.5 4.7C19.2 2.4 15.4 2.4 13.1 4.7"/></svg>
+                <span class="heart-visual">
+                  <span class="heart-ring"></span>
+                  <span class="heart-particles">${Array.from({length:8}, () => "<i></i>").join("")}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61A5.5 5.5 0 0 0 13.06 4.6L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"/></svg>
+                </span>
                 <span>赞</span>
               </button>
-              <button type="button" data-reply="${message.id}" aria-label="评论">
+              <button type="button" data-open-comments="${message.id}" aria-label="评论">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5C21 16.2 16.7 20 11.5 20C10 20 8.6 19.7 7.3 19.1L3 20L4 15.9C3.4 14.6 3 13.1 3 11.5C3 6.8 7.3 3 12.5 3C17.7 3 22 6.8 22 11.5Z"/></svg>
                 <span>${message.replies.length ? `评论 ${message.replies.length}` : "评论"}</span>
               </button>
             </div>
 
             ${replies.length ? `
-              <div class="reply-list">
-                ${replies.map(({ reply, index }) => `
-                  <div class="reply-item" data-reply="${message.id}">
-                    <div class="reply-meta">
-                      <span class="reply-name">${reply.authorName}</span>
-                      ${replyTargetName(message, index) ? `<span class="reply-target">回复 ${replyTargetName(message, index)}</span>` : ``}
-                      <span class="reply-time">${formatTime(reply.createdAt)}</span>
-                      ${reply.authorId === currentUserId ? `<button class="delete" type="button" data-delete-reply="${reply.id}">删除</button>` : ``}
-                    </div>
-                    <div class="reply-content">${escapeHtml(reply.content)}</div>
-                  </div>
-                `).join("")}
+              <div class="comment-preview" data-open-comments="${message.id}">
+                ${replies.map(({ reply }) => `<div class="comment-preview-line" ${reply.authorId === currentUserId ? `data-own-reply="${reply.id}"` : ""}><span class="comment-preview-name">${reply.authorName}</span><span class="comment-preview-target">：</span><span class="comment-preview-text">${escapeHtml(reply.content)}</span></div>`).join("")}
                 ${message.replies.length > 3 ? `<button class="reply-toggle" type="button" data-toggle-replies="${message.id}">${expandedReplyIds.has(message.id) ? "收起评论" : `查看全部 ${message.replies.length} 条评论`}</button>` : ""}
-              </div>` : ""}
-
-            ${activeReplyMessageId === message.id ? `
-              <div class="reply-box">
-                <textarea data-reply-input="${message.id}" maxlength="300" placeholder="回复…">${escapeHtml(replyText)}</textarea>
-                <div class="reply-actions">
-                  <button class="text-btn" type="button" data-cancel-reply="${message.id}">取消</button>
-                  <button class="reply-send ${replyText.trim() ? "active" : ""}" type="button" data-send-reply="${message.id}" aria-label="发送回复">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20L21 12L3 4L3 10L15 12L3 14L3 20Z"/></svg>
-                  </button>
-                </div>
               </div>` : ""}
           </article>
         `;
@@ -1004,6 +1149,7 @@
     function render() {
       renderFeed();
       updateViewer();
+      updateReplyBar();
       updateEditSheet();
     }
 
@@ -1052,6 +1198,37 @@
       viewerEl.classList.add("show");
     }
 
+    function openComments(messageId) {
+      activeCommentsMessageId = messageId;
+      activeReplyMessageId = messageId;
+      replyText = "";
+      markMessageRead(messageId);
+      requestAnimationFrame(() => commentsInputEl.focus());
+    }
+
+    function closeComments() {
+      activeCommentsMessageId = null;
+      activeReplyMessageId = null;
+      replyText = "";
+      updateReplyBar();
+    }
+
+    function updateReplyBar() {
+      if (!activeCommentsMessageId) {
+        replyBarEl.classList.add("hidden");
+        commentsInputEl.value = "";
+        return;
+      }
+      const message = messages.find(item => item.id === activeCommentsMessageId);
+      if (!message) {
+        closeComments();
+        return;
+      }
+      if (commentsInputEl.value !== replyText) commentsInputEl.value = replyText;
+      commentsSendEl.classList.toggle("active", Boolean(replyText.trim()));
+      replyBarEl.classList.remove("hidden");
+    }
+
     function updateEditSheet() {
       if (!editingMessageId) {
         editOverlayEl.classList.remove("show");
@@ -1084,6 +1261,27 @@
         .replace(/"/g, "&quot;");
     }
 
+    function sendActiveComment() {
+      if (!activeCommentsMessageId || !replyText.trim()) return;
+      const message = messages.find(item => item.id === activeCommentsMessageId);
+      if (!message) return;
+      message.replies.push({
+        id: `reply-${crypto.randomUUID()}`,
+        messageId: message.id,
+        authorId: currentUserId,
+        authorName: currentUserName,
+        content: replyText.trim(),
+        createdAt: Date.now(),
+        isRead: true,
+        readAt: Date.now()
+      });
+      replyText = "";
+      activeCommentsMessageId = null;
+      activeReplyMessageId = null;
+      persistMessages();
+      render();
+    }
+
     document.querySelector(".icon-circle.back")?.addEventListener("click", () => {
       openMainTab("./homepage_preview.html");
     });
@@ -1097,7 +1295,12 @@
     });
 
     feedEl.addEventListener("click", event => {
-      const target = event.target.closest("[data-like],[data-reply],[data-toggle-replies],[data-open-viewer],[data-delete-reply],[data-delete-message],[data-edit],[data-send-reply],[data-cancel-reply],[data-more]");
+      if (suppressReplyClick) {
+        suppressReplyClick = false;
+        event.preventDefault();
+        return;
+      }
+      const target = event.target.closest("[data-like],[data-open-comments],[data-toggle-replies],[data-open-viewer],[data-delete-message],[data-edit],[data-more]");
       if (!target) {
         const card = event.target.closest(".message-card");
         if (card) markMessageRead(card.dataset.messageId);
@@ -1116,18 +1319,10 @@
               poppingLikeId = null;
               render();
             }
-          }, 300);
+          }, 460);
         }
         localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify([...likedMessageIds]));
         markMessageRead(id);
-        render();
-        return;
-      }
-
-      if (target.dataset.reply) {
-        activeReplyMessageId = target.dataset.reply;
-        replyText = "";
-        markMessageRead(activeReplyMessageId);
         render();
         return;
       }
@@ -1140,25 +1335,16 @@
           expandedReplyIds.add(id);
         }
         markMessageRead(id);
-        render();
+        return;
+      }
+
+      if (target.dataset.openComments) {
+        openComments(target.dataset.openComments);
         return;
       }
 
       if (target.dataset.openViewer) {
         openViewer(target.dataset.openViewer, Number(target.dataset.imageIndex || 0));
-        return;
-      }
-
-      if (target.dataset.deleteReply) {
-        const replyId = target.dataset.deleteReply;
-        openConfirm("删除这条评论？", "删除后无法恢复。", () => {
-          messages.forEach(message => {
-            message.replies = message.replies.filter(reply => !(reply.id === replyId && reply.authorId === currentUserId));
-          });
-          persistMessages();
-          closeConfirm();
-          render();
-        });
         return;
       }
 
@@ -1179,38 +1365,6 @@
         return;
       }
 
-      if (target.dataset.sendReply) {
-        const id = target.dataset.sendReply;
-        if (!replyText.trim()) {
-          alert("回复内容不能为空");
-          return;
-        }
-        const message = messages.find(item => item.id === id);
-        if (!message) return;
-        message.replies.push({
-          id: `reply-${crypto.randomUUID()}`,
-          messageId: id,
-          authorId: currentUserId,
-          authorName: currentUserName,
-          content: replyText.trim(),
-          createdAt: Date.now(),
-          isRead: true,
-          readAt: Date.now()
-        });
-        persistMessages();
-        activeReplyMessageId = null;
-        replyText = "";
-        render();
-        return;
-      }
-
-      if (target.dataset.cancelReply) {
-        activeReplyMessageId = null;
-        replyText = "";
-        render();
-        return;
-      }
-
       if (target.dataset.more) {
         document.querySelectorAll(".more-menu.show").forEach(menu => {
           if (menu.id !== `menu-${target.dataset.more}`) {
@@ -1221,14 +1375,34 @@
       }
     });
 
-    feedEl.addEventListener("input", event => {
-      const target = event.target;
-      if (target.matches("[data-reply-input]")) {
-        replyText = target.value.slice(0, 300);
-        const card = target.closest(".message-card");
-        card?.querySelector(".reply-send")?.classList.toggle("active", Boolean(replyText.trim()));
-      }
+    feedEl.addEventListener("pointerdown", event => {
+      const ownReply = event.target.closest("[data-own-reply]");
+      if (!ownReply) return;
+      window.clearTimeout(replyLongPressTimer);
+      replyLongPressTimer = window.setTimeout(() => {
+        suppressReplyClick = true;
+        const replyId = ownReply.dataset.ownReply;
+        openConfirm("删除这条评论？", "删除后无法恢复。", () => {
+          messages.forEach(message => {
+            message.replies = message.replies.filter(reply => !(reply.id === replyId && reply.authorId === currentUserId));
+          });
+          persistMessages();
+          closeConfirm();
+          render();
+        });
+      }, 560);
     });
+
+    ["pointerup", "pointercancel", "pointerleave"].forEach(type => {
+      feedEl.addEventListener(type, () => window.clearTimeout(replyLongPressTimer));
+    });
+
+    commentsInputEl.addEventListener("input", () => {
+      replyText = commentsInputEl.value.slice(0, 300);
+      commentsSendEl.classList.toggle("active", Boolean(replyText.trim()));
+    });
+
+    document.getElementById("commentsClose").addEventListener("click", closeComments);
 
     document.getElementById("viewerClose").addEventListener("click", () => {
       viewerState.open = false;

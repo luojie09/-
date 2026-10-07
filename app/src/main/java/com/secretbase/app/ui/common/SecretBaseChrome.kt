@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secretbase.app.ui.theme.CherryPink
 import com.secretbase.app.ui.theme.InkBlack
-import com.secretbase.app.ui.theme.OutlinePink
 import com.secretbase.app.ui.theme.SurfaceWhite
 import com.secretbase.app.ui.theme.WarmBackground
 import com.secretbase.app.ui.theme.WarmGray
@@ -48,7 +47,8 @@ fun SecretBasePageBackground(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFFFF7F8),
+                        Color(0xFFFFF0EC),
+                        Color(0xFFFFF7F3),
                         WarmBackground,
                     ),
                 ),
@@ -57,16 +57,16 @@ fun SecretBasePageBackground(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(end = 18.dp, top = 72.dp)
-                .size(132.dp)
-                .background(Color(0x10FFD9E4), CircleShape),
+                .padding(end = 10.dp, top = 70.dp)
+                .size(148.dp)
+                .background(Color(0x12F2C7C2), CircleShape),
         )
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 8.dp, bottom = 88.dp)
-                .size(112.dp)
-                .background(Color(0x0CFFF1F5), CircleShape),
+                .size(124.dp)
+                .background(Color(0x0EF5DAD3), CircleShape),
         )
 
         content()
@@ -89,8 +89,8 @@ fun SecretBasePageTopBar(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp)
-            .height(44.dp),
+            .padding(start = 20.dp, end = 20.dp, top = 12.dp)
+            .height(48.dp),
     ) {
         Text(
             text = title,
@@ -171,11 +171,11 @@ fun SecretBaseCardSurface(
 ) {
     Surface(
         modifier = modifier,
-        color = SurfaceWhite.copy(alpha = 0.94f),
+        color = SurfaceWhite.copy(alpha = 0.99f),
         shadowElevation = 2.dp,
         tonalElevation = 0.dp,
         shape = shape,
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.72f)),
+        border = null,
         content = content,
     )
 }
@@ -193,11 +193,8 @@ fun SecretBasePrimaryButton(
         enabled = enabled,
         color = if (enabled) CherryPink else Color(0xFFECE6E8),
         shadowElevation = if (enabled) 1.dp else 0.dp,
-        shape = RoundedCornerShape(999.dp),
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
-            color = if (enabled) CherryPink.copy(alpha = 0.14f) else OutlinePink.copy(alpha = 0.7f),
-        ),
+        shape = RoundedCornerShape(18.dp),
+        border = null,
     ) {
         Box(
             modifier = Modifier
@@ -223,10 +220,10 @@ fun SecretBaseSecondaryButton(
     Surface(
         modifier = modifier,
         onClick = onClick,
-        color = SurfaceWhite.copy(alpha = 0.8f),
-        shadowElevation = 0.dp,
-        shape = RoundedCornerShape(999.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.82f)),
+        color = SurfaceWhite,
+        shadowElevation = 1.dp,
+        shape = RoundedCornerShape(18.dp),
+        border = null,
     ) {
         Box(
             modifier = Modifier
@@ -251,11 +248,11 @@ fun SecretBaseInputSurface(
 ) {
     Surface(
         modifier = modifier,
-        color = Color(0xFFFDF9FA),
-        shadowElevation = 0.dp,
+        color = SurfaceWhite,
+        shadowElevation = 1.dp,
         tonalElevation = 0.dp,
         shape = shape,
-        border = androidx.compose.foundation.BorderStroke(1.dp, OutlinePink.copy(alpha = 0.78f)),
+        border = null,
         content = content,
     )
 }
@@ -270,7 +267,7 @@ fun SecretBaseTopBarButton(
 ) {
     Surface(
         modifier = modifier.size(40.dp),
-        color = SurfaceWhite,
+        color = Color.Transparent,
         shape = CircleShape,
         shadowElevation = 0.dp,
         border = null,

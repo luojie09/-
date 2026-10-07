@@ -225,8 +225,8 @@ private fun buildNotification(context: Context, item: Anniversary): android.app.
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
     return NotificationCompat.Builder(context, ANNIVERSARY_CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_calendar_nav)
-        .setContentTitle(listOfNotNull(item.iconEmoji, item.title).joinToString(" "))
+        .setSmallIcon(R.drawable.ic_stat_anniversary)
+        .setContentTitle(item.title)
         .setContentText(content)
         .setStyle(NotificationCompat.BigTextStyle().bigText(content))
         .setContentIntent(pendingIntent)

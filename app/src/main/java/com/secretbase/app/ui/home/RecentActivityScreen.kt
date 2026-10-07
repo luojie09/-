@@ -66,7 +66,7 @@ fun RecentActivityScreen(
                 val activities = payload?.allActivities.orEmpty()
                 if (activities.isEmpty()) {
                     item {
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                             RecentActivityEmptyState(
                                 text = payload?.recentActivityEmptyText ?: "还没有新的动态",
                             )
@@ -74,7 +74,7 @@ fun RecentActivityScreen(
                     }
                 } else {
                     items(activities, key = ActivityUiModel::id) { activity ->
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                             RecentActivityListItem(
                                 activity = activity,
                                 onClick = { onActivityClick(activity.clickMessage) },

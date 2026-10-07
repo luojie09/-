@@ -70,7 +70,7 @@ class AnniversaryViewModel(
                 editingId = item.id,
                 title = item.title,
                 date = item.date,
-                iconEmoji = item.iconEmoji ?: defaultAnniversaryEmoji(item.title),
+                iconEmoji = normalizeAnniversaryIcon(item.iconEmoji ?: defaultAnniversaryEmoji(item.title)),
                 repeatYearly = item.repeatYearly,
                 reminderType = item.reminderType,
             )
@@ -100,7 +100,7 @@ class AnniversaryViewModel(
     }
 
     fun updateIconEmoji(value: String) {
-        _uiState.update { it.copy(iconEmoji = value.takeIf { emoji -> emoji in AnniversaryEmojiOptions } ?: DefaultAnniversaryEmoji) }
+        _uiState.update { it.copy(iconEmoji = normalizeAnniversaryIcon(value)) }
     }
 
     fun toggleRepeat(value: Boolean) {
@@ -130,7 +130,7 @@ class AnniversaryViewModel(
             repeatYearly = state.repeatYearly,
             reminderType = state.reminderType,
             createdAt = latestItems.firstOrNull { it.id == state.editingId }?.createdAt ?: System.currentTimeMillis(),
-            iconEmoji = state.iconEmoji.ifBlank { defaultAnniversaryEmoji(title) },
+            iconEmoji = normalizeAnniversaryIcon(state.iconEmoji.ifBlank { defaultAnniversaryEmoji(title) }),
         )
         _uiState.update { it.copy(isSaving = true) }
         viewModelScope.launch {
@@ -245,7 +245,7 @@ private fun Anniversary.toUiModel(today: LocalDate): AnniversaryUiModel {
         statusTone = tone,
         repeatLabel = if (repeatYearly) "每年重复" else "不重复",
         reminderType = reminderType,
-        iconEmoji = iconEmoji ?: defaultAnniversaryEmoji(title),
+        iconEmoji = normalizeAnniversaryIcon(iconEmoji ?: defaultAnniversaryEmoji(title)),
     )
 }
 

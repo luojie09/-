@@ -3,822 +3,369 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>我们的秘密基地 - 首页预览</title>
+  <title>我们的秘密基地 - B 方案首页</title>
   <link rel="stylesheet" href="./secretbase-preview.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700&display=swap');
 
-    :root{
-      --page:#f5f1f2;
-      --bg:#fff4f7;
-      --hero-start:#ffe4ec;
-      --hero-middle:#fff0f4;
-      --hero-end:#fff4f7;
-      --surface:#fff;
-      --surface-soft:rgba(255,255,255,.78);
-      --ink:#1f2024;
-      --muted:#8f8991;
-      --line:rgba(243,223,230,.72);
-      --accent:#ff6f95;
-      --accent-soft:#ffe2ea;
-      --shadow:0 10px 26px rgba(84,54,62,.07);
-      --shadow-soft:0 6px 18px rgba(84,54,62,.055);
-      --font-body:"Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
-      --font-heading:"Playfair Display","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
-      --font-song:"Songti SC","STSong","SimSun","Noto Serif SC",serif;
-      --font-number:"SecretBase Sans","Noto Sans SC",sans-serif;
+    :root {
+      --page: #f3efee;
+      --canvas: #fff8f5;
+      --surface: #fff;
+      --ink: #352a29;
+      --muted: #806a66;
+      --quiet: #9a7d78;
+      --accent: #f48da1;
+      --line: rgba(139, 104, 97, .12);
+      --serif: "Noto Serif SC", "Songti SC", STSong, SimSun, serif;
+      --sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --soft-shadow: 0 10px 28px rgba(84, 54, 49, .09);
     }
 
-    *{box-sizing:border-box}
-    html,body{
-      margin:0;
-      background:var(--page);
-      font-family:var(--font-body);
-      color:var(--ink);
-      -webkit-font-smoothing:antialiased;
-      text-rendering:optimizeLegibility;
-      font-kerning:normal;
-    }
-    body{min-height:100vh;display:flex;justify-content:center;padding:24px 12px}
-
-    .phone{
-      width:min(100%,430px);
-      height:calc(100vh - 48px);
-      min-height:0;
-      background:linear-gradient(180deg,var(--hero-start) 0%,var(--hero-middle) 44%,var(--hero-end) 100%);
-      border-radius:36px;
-      overflow:hidden;
-      position:relative;
-      border:1px solid rgba(255,255,255,.88);
-      box-shadow:0 24px 60px rgba(58,39,46,.12);
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      display: flex;
+      justify-content: center;
+      padding: 24px 12px;
+      background:
+        radial-gradient(circle at 22% 10%, rgba(250, 204, 198, .28), transparent 34%),
+        var(--page);
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
     }
 
-    .scroll{
-      height:100%;
-      overflow:auto;
-      padding-bottom:108px;
+    button { font: inherit; }
+    .phone {
+      position: relative;
+      width: min(100%, 430px);
+      height: calc(100vh - 48px);
+      min-height: 680px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .92);
+      border-radius: 36px;
+      background: var(--canvas);
+      box-shadow: 0 24px 64px rgba(61, 39, 36, .14);
     }
 
-    .hero{
-      background:linear-gradient(180deg,var(--hero-start),var(--hero-middle),var(--hero-end));
+    .scroll {
+      height: 100%;
+      overflow: auto;
+      overscroll-behavior: contain;
+      padding-bottom: 88px;
+      scrollbar-width: none;
+    }
+    .scroll::-webkit-scrollbar { display: none; }
+
+    .hero {
+      position: relative;
+      height: 616px;
+      overflow: hidden;
+      isolation: isolate;
     }
 
-    .hero-inner{
-      padding:calc(18px + env(safe-area-inset-top)) 20px 0;
+    .hero-bg, .hero-wash {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .hero-bg {
+      z-index: -2;
+      object-fit: cover;
+      object-position: center bottom;
+      transition: opacity .42s ease;
+    }
+    .hero-bg.is-changing { opacity: 0; }
+    .hero-bg.is-lifted { transform: translateY(-28px) scale(1.12); }
+    .hero-wash {
+      z-index: -1;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 249, 245, .32) 0%,
+        rgba(255, 249, 245, .07) 24%,
+        transparent 58%,
+        rgba(255, 248, 245, .36) 82%,
+        var(--canvas) 100%
+      );
     }
 
-    .statusbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      font-size:20px;
-      font-weight:800;
-      margin-bottom:16px;
-      font-family:var(--font-number);
-      font-variant-numeric:tabular-nums;
+    .statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 32px;
+      padding: 8px 24px 0;
+      color: #302624;
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
     }
+    .status-icons { display: flex; align-items: center; gap: 5px; }
+    .signal { width: 14px; height: 8px; border-bottom: 2px solid currentColor; border-right: 2px solid currentColor; }
+    .wifi { width: 12px; height: 8px; border: 2px solid currentColor; border-bottom: 0; border-radius: 12px 12px 0 0; }
+    .battery { width: 18px; height: 9px; border: 1.8px solid currentColor; border-radius: 3px; background: linear-gradient(90deg, currentColor 76%, transparent 76%); }
 
-    .status-icons{display:flex;align-items:center;gap:8px}
-    .status-pill{
-      height:12px;
-      border-radius:3px;
-      background:#1c1e22;
-      opacity:.9;
+    .carousel-dots { position: absolute; z-index: 1; top: 280px; left: 50%; display: flex; align-items: center; gap: 7px; transform: translateX(-50%); }
+    .carousel-dots i { display: block; width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .65); }
+    .carousel-dots i.active { width: 9px; height: 9px; background: #fff; }
+
+    .relationship-card {
+      position: absolute;
+      z-index: 1;
+      top: 304px;
+      right: 20px;
+      left: 20px;
+      display: grid;
+      grid-template-columns: 66px minmax(0, 1fr) 66px;
+      align-items: center;
+      min-height: 148px;
+      padding: 16px 22px;
+      border: 1px solid rgba(255, 255, 255, .76);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 0 8px 26px rgba(93, 62, 57, .07);
+      text-align: center;
     }
+    .couple-avatar { width: 66px; height: 66px; overflow: hidden; padding: 3px; border: 2px solid rgba(255, 255, 255, .94); border-radius: 50%; background: #fff7f4; }
+    .couple-avatar img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .relationship-copy { min-width: 0; }
+    .relationship-names { color: #4a3733; font-family: var(--serif); font-size: 18px; line-height: 24px; font-weight: 600; }
+    .relationship-names .heart { padding: 0 7px; color: #fa8d9c; }
+    .days { display: flex; align-items: flex-end; justify-content: center; gap: 5px; margin-top: 3px; line-height: 1; }
+    .days-value { font-family: var(--serif); font-size: 54px; line-height: 60px; font-weight: 700; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+    .days-unit { padding-bottom: 8px; font-family: var(--serif); font-size: 17px; line-height: 20px; font-weight: 600; }
+    .days-label { margin-top: 3px; color: var(--muted); font-size: 13px; line-height: 18px; font-weight: 500; }
 
-    .header{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
+    .hero-detail-cards { position: absolute; z-index: 1; top: 466px; right: 20px; left: 20px; display: grid; gap: 10px; }
+    .anniversary-card, .visit-card { display: flex; align-items: center; width: 100%; border: 1px solid rgba(255, 255, 255, .72); color: inherit; }
+    .anniversary-card { min-height: 76px; gap: 12px; padding: 12px 16px; border-radius: 24px; background: rgba(255, 255, 255, .88); box-shadow: 0 5px 18px rgba(84, 54, 49, .06); text-align: left; cursor: pointer; }
+    .detail-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 14px; background: #fff3f2; }
+    .detail-icon img { width: 24px; height: 24px; object-fit: contain; }
+    .detail-copy { min-width: 0; flex: 1; }
+    .detail-eyebrow { display: block; color: var(--muted); font-size: 12px; line-height: 17px; font-weight: 500; }
+    .detail-title { display: block; overflow: hidden; color: var(--ink); font-family: var(--serif); font-size: 17px; line-height: 23px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .anniversary-remain { flex: 0 0 auto; color: #4d3b37; font-family: var(--serif); font-size: 15px; line-height: 22px; font-weight: 600; }
+    .anniversary-remain strong { color: #cd7880; font-size: 31px; font-weight: 700; }
+    .detail-arrow { margin-left: 5px; color: var(--quiet); font-family: var(--serif); font-size: 24px; line-height: 1; }
+    .visit-card { min-height: 54px; gap: 10px; padding: 8px 14px; border-radius: 22px; background: rgba(255, 255, 255, .74); }
+    .visit-icon { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border-radius: 50%; background: #f8f2f1; color: #a78f8b; font-size: 20px; }
+    .visit-copy { min-width: 82px; flex: 1; }
+    .visit-title { display: block; font-family: var(--serif); font-size: 15px; line-height: 19px; font-weight: 600; }
+    .visit-subtitle { display: block; color: var(--quiet); font-size: 11px; line-height: 15px; font-weight: 500; white-space: nowrap; }
+    .visit-stamps { display: flex; gap: 5px; }
+    .visit-stamp { min-width: 39px; padding: 5px 4px; border-radius: 10px; background: rgba(255, 255, 255, .7); color: #796562; font-size: 10px; line-height: 13px; font-weight: 500; text-align: center; white-space: pre-line; }
+
+    .recent { padding: 18px 20px 26px; background: var(--canvas); }
+    .activity-card { overflow: hidden; border: 1px solid rgba(255, 255, 255, .8); border-radius: 24px; background: rgba(255, 255, 255, .88); box-shadow: var(--soft-shadow); }
+    .section-header { display: flex; align-items: center; gap: 9px; padding: 14px 16px 8px; }
+    .section-icon { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 11px; background: #fff0f1; }
+    .section-icon img { width: 21px; height: 21px; object-fit: contain; }
+    .section-header h2 { flex: 1; margin: 0; font-family: var(--serif); font-size: 19px; line-height: 26px; font-weight: 600; }
+    .view-all { border: 0; padding: 7px 0 7px 10px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; }
+    .activity { position: relative; display: flex; align-items: center; gap: 11px; min-height: 66px; padding: 9px 16px; cursor: pointer; }
+    .activity + .activity::before { content: ""; position: absolute; top: 0; right: 16px; left: 76px; height: 1px; background: var(--line); }
+    .activity-icon { display: grid; width: 48px; height: 48px; flex: 0 0 48px; place-items: center; overflow: hidden; border-radius: 14px; background: #fff8f7; }
+    .activity-icon img { width: 32px; height: 32px; object-fit: contain; }
+    .activity-copy { min-width: 0; flex: 1; }
+    .activity-title { display: block; overflow: hidden; font-family: var(--serif); font-size: 15px; line-height: 20px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-detail { display: block; overflow: hidden; margin-top: 1px; color: var(--quiet); font-size: 12px; line-height: 17px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-time { align-self: flex-start; padding-top: 4px; color: var(--quiet); font-size: 11px; line-height: 16px; font-weight: 500; white-space: nowrap; }
+
+    .bottom-nav {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 5;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
+      border-radius: 26px 26px 0 0;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, .96);
+      box-shadow: 0 -4px 14px rgba(58, 39, 46, .04);
     }
+    .nav-item { padding: 4px; border-radius: 16px; color: #8f8991; cursor: pointer; font-size: 12px; font-weight: 700; line-height: 16px; text-align: center; }
+    .nav-item img { display: block; width: 36px; height: 36px; margin: 0 auto 2px; object-fit: contain; opacity: .5; }
+    .nav-item.active img { opacity: 1; }
+    .nav-item.active { color: var(--accent); font-weight: 800; }
 
-    .greeting{
-      margin:0 0 4px;
-      font-size:14px;
-      line-height:18px;
-      font-weight:700;
-      letter-spacing:0;
-      color:var(--muted);
+    button:focus-visible, .activity:focus-visible, .nav-item:focus-visible { outline: 3px solid rgba(244, 141, 161, .38); outline-offset: 2px; }
+    button:active, .activity:active, .nav-item:active { transform: scale(.99); }
+
+    @media (max-width: 380px) {
+      .hero { height: 600px; }
+      .relationship-card, .hero-detail-cards { right: 16px; left: 16px; }
+      .relationship-card { grid-template-columns: 58px minmax(0, 1fr) 58px; padding-right: 16px; padding-left: 16px; }
+      .couple-avatar { width: 58px; height: 58px; }
+      .days-value { font-size: 50px; }
+      .recent { padding-right: 16px; padding-left: 16px; }
+      .visit-copy { min-width: 74px; }
+      .visit-stamps { gap: 3px; }
+      .visit-stamp { min-width: 35px; font-size: 9px; }
     }
-
-    .names{
-      margin:0;
-      display:flex;
-      align-items:center;
-      gap:5px;
-      line-height:36px;
-      font-size:32px;
-      font-family:var(--font-song);
-      font-weight:800;
-      letter-spacing:-.02em;
-    }
-
-    .name-heart{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
-      font-size:20px;
-      line-height:1;
-      transform:translateY(-2px);
-    }
-
-    .hero-illustration{
-      position:relative;
-      height:250px;
-      margin-top:4px;
-      overflow:hidden;
-    }
-
-    .hero-illustration img{
-      position:absolute;
-      left:-12px;
-      right:-12px;
-      bottom:0;
-      width:calc(100% + 24px);
-      height:100%;
-      object-fit:contain;
-      object-position:center bottom;
-      transform:scale(.9);
-      transform-origin:center bottom;
-      transition:opacity .45s ease;
-    }
-
-    .relationship-wrap{
-      margin-top:6px;
-      padding:0 20px;
-      position:relative;
-      z-index:2;
-    }
-
-    .relationship{
-      background:#fff;
-      border:0;
-      border-radius:26px;
-      box-shadow:var(--shadow);
-      padding:18px;
-    }
-
-    .relationship-top{
-      text-align:center;
-    }
-
-    .relationship-label{
-      font-size:13px;
-      line-height:18px;
-      font-weight:700;
-      letter-spacing:.01em;
-      color:var(--muted);
-      margin-bottom:8px;
-    }
-
-    .days{
-      display:flex;
-      justify-content:center;
-      align-items:flex-end;
-      gap:4px;
-      line-height:1;
-    }
-
-    .days-value{
-      font-size:52px;
-      line-height:52px;
-      font-family:var(--font-number);
-      font-weight:800;
-      letter-spacing:-1.1px;
-      font-variant-numeric:tabular-nums;
-    }
-
-    .days-unit{
-      font-size:18px;
-      line-height:22px;
-      font-family:var(--font-number);
-      font-weight:700;
-      padding-bottom:7px;
-    }
-
-    .start-date{
-      margin-top:8px;
-      font-size:14px;
-      line-height:20px;
-      color:var(--muted);
-      font-weight:700;
-      font-family:var(--font-number);
-      font-variant-numeric:tabular-nums;
-    }
-
-    .divider{
-      height:1px;
-      background:var(--line);
-      margin:16px 0;
-    }
-
-    .anniversary-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-    }
-
-    .anniversary-copy{
-      flex:1;
-    }
-
-    .anniversary-label{
-      font-size:13px;
-      line-height:18px;
-      font-weight:700;
-      color:var(--muted);
-      margin-bottom:3px;
-    }
-
-    .anniversary-title{
-      font-size:17px;
-      line-height:22px;
-      font-family:var(--font-heading);
-      font-weight:800;
-      letter-spacing:-.012em;
-    }
-
-    .anniversary-remain{
-      white-space:nowrap;
-      padding:6px 10px;
-      border-radius:999px;
-      background:rgba(255,226,234,.74);
-      font-size:13px;
-      line-height:18px;
-      font-weight:700;
-      font-family:var(--font-number);
-      font-variant-numeric:tabular-nums;
-    }
-
-    .progress{
-      margin-top:12px;
-      height:6px;
-      border-radius:999px;
-      background:rgba(255,226,234,.74);
-      overflow:hidden;
-    }
-
-    .progress span{
-      display:block;
-      height:100%;
-      width:0;
-      border-radius:inherit;
-      background:linear-gradient(90deg,rgba(255,111,149,.72),rgba(255,183,204,.64));
-    }
-
-    .content{
-      padding:22px 20px 0;
-    }
-
-    .section{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:12px;
-    }
-
-    .section h2{
-      margin:0;
-      font-size:22px;
-      line-height:28px;
-      font-family:var(--font-heading);
-      font-weight:700;
-      letter-spacing:-.012em;
-    }
-
-    .section a{
-      color:var(--muted);
-      text-decoration:none;
-      font-size:14px;
-      line-height:20px;
-      font-weight:600;
-    }
-
-    .feature-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px;
-    }
-
-    .feature{
-      min-height:104px;
-      padding:16px;
-      border-radius:22px;
-      background:#fff;
-      border:0;
-      box-shadow:var(--shadow-soft);
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      cursor:pointer;
-    }
-
-    .feature.wall,
-    .feature.wish,
-    .feature.day,
-    .feature.task{background:#fff}
-
-    .feature-head{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      min-width:0;
-    }
-
-    .feature-icon{
-      width:36px;
-      height:36px;
-      border-radius:16px;
-      display:grid;
-      place-items:center;
-      background:rgba(255,255,255,.78);
-    }
-
-    .feature-icon img{
-      width:24px;
-      height:24px;
-      object-fit:contain;
-    }
-
-    .feature strong{
-      display:block;
-      font-size:18px;
-      line-height:24px;
-      font-family:var(--font-heading);
-      font-weight:800;
-      letter-spacing:-.008em;
-      margin-bottom:0;
-      min-width:0;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .feature small{
-      display:block;
-      font-size:15px;
-      line-height:22px;
-      font-weight:700;
-      color:var(--muted);
-      padding-left:8px;
-    }
-
-    .activity-card{
-      margin-top:22px;
-      background:var(--surface);
-      border:0;
-      box-shadow:var(--shadow-soft);
-      border-radius:24px;
-      padding:6px 16px;
-    }
-
-    .activity-view-all{
-      display:block;
-      text-align:center;
-      color:var(--muted);
-      text-decoration:none;
-      font-size:14px;
-      line-height:20px;
-      font-weight:700;
-      padding:12px 0;
-      border-top:1px solid var(--line);
-    }
-
-    .activity{
-      position:relative;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:12px 0;
-      cursor:pointer;
-    }
-
-    .activity + .activity::before{
-      content:"";
-      position:absolute;
-      left:0;
-      right:0;
-      top:0;
-      height:1px;
-      background:var(--line);
-    }
-
-    .activity-thumb{
-      width:52px;
-      height:52px;
-      border-radius:16px;
-      object-fit:contain;
-      background:#fff;
-      border:0;
-      padding:10px;
-      flex:none;
-    }
-
-    .activity-copy{
-      flex:1;
-      min-width:0;
-    }
-
-    .activity-title{
-      font-size:17px;
-      line-height:24px;
-      font-family:var(--font-heading);
-      font-weight:800;
-      letter-spacing:-.008em;
-      margin-bottom:4px;
-    }
-
-    .activity-time{
-      font-size:14px;
-      line-height:20px;
-      color:var(--muted);
-      font-weight:700;
-      font-family:var(--font-number);
-      font-variant-numeric:tabular-nums;
-    }
-
-    .activity-arrow{
-      color:var(--muted);
-      font-size:24px;
-      font-weight:700;
-      line-height:1;
-    }
-
-    .bottom-nav{
-      position:absolute;
-      left:0;
-      right:0;
-      bottom:0;
-      padding:8px 10px calc(10px + env(safe-area-inset-bottom));
-      background:rgba(255,255,255,.96);
-      border-top:1px solid var(--line);
-      border-radius:26px 26px 0 0;
-      box-shadow:0 -4px 14px rgba(58,39,46,.04);
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-    }
-
-    .nav-item{
-      text-align:center;
-      color:#8f8991;
-      font-size:12px;
-      line-height:16px;
-      font-weight:700;
-      padding:6px 4px;
-      cursor:pointer;
-    }
-
-    .nav-item.active{
-      color:var(--accent);
-      font-weight:800;
-    }
-
-    .nav-item img{
-      display:block;
-      width:24px;
-      height:24px;
-      margin:0 auto 4px;
-      object-fit:contain;
-    }
-
-    @media (max-width:380px){
-      .hero-illustration img{
-        left:-6px;
-        right:-6px;
-        width:calc(100% + 12px);
-      }
-      .names{font-size:30px;line-height:34px}
-      .days-value{font-size:48px}
-    }
+    @media (max-height: 740px) { .phone { min-height: 0; } }
   </style>
 </head>
 <body>
-  <div class="phone">
+  <main class="phone" aria-label="我们的秘密基地 B 方案首页预览">
     <div class="scroll">
       <section class="hero">
-        <div class="hero-inner">
-          <div class="statusbar">
-            <span id="statusTime">9:41</span>
-            <div class="status-icons">
-              <span class="status-pill" style="width:14px"></span>
-              <span class="status-pill" style="width:18px"></span>
-              <span class="status-pill" style="width:22px"></span>
-            </div>
+        <img class="hero-bg" src="../app/src/main/res/drawable-nodpi/home_plan_b_living_room.png" alt="暖阳客厅里的小羊和小耶" />
+        <div class="hero-wash" aria-hidden="true"></div>
+        <div class="statusbar" aria-hidden="true"><span id="statusTime">9:41</span><span class="status-icons"><i class="signal"></i><i class="wifi"></i><i class="battery"></i></span></div>
+        <div class="carousel-dots" id="carouselDots" aria-label="插画轮播"></div>
+        <section class="relationship-card" aria-label="我们的陪伴天数">
+          <span class="couple-avatar"><img src="../app/src/main/res/drawable-nodpi/avatar_sheep.png?v=20261003-avatar-v2" alt="小羊" /></span>
+          <div class="relationship-copy">
+            <div class="relationship-names">小羊<span class="heart">♥</span>小耶</div>
+            <div class="days"><span class="days-value" id="daysTogether">126</span><span class="days-unit">天</span></div>
+            <div class="days-label">我们在一起已经</div>
           </div>
-
-          <div class="header">
-            <div>
-              <p class="greeting" id="greeting">Good morning</p>
-              <h1 class="names">
-                <span>小羊</span>
-                <span class="name-heart">❤️</span>
-                <span>小耶</span>
-              </h1>
-            </div>
-          </div>
-        </div>
-
-        <div class="hero-illustration">
-          <img id="heroCarouselImage" src="../app/src/main/res/drawable-nodpi/home_carousel_current.png" alt="小羊和小耶">
-        </div>
-
-        <div class="relationship-wrap">
-          <section class="relationship">
-            <div class="relationship-top">
-              <div class="relationship-label">我们已经在一起</div>
-              <div class="days">
-                <span class="days-value" id="daysTogether">48</span>
-                <span class="days-unit">天</span>
-              </div>
-              <div class="start-date"><span id="startDate">2026.05.06 星期三</span></div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="anniversary-row">
-              <div class="anniversary-copy">
-                <div class="anniversary-label">下个纪念日</div>
-                <div class="anniversary-title" id="anniversaryTitle">恋爱一周年</div>
-              </div>
-              <div class="anniversary-remain" id="anniversaryRemain">还有 318 天</div>
-            </div>
-            <div class="progress"><span id="anniversaryProgress"></span></div>
+          <span class="couple-avatar"><img src="../app/src/main/res/drawable-nodpi/avatar_chick.png?v=20261003-avatar-v2" alt="小耶" /></span>
+        </section>
+        <div class="hero-detail-cards">
+          <button class="anniversary-card" type="button" data-route="./anniversary.html">
+            <span class="detail-icon"><img src="../app/src/main/res/drawable-nodpi/ic_anniversary_card.png?v=20261003-icon-redraw-2" alt="" /></span>
+            <span class="detail-copy"><span class="detail-eyebrow">下一个纪念日</span><span class="detail-title" id="anniversaryTitle">恋爱一周年</span></span>
+            <span class="anniversary-remain">还有 <strong id="anniversaryDays">240</strong> 天</span><span class="detail-arrow">›</span>
+          </button>
+          <section class="visit-card" aria-label="来过记录视觉占位">
+            <span class="visit-icon" aria-hidden="true">✦</span>
+            <span class="visit-copy"><span class="visit-title">来过记录</span><span class="visit-subtitle">Ta 最近来过 3 次</span></span>
+            <span class="visit-stamps" aria-hidden="true"><span class="visit-stamp">9月1日
+16:28</span><span class="visit-stamp">8月20日
+21:14</span><span class="visit-stamp">8月12日
+10:03</span></span>
           </section>
         </div>
       </section>
 
-      <div class="content">
-        <div class="section">
-          <h2>最近动态</h2>
+      <section class="recent">
+        <div class="activity-card">
+          <div class="section-header"><span class="section-icon"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png?v=20261003-icon-redraw-2" alt="" /></span><h2>最近动态</h2><button class="view-all" type="button" data-route="./recent_activity_preview.html">查看更多&nbsp;›</button></div>
+          <div class="activity" role="button" tabindex="0" data-route="./message_wall_preview.html">
+            <span class="activity-icon"><img src="../app/src/main/res/drawable-nodpi/ic_activity_photo.png?v=20261003-icon-redraw-2" alt="" /></span>
+            <span class="activity-copy"><span class="activity-title">小耶</span><span class="activity-detail">今晚一起看了电影，好开心！</span></span><span class="activity-time">9月1日 22:17</span>
+          </div>
+          <div class="activity" role="button" tabindex="0" data-route="./wish_list.html">
+            <span class="activity-icon"><img src="../app/src/main/res/drawable-nodpi/ic_activity_checklist.png?v=20261003-icon-redraw-2" alt="" /></span>
+            <span class="activity-copy"><span class="activity-title">一起看日落</span><span class="activity-detail">收藏了一张照片</span></span><span class="activity-time">8月28日 19:03</span>
+          </div>
+          <div class="activity" role="button" tabindex="0" data-route="./message_wall_preview.html">
+            <span class="activity-icon"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png?v=20261003-icon-redraw-2" alt="" /></span>
+            <span class="activity-copy"><span class="activity-title">小羊</span><span class="activity-detail">想你了 ♡</span></span><span class="activity-time">8月20日 21:14</span>
+          </div>
         </div>
-
-        <section class="activity-card">
-          <div class="activity" data-route="./message_wall_preview.html">
-            <img class="activity-thumb" src="../app/src/main/res/drawable-nodpi/ic_activity_photo.png" alt="照片">
-            <div class="activity-copy">
-              <div class="activity-title">小耶上传了 3 张新照</div>
-              <div class="activity-time">2 小时前</div>
-            </div>
-            <div class="activity-arrow">›</div>
-          </div>
-
-          <div class="activity" data-route="./wish_list.html">
-            <img class="activity-thumb" src="../app/src/main/res/drawable-nodpi/ic_activity_checklist.png" alt="清单">
-            <div class="activity-copy">
-              <div class="activity-title">完成了愿望清单中的「看海」</div>
-              <div class="activity-time">昨天</div>
-            </div>
-            <div class="activity-arrow">›</div>
-          </div>
-
-          <a class="activity-view-all" href="javascript:void(0)">查看全部</a>
-        </section>
-      </div>
+      </section>
     </div>
 
-    <nav class="bottom-nav">
-      <div class="nav-item active" data-route="./homepage_preview.html">
-        <img src="../app/src/main/res/drawable-nodpi/ic_home_nav_active.png" alt="首页">
-        首页
-      </div>
-      <div class="nav-item" data-route="./message_wall_preview.html">
-        <img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="留言墙">
-        留言墙
-      </div>
-      <div class="nav-item" data-route="./wish_list.html">
-        <img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="愿望清单">
-        愿望清单
-      </div>
-      <div class="nav-item" data-route="./anniversary.html">
-        <img src="../app/src/main/res/drawable-nodpi/ic_calendar_nav.png" alt="纪念日">
-        纪念日
-      </div>
+    <nav class="bottom-nav" aria-label="主导航">
+      <div class="nav-item active" role="button" tabindex="0" data-route="./homepage_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_home_plan_b.png?v=20261003-icon-crop" alt="" />首页</div>
+      <div class="nav-item" role="button" tabindex="0" data-route="./message_wall_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_message_wall_plan_b.png?v=20261003-icon-crop" alt="" />留言墙</div>
+      <div class="nav-item" role="button" tabindex="0" data-route="./wish_list.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_wishlist_plan_b.png?v=20261003-icon-crop" alt="" />愿望清单</div>
+      <div class="nav-item" role="button" tabindex="0" data-route="./anniversary.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_anniversary_plan_b.png?v=20261003-icon-crop" alt="" />纪念日</div>
     </nav>
-  </div>
+  </main>
 
-  <script>
-    const START_DATE = new Date("2026-05-06T00:00:00");
-
-    function startOfDay(date) {
-      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
-
-    function diffDays(a, b) {
-      return Math.round((startOfDay(a) - startOfDay(b)) / 86400000);
-    }
-
-    function toChineseNumber(value) {
-      const digits = ["零","一","二","三","四","五","六","七","八","九"];
-      if (value < 10) return digits[value];
-      if (value < 20) return "十" + (value === 10 ? "" : digits[value % 10]);
-      if (value < 100) return digits[Math.floor(value / 10)] + "十" + (value % 10 === 0 ? "" : digits[value % 10]);
-      return String(value);
-    }
-
-    function updateClock() {
-      const now = new Date();
-      document.getElementById("statusTime").textContent =
-        `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
-
-      const hour = now.getHours();
-      document.getElementById("greeting").textContent =
-        hour >= 5 && hour < 12 ? "Good morning" : hour >= 12 && hour < 18 ? "Good afternoon" : "Good evening";
-    }
-
-    function updateRelationship() {
-      const today = startOfDay(new Date());
-      const daysTogether = Math.max(1, diffDays(today, START_DATE) + 1);
-      document.getElementById("daysTogether").textContent = daysTogether;
-
-      const anniversaryThisYear = new Date(today.getFullYear(), 4, 6);
-      const fallbackDate = today < anniversaryThisYear
-        ? anniversaryThisYear
-        : new Date(today.getFullYear() + 1, 4, 6);
-      const fallbackYears = Math.max(1, fallbackDate.getFullYear() - 2026);
-      let nextEvent = {
-        title: `恋爱${toChineseNumber(fallbackYears)}周年`,
-        date: fallbackDate,
-        cycleStart: new Date(fallbackDate.getFullYear() - 1, 4, 6)
-      };
-
-      try {
-        const items = JSON.parse(localStorage.getItem("secretbase-preview-anniversaries-v1") || "[]");
-        const candidates = Array.isArray(items) ? items.map(item => {
-          const [year, month, day] = String(item.date || "").split("-").map(Number);
-          if (!year || !month || !day) return null;
-          const originalDate = new Date(year, month - 1, day);
-          let effectiveDate = originalDate;
-          if (item.repeatYearly) {
-            effectiveDate = new Date(today.getFullYear(), month - 1, day);
-            if (effectiveDate < today) effectiveDate = new Date(today.getFullYear() + 1, month - 1, day);
-          } else if (effectiveDate < today) {
-            return null;
-          }
-          const cycleStartCandidate = item.repeatYearly
-            ? new Date(effectiveDate.getFullYear() - 1, month - 1, day)
-            : originalDate;
-          return {
-            title: item.title,
-            date: effectiveDate,
-            cycleStart: cycleStartCandidate > START_DATE ? cycleStartCandidate : START_DATE,
-            remain: diffDays(effectiveDate, today)
-          };
-        }).filter(Boolean) : [];
-        candidates.sort((a, b) => a.remain - b.remain);
-        if (candidates.length) nextEvent = candidates[0];
-      } catch (_) {}
-
-      const nextAnniversary = nextEvent.date;
-      const cycleStart = nextEvent.cycleStart > START_DATE ? nextEvent.cycleStart : START_DATE;
-      const remain = diffDays(nextAnniversary, today);
-      const cycleTotal = Math.max(1, diffDays(nextAnniversary, cycleStart));
-      const cycleElapsed = Math.max(0, Math.min(cycleTotal, diffDays(today, cycleStart)));
-
-      const titleNode = document.getElementById("anniversaryTitle");
-      if (titleNode) titleNode.textContent = nextEvent.title;
-      const remainText = remain === 0 ? "\u5c31\u662f\u4eca\u5929" : `\u8fd8\u6709 ${remain} \u5929`;
-      const remainNode = document.getElementById("anniversaryRemain");
-      if (remainNode) remainNode.textContent = remainText;
-      const featureNode = document.getElementById("featureAnniversary");
-      if (featureNode) featureNode.textContent = remain === 0 ? "就是今天" : `${remain} 天后`;
-      document.getElementById("anniversaryProgress").style.width = `${(cycleElapsed / cycleTotal) * 100}%`;
-    }
-
-    function openPreview(route) {
-      if (!route) return;
-      window.location.href = route;
-    }
-
-    updateClock();
-    updateRelationship();
-    setInterval(updateClock, 30000);
-
-    document.querySelectorAll("[data-route]").forEach(node => {
-      node.addEventListener("click", event => {
-        if (event.target.tagName === "A") {
-          event.preventDefault();
-        }
-        openPreview(node.dataset.route);
-      });
-    });
-
-    document.querySelector(".relationship").addEventListener("click", () => {
-      openPreview("./anniversary.html");
-    });
-
-    document.querySelector(".activity-view-all").addEventListener("click", event => {
-      event.preventDefault();
-      openPreview("./recent_activity_preview.html");
-    });
-  </script>
   <script>
     (() => {
+      const START_DATE = new Date("2026-05-06T00:00:00");
+      const heroImageEl = document.querySelector(".hero-bg");
+      const carouselDotsEl = document.getElementById("carouselDots");
+      const shuffle = values => {
+        const copy = [...values];
+        for (let index = copy.length - 1; index > 0; index -= 1) {
+          const swapIndex = Math.floor(Math.random() * (index + 1));
+          [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+        }
+        return copy;
+      };
+      const heroImages = shuffle([
+        { src: "../app/src/main/res/drawable-nodpi/home_plan_b_living_room.png", alt: "暖阳客厅里的小羊和小耶" },
+        { src: "../app/src/main/res/drawable-nodpi/home_carousel_autumn_bench.png", alt: "秋日长椅上的小羊和小耶", lifted: true },
+        { src: "../app/src/main/res/drawable-nodpi/home_carousel_lakeside_picnic.png", alt: "湖边野餐的小羊和小耶", lifted: true },
+        { src: "../app/src/main/res/drawable-nodpi/home_carousel_night_reading.png", alt: "夜晚一起读书的小羊和小耶" },
+        { src: "../app/src/main/res/drawable-nodpi/home_carousel_game_night.png", alt: "一起打游戏的小羊和小耶" },
+        { src: "../app/src/main/res/drawable-nodpi/home_carousel_stargazing.png", alt: "星空下相依的小羊和小耶", lifted: true }
+      ]);
+      let activeHeroIndex = 0;
       const routePageMap = {
         "./homepage_preview.html": "home",
         "./message_wall_preview.html": "messageWall",
         "./message_wall_editor_preview.html": "messageEditor",
         "./wish_list.html": "wishList",
-          "./anniversary.html": "anniversary",
-          "./recent_activity_preview.html": "recentActivity"
+        "./anniversary.html": "anniversary",
+        "./recent_activity_preview.html": "recentActivity"
+      };
+      const startOfDay = date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const diffDays = (a, b) => Math.round((startOfDay(a) - startOfDay(b)) / 86400000);
+      const pad = value => String(value).padStart(2, "0");
+      const toChineseNumber = value => {
+        const digits = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+        if (value < 10) return digits[value];
+        if (value < 20) return `十${value === 10 ? "" : digits[value % 10]}`;
+        if (value < 100) return `${digits[Math.floor(value / 10)]}十${value % 10 === 0 ? "" : digits[value % 10]}`;
+        return String(value);
       };
 
-      function bridgeRoute(route) {
-        if (!route) return;
-        const page = routePageMap[route] || null;
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({
-            type: "secretbase-preview:navigate",
-            page,
-            route
-          }, "*");
+      function renderHeroCarousel(animate) {
+        const image = heroImages[activeHeroIndex];
+        carouselDotsEl.setAttribute("aria-label", `插画轮播，第 ${activeHeroIndex + 1} 张，共 ${heroImages.length} 张`);
+        carouselDotsEl.innerHTML = heroImages.map((_, index) => `<i class="${index === activeHeroIndex ? "active" : ""}"></i>`).join("");
+        if (!animate) {
+          heroImageEl.src = image.src;
+          heroImageEl.alt = image.alt;
+          heroImageEl.classList.toggle("is-lifted", Boolean(image.lifted));
           return;
         }
-        window.location.href = route;
+        heroImageEl.classList.add("is-changing");
+        window.setTimeout(() => {
+          heroImageEl.src = image.src;
+          heroImageEl.alt = image.alt;
+          heroImageEl.classList.toggle("is-lifted", Boolean(image.lifted));
+          heroImageEl.classList.remove("is-changing");
+        }, 210);
       }
 
-      function bindRouteClicks() {
-        document.querySelectorAll("[data-route]").forEach(node => {
-          node.addEventListener("click", event => {
-            event.preventDefault();
-            event.stopPropagation();
-            bridgeRoute(node.dataset.route);
-          }, true);
-        });
-
-        const relationship = document.querySelector(".relationship");
-        if (relationship) {
-          relationship.addEventListener("click", event => {
-            event.preventDefault();
-            bridgeRoute("./anniversary.html");
-          }, true);
-        }
-
-        const activityViewAll = document.querySelector(".activity-view-all");
-        if (activityViewAll) {
-          activityViewAll.addEventListener("click", event => {
-            event.preventDefault();
-            bridgeRoute("./recent_activity_preview.html");
-          }, true);
-        }
-      }
-
-      function updateSafeRelationship() {
-        const startDate = new Date("2026-05-06T00:00:00");
-        const startOfDay = date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        const diffDays = (a, b) => Math.round((startOfDay(a) - startOfDay(b)) / 86400000);
-        const today = startOfDay(new Date());
-        const daysTogether = Math.max(1, diffDays(today, startDate) + 1);
-        const daysNode = document.getElementById("daysTogether");
-        if (daysNode) daysNode.textContent = daysTogether;
-
+      function updateLiveContent() {
+        const now = new Date();
+        const today = startOfDay(now);
+        document.getElementById("statusTime").textContent = `${now.getHours()}:${pad(now.getMinutes())}`;
+        document.getElementById("daysTogether").textContent = Math.max(1, diffDays(today, START_DATE) + 1);
         const anniversaryThisYear = new Date(today.getFullYear(), 4, 6);
-        const nextAnniversary = today <= anniversaryThisYear && today.getFullYear() !== 2026
-          ? anniversaryThisYear
-          : new Date(today.getFullYear() + 1, 4, 6);
+        const nextAnniversary = today < anniversaryThisYear ? anniversaryThisYear : new Date(today.getFullYear() + 1, 4, 6);
+        const yearCount = Math.max(1, nextAnniversary.getFullYear() - START_DATE.getFullYear());
         const remain = diffDays(nextAnniversary, today);
-        const remainText = remain === 0 ? "\u5c31\u662f\u4eca\u5929" : `\u8fd8\u6709 ${remain} \u5929`;
-        const remainNode = document.getElementById("anniversaryRemain");
-        if (remainNode) remainNode.textContent = remainText;
+        document.getElementById("anniversaryTitle").textContent = `恋爱${toChineseNumber(yearCount)}周年`;
+        document.getElementById("anniversaryDays").textContent = remain === 0 ? "0" : remain;
+      }
 
-        const progressNode = document.getElementById("anniversaryProgress");
-        if (progressNode) {
-          const cycleStart = new Date(nextAnniversary.getFullYear() - 1, 4, 6);
-          const cycleTotal = Math.max(1, diffDays(nextAnniversary, cycleStart));
-          const cycleElapsed = Math.max(0, Math.min(cycleTotal, diffDays(today, cycleStart)));
-          progressNode.style.width = `${(cycleElapsed / cycleTotal) * 100}%`;
+      function navigate(route) {
+        const page = routePageMap[route] || "home";
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "secretbase-preview:navigate", page, route }, "*");
+        } else {
+          window.location.href = route;
         }
       }
 
-      function initHeroCarousel() {
-        const image = document.getElementById("heroCarouselImage");
-        if (!image) return;
-        const images = [
-          "../app/src/main/res/drawable-nodpi/home_carousel_current.png",
-          "../app/src/main/res/drawable-nodpi/home_carousel_tree.png",
-          "../app/src/main/res/drawable-nodpi/home_carousel_music.png",
-          "../app/src/main/res/drawable-nodpi/home_carousel_cake.png",
-          "../app/src/main/res/drawable-nodpi/home_carousel_picnic.png",
-          "../app/src/main/res/drawable-nodpi/home_carousel_camp.png",
-          "../app/src/main/res/drawable-nodpi/home_carousel_dance.png",
-          "../app/src/main/res/drawable-nodpi/home_carousel_read.png"
-        ];
-        let index = 0;
-        setInterval(() => {
-          index = (index + 1) % images.length;
-          image.style.opacity = "0";
-          setTimeout(() => {
-            image.src = images[index];
-            image.style.opacity = "1";
-          }, 240);
-        }, 3000);
-      }
-
-      bindRouteClicks();
-      updateRelationship();
-      initHeroCarousel();
+      document.querySelectorAll("[data-route]").forEach(node => {
+        node.addEventListener("click", event => { event.preventDefault(); navigate(node.dataset.route); });
+        node.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); navigate(node.dataset.route); }
+        });
+      });
+      heroImages.forEach(image => { new Image().src = image.src; });
+      renderHeroCarousel(false);
+      window.setInterval(() => {
+        activeHeroIndex = (activeHeroIndex + 1) % heroImages.length;
+        renderHeroCarousel(true);
+      }, 3500);
+      updateLiveContent();
+      setInterval(updateLiveContent, 30000);
     })();
   </script>
 </body>

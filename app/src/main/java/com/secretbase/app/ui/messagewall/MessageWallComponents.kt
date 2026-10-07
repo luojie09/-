@@ -653,11 +653,12 @@ fun WallCircleButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     contentDescription: String,
     tint: Color,
+    backgroundColor: Color = SurfaceWhite,
     onClick: () -> Unit,
 ) {
     Surface(
         modifier = Modifier.size(40.dp),
-        color = SurfaceWhite,
+        color = backgroundColor,
         shape = CircleShape,
         shadowElevation = 0.dp,
         border = null,
@@ -730,6 +731,7 @@ fun AvatarBubble(
 fun MessageImageGrid(
     imagePaths: List<String>,
     modifier: Modifier = Modifier,
+    maxVisibleImages: Int = Int.MAX_VALUE,
     onImageClick: (Int) -> Unit,
 ) {
     if (imagePaths.size == 1) {
@@ -738,36 +740,57 @@ fun MessageImageGrid(
             modifier = modifier
                 .fillMaxWidth()
                 .aspectRatio(1.5f)
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(18.dp))
                 .clickable { onImageClick(0) },
         )
     } else {
-        val columns = when (imagePaths.size) {
+        val visibleImages = imagePaths.take(maxVisibleImages)
+        val hiddenImageCount = (imagePaths.size - visibleImages.size).coerceAtLeast(0)
+        val columns = when (visibleImages.size) {
             2 -> 2
-            3, 4 -> 2
+            3 -> 3
+            4 -> 2
             else -> 3
         }
-        val rows = imagePaths.chunked(columns)
+        val rows = visibleImages.chunked(columns)
 
         Column(
             modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             rows.forEachIndexed { rowIndex, row ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     row.forEachIndexed { columnIndex, imagePath ->
                         val imageIndex = rowIndex * columns + columnIndex
-                        MessageMedia(
-                            imagePath = imagePath,
+                        Box(
                             modifier = Modifier
                                 .weight(1f, fill = true)
                                 .aspectRatio(1f)
                                 .clip(RoundedCornerShape(14.dp))
                                 .clickable { onImageClick(imageIndex) },
-                        )
+                        ) {
+                            MessageMedia(
+                                imagePath = imagePath,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                            if (hiddenImageCount > 0 && imageIndex == visibleImages.lastIndex) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color(0x66000000)),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                Text(
+                                    text = "+$hiddenImageCount",
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                                    color = SurfaceWhite,
+                                )
+                                }
+                            }
+                        }
                     }
                     repeat(columns - row.size) {
                         Spacer(modifier = Modifier.weight(1f, fill = true))
@@ -928,6 +951,7 @@ fun MessageImageViewer(
                         icon = Icons.Outlined.Close,
                         contentDescription = "关闭预览",
                         tint = SurfaceWhite,
+                        backgroundColor = Color.Black.copy(alpha = 0.46f),
                         onClick = onDismiss,
                     )
                     Spacer(modifier = Modifier.weight(1f))
@@ -1046,8 +1070,8 @@ private fun ConfirmationDialog(
                 color = WarmGray,
             )
         },
-        shape = RoundedCornerShape(16.dp),
-        containerColor = SoftPink.copy(alpha = 0.96f),
+        shape = RoundedCornerShape(20.dp),
+        containerColor = Color(0xFFFFFCFB),
     )
 }
 
@@ -1073,7 +1097,7 @@ fun EditMessageDialog(
         title = {
             Text(
                 text = "编辑留言",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             )
         },
         text = {
@@ -1084,8 +1108,8 @@ fun EditMessageDialog(
                 minHeight = 140.dp,
             )
         },
-        shape = RoundedCornerShape(16.dp),
-        containerColor = SoftPink.copy(alpha = 0.96f),
+        shape = RoundedCornerShape(20.dp),
+        containerColor = Color(0xFFFFFCFB),
     )
 }
 

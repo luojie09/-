@@ -9,8 +9,8 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
     :root{
-      --bg:#fbf8f9;
-      --bg-top:#fdf3f6;
+      --bg:#fff;
+      --bg-top:#fff;
       --surface:rgba(255,255,255,.92);
       --line:#f2e7eb;
       --line-strong:#ecd7df;
@@ -35,7 +35,7 @@
     *{box-sizing:border-box}
     html,body{
       margin:0;
-      background:#f6f2f4;
+      background:#fff;
       color:var(--ink);
       font-family:var(--font-body);
       -webkit-font-smoothing:antialiased;
@@ -47,18 +47,30 @@
     .phone{
       width:min(100%,430px);
       min-height:calc(100vh - 48px);
-      background:linear-gradient(180deg,var(--bg-top),var(--bg));
+      background:#fff;
       border-radius:38px;
       border:1px solid rgba(255,255,255,.84);
       box-shadow:0 20px 56px rgba(49,34,41,.12);
-      overflow:hidden;
+      overflow:visible;
       position:relative;
     }
 
     .screen{
       min-height:100%;
+      background:#fff;
       padding:calc(14px + env(safe-area-inset-top)) 16px calc(112px + env(safe-area-inset-bottom));
       overflow:auto;
+    }
+
+    /* Override the shared preview shell so this route mirrors the white Android screen. */
+    body.theme-secondary{
+      --bg:#fff !important;
+      --bg-top:#fff !important;
+      background:#fff !important;
+    }
+    .theme-secondary .phone,
+    .theme-secondary .screen{
+      background:#fff !important;
     }
 
     .topbar{
@@ -90,9 +102,8 @@
       height:40px;
       border:none;
       border-radius:50%;
-      background:rgba(255,255,255,.82);
-      border:1px solid rgba(242,231,235,.96);
-      box-shadow:0 8px 18px rgba(116,61,78,.06);
+      background:transparent;
+      box-shadow:none;
       display:grid;
       place-items:center;
       color:var(--ink);
@@ -103,7 +114,6 @@
     .circle-btn.add{color:var(--pink)}
 
     .hero,
-    .wish-card,
     .detail-card,
     .celebrate-card,
     .empty-card{
@@ -114,12 +124,15 @@
 
     .hero{
       display:grid;
-      grid-template-columns:minmax(0,1fr) 164px;
+      grid-template-columns:minmax(0,1fr);
       align-items:center;
-      gap:4px;
-      border-radius:28px;
-      padding:14px 12px 12px 18px;
-      margin-bottom:14px;
+      gap:16px;
+      border:0;
+      border-radius:0;
+      padding:8px 2px 12px;
+      margin-bottom:2px;
+      background:transparent;
+      box-shadow:none;
     }
 
     .hero-left{
@@ -127,32 +140,25 @@
       display:flex;
       flex-direction:column;
       justify-content:center;
-      gap:16px;
+      gap:8px;
     }
 
     .hero-copy{
       min-width:0;
     }
 
-    .hero-copy .eyebrow{
-      margin:0;
-      color:var(--muted);
-      font-size:13px;
-      font-weight:700;
-    }
-
     .hero-copy h2{
-      margin:3px 0 0;
+      margin:0;
       font-size:21px;
-      font-family:var(--font-heading);
+      font-family:var(--font-body);
       font-weight:700;
       line-height:1.35;
       letter-spacing:-.01em;
     }
 
     .hero-ill{
-      width:164px;
-      height:132px;
+      width:86px;
+      height:68px;
       border-radius:0;
       background:transparent;
       display:flex;
@@ -160,75 +166,42 @@
       justify-content:center;
       overflow:visible;
       margin-left:auto;
-      margin-right:-14px;
+      margin-right:0;
     }
 
     .hero-ill img{
-      width:124%;
-      height:124%;
+      width:100%;
+      height:100%;
       object-fit:contain;
-      transform:translate(-4px,-3px);
+      transform:none;
     }
 
-    .stat-grid{
-      display:flex;
-      gap:20px;
-      align-items:flex-end;
-    }
-
-    .stat{
-      padding:0;
-      text-align:left;
-    }
-
-    .stat + .stat{border-left:none}
-    .stat-label{font-size:12px;color:var(--muted);font-weight:680}
-    .stat-num{
-      margin-top:1px;
-      font-size:27px;
-      font-family:var(--font-number);
-      font-weight:700;
-      line-height:1;
-      letter-spacing:-.02em;
-      font-variant-numeric:tabular-nums;
-    }
+    .summary-line{color:var(--muted);font-size:13px;font-weight:500}
+    .summary-progress{position:relative;height:46px}
+    .summary-progress::before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;border-radius:999px;background:#e8e3e5;transform:translateY(-50%)}
+    .summary-progress i{position:absolute;left:0;top:50%;height:3px;border-radius:999px;background:var(--pink);transform:translateY(-50%)}
+    .progress-marker{position:absolute;top:3px;width:40px;height:40px;object-fit:contain;transform:translateX(-50%);pointer-events:none}
 
     @media (max-width:360px){
-      .hero{
-        grid-template-columns:minmax(0,1fr) 144px;
-        padding-right:10px;
-      }
-
-      .hero-ill{
-        width:144px;
-        height:120px;
-        margin-right:-12px;
-      }
-
-      .hero-copy h2{
-        font-size:19px;
-      }
-
-      .stat-grid{
-        gap:16px;
-      }
+      .hero{grid-template-columns:minmax(0,1fr)}
     }
 
     .tabs{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:4px;
-      padding:3px;
-      border-radius:999px;
-      background:var(--control-bg);
-      border:1px solid rgba(242,231,235,.84);
-      margin-bottom:14px;
+      display:flex;
+      gap:28px;
+      padding:0;
+      border-radius:0;
+      background:transparent;
+      border:0;
+      border-bottom:1px solid #e7e2e4;
+      margin-bottom:0;
     }
 
     .tab{
+      position:relative;
       border:none;
-      border-radius:999px;
-      padding:9px 14px;
+      border-radius:0;
+      padding:11px 0 10px;
       background:transparent;
       color:var(--muted);
       font-size:13px;
@@ -238,53 +211,117 @@
     }
 
     .tab.active{
-      background:rgba(255,255,255,.82);
+      background:transparent;
       color:var(--pink-strong);
       box-shadow:none;
-      border-color:rgba(242,231,235,.88);
+      border-color:transparent;
+    }
+
+    .tab.active::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      bottom:-1px;
+      width:28px;
+      height:2px;
+      border-radius:2px;
+      background:var(--pink);
+      transform:translateX(-50%);
     }
 
     .list{
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:0;
+      border-radius:0;
+      background:transparent;
+      overflow:visible;
+      box-shadow:none;
     }
 
     .wish-card{
-      border-radius:24px;
-      padding:14px;
+      padding:15px 0;
       display:grid;
-      grid-template-columns:42px minmax(0,1fr) auto;
-      gap:12px;
+      grid-template-columns:34px minmax(0,1fr) auto;
+      gap:10px;
       align-items:start;
       cursor:pointer;
+      border-bottom:1px solid #e7e2e4;
+      border-radius:0;
+      background:transparent;
+      box-shadow:none;
+    }
+    .wish-card:last-child{border-bottom:0}
+
+    body.theme-secondary .list{
+      border-radius:0 !important;
+      background:transparent !important;
+      box-shadow:none !important;
+    }
+
+    body.theme-secondary .list .wish-card{
+      border:0 !important;
+      border-bottom:1px solid #e7e2e4 !important;
+      border-radius:0 !important;
+      background:transparent !important;
+      box-shadow:none !important;
+    }
+
+    body.theme-secondary .list .wish-card:last-child{
+      border-bottom:0 !important;
+    }
+
+    body.theme-secondary .hero{
+      border:0 !important;
+      border-radius:0 !important;
+      background:transparent !important;
+      box-shadow:none !important;
+    }
+
+    body.theme-secondary .tabs{
+      border:0 !important;
+      border-bottom:1px solid #e7e2e4 !important;
+      border-radius:0 !important;
+      background:transparent !important;
+      box-shadow:none !important;
+    }
+
+    body.theme-secondary .tabs .tab.active{
+      border-color:transparent !important;
+      background:transparent !important;
+      color:var(--pink) !important;
     }
 
     .wish-icon{
-      width:42px;
-      height:42px;
+      width:34px;
+      height:34px;
       border-radius:50%;
       display:grid;
       place-items:center;
-      background:rgba(255,111,149,.12);
+      background:transparent;
+      border:1.8px solid rgba(255,111,149,.62);
       color:var(--pink);
       margin-top:1px;
+      cursor:pointer;
     }
 
     .wish-icon.realized{
-      background:rgba(74,168,117,.12);
-      color:#4a8a68;
+      background:#4a8a68;
+      border-color:#4a8a68;
+      color:white;
+      cursor:default;
     }
 
     .wish-icon svg{
-      width:20px;
-      height:20px;
+      width:17px;
+      height:17px;
       display:block;
     }
 
     .wish-thumb{
-      height:78px;
-      border-radius:18px;
+      width:58px;
+      height:58px;
+      border-radius:12px;
       overflow:hidden;
       border:1px solid rgba(242,231,235,.9);
       background:#fffafb;
@@ -306,6 +343,11 @@
       letter-spacing:.08em;
     }
 
+    .wish-thumb .mock{
+      padding:8px;
+      font-size:11px;
+    }
+
     .mock.paris{background:linear-gradient(135deg,#7cc7f7,#ffc7d7)}
     .mock.photo{background:linear-gradient(135deg,#d8a7b8,#ffe0c8)}
     .mock.game{background:linear-gradient(135deg,#98cc8b,#cee6a7)}
@@ -325,8 +367,8 @@
 
     .wish-main{min-width:0}
     .wish-title{
-      margin:1px 0 4px;
-      font-size:18px;
+      margin:1px 0 3px;
+      font-size:17px;
       font-family:var(--font-heading);
       font-weight:700;
       line-height:1.35;
@@ -334,21 +376,23 @@
     }
 
     .wish-desc{
-      margin:0 0 8px;
+      margin:0 0 5px;
       color:var(--muted);
       font-size:13px;
       line-height:1.5;
       display:-webkit-box;
-      -webkit-line-clamp:2;
+      -webkit-line-clamp:1;
       -webkit-box-orient:vertical;
       overflow:hidden;
     }
 
     .wish-meta{
       display:flex;
-      flex-wrap:wrap;
-      gap:8px;
+      gap:5px;
       align-items:center;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:600;
       font-family:var(--font-number);
       font-variant-numeric:tabular-nums;
     }
@@ -377,54 +421,6 @@
       border-color:rgba(214,234,222,.92);
       color:#4a8a68;
     }
-
-    .wish-side{
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:6px;
-    }
-
-    .menu-wrap{position:relative}
-    .text-icon{
-      border:none;
-      background:none;
-      color:var(--muted);
-      font-size:18px;
-      line-height:1;
-      cursor:pointer;
-      padding:2px 0 0;
-    }
-
-    .menu{
-      position:absolute;
-      right:0;
-      top:28px;
-      width:118px;
-      border-radius:16px;
-      border:1px solid rgba(242,231,235,.94);
-      background:#fff;
-      box-shadow:0 14px 28px rgba(52,30,39,.1);
-      padding:8px;
-      display:none;
-      z-index:10;
-    }
-
-    .menu.show{display:block}
-    .menu button{
-      width:100%;
-      border:none;
-      background:none;
-      text-align:left;
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      color:var(--ink);
-      font:600 14px/1.2 inherit;
-    }
-
-    .menu button:hover{background:#fff4f8}
-    .menu button.danger{color:var(--pink)}
 
     .tiny-btn,
     .primary-btn,
@@ -525,6 +521,32 @@
       grid-template-columns:1fr 1fr;
       gap:12px;
     }
+
+    .completion-summary{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px 16px;
+      margin-bottom:16px;
+      border-radius:20px;
+      background:var(--surface);
+    }
+    .completion-check{
+      width:42px;
+      height:42px;
+      flex:0 0 42px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:#eaf6ee;
+      color:#4a8a68;
+      font-size:22px;
+      font-weight:800;
+    }
+    .completion-summary span:last-child{display:flex;min-width:0;flex-direction:column;gap:2px}
+    .completion-summary small{color:var(--muted);font-size:13px;font-weight:600}
+    .completion-summary strong{overflow:hidden;font-size:17px;text-overflow:ellipsis;white-space:nowrap}
+    .completion-status{display:flex;align-items:center;color:#4a8a68;font-size:14px;font-weight:700}
 
     .celebrate-card{
       text-align:center;
@@ -674,9 +696,28 @@
     }
 
     .sheet h3{
-      margin:0 0 16px;
+      margin:0;
       font-size:22px;
     }
+
+    .sheet-header{
+      display:grid;
+      grid-template-columns:64px 1fr 64px;
+      align-items:center;
+      margin-bottom:18px;
+    }
+    .sheet-header h3{text-align:center;font-size:20px}
+    .sheet-header button{
+      min-height:44px;
+      padding:0;
+      border:0;
+      background:transparent;
+      font:650 15px/1 var(--font-body);
+      cursor:pointer;
+    }
+    .sheet-header .cancel-link{text-align:left;color:var(--muted)}
+    .sheet-header .save-link{text-align:right;color:var(--pink)}
+    .sheet-header .save-link:disabled{color:rgba(139,135,146,.5);cursor:not-allowed}
 
     .sheet-actions{
       display:flex;
@@ -707,7 +748,7 @@
       bottom:0;
       display:grid;
       grid-template-columns:repeat(4,1fr);
-      padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+      padding:6px 10px calc(6px + env(safe-area-inset-bottom));
       border-radius:26px 26px 0 0;
       border-top:1px solid var(--line);
       background:rgba(255,255,255,.96);
@@ -720,7 +761,7 @@
       background:transparent;
       color:var(--muted);
       font:700 12px/16px var(--font-body);
-      padding:6px 4px;
+      padding:4px;
       cursor:pointer;
     }
 
@@ -729,23 +770,26 @@
       font-weight:800;
     }
 
+    .main-tab-item img{ opacity:.5; }
+    .main-tab-item.active img{ opacity:1; }
+
     .main-tab-item img{
       display:block;
-      width:24px;
-      height:24px;
-      margin:0 auto 4px;
+      width:36px;
+      height:36px;
+      margin:0 auto 2px;
       object-fit:contain;
     }
   </style>
 </head>
-<body>
+<body class="theme-secondary">
   <div class="phone">
     <div class="screen" id="screen"></div>
     <nav class="main-tab-nav">
-      <button class="main-tab-item" type="button" data-main-tab="./homepage_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_home_nav_active.png" alt="">首页</button>
-      <button class="main-tab-item" type="button" data-main-tab="./message_wall_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_message_wall_card.png" alt="">留言墙</button>
-      <button class="main-tab-item active" type="button" data-main-tab="./wish_list.html"><img src="../app/src/main/res/drawable-nodpi/ic_wishlist_card.png" alt="">愿望清单</button>
-      <button class="main-tab-item" type="button" data-main-tab="./anniversary.html"><img src="../app/src/main/res/drawable-nodpi/ic_calendar_nav.png" alt="">纪念日</button>
+      <button class="main-tab-item" type="button" data-main-tab="./homepage_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_home_plan_b.png?v=20261003-icon-crop" alt="">首页</button>
+      <button class="main-tab-item" type="button" data-main-tab="./message_wall_preview.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_message_wall_plan_b.png?v=20261003-icon-crop" alt="">留言墙</button>
+      <button class="main-tab-item active" type="button" data-main-tab="./wish_list.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_wishlist_plan_b.png?v=20261003-icon-crop" alt="">愿望清单</button>
+      <button class="main-tab-item" type="button" data-main-tab="./anniversary.html"><img src="../app/src/main/res/drawable-nodpi/ic_nav_anniversary_plan_b.png?v=20261003-icon-crop" alt="">纪念日</button>
     </nav>
   </div>
 
@@ -754,28 +798,26 @@
 
   <div class="overlay" id="editorOverlay">
     <div class="sheet">
-      <h3 id="editorTitle"></h3>
-      <div class="field">
-        <div class="field-label">愿望标题 *</div>
-        <input id="wishTitleInput" type="text" maxlength="50" placeholder="请输入愿望标题（最多50字）" />
-        <div class="counter"><span id="wishTitleCount">0</span>/50</div>
+      <div class="sheet-header">
+        <button class="cancel-link" id="editorCancel" type="button">取消</button>
+        <h3 id="editorTitle"></h3>
+        <button class="save-link" id="editorSave" type="button">保存</button>
       </div>
       <div class="field">
-        <div class="field-label">想法说明（可选）</div>
-        <textarea id="wishDescInput" maxlength="500" placeholder="写下你的想法吧……（最多500字）"></textarea>
-        <div class="counter"><span id="wishDescCount">0</span>/500</div>
+        <input id="wishTitleInput" type="text" maxlength="50" placeholder="想一起做什么？" />
+        <div class="counter hidden" id="wishTitleCounter"><span id="wishTitleCount">0</span>/50</div>
       </div>
       <div class="field">
-        <div class="field-label">计划日期（可选）</div>
+        <textarea id="wishDescInput" maxlength="500" placeholder="补充一点想法（可选）"></textarea>
+        <div class="counter hidden" id="wishDescCounter"><span id="wishDescCount">0</span>/500</div>
+      </div>
+      <div class="field">
+        <div class="field-label">计划日期</div>
         <input id="wishDateInput" type="date" />
       </div>
       <div class="field">
-        <div class="field-label">封面图片（可选）</div>
+        <div class="field-label">封面</div>
         <div id="coverField"></div>
-      </div>
-      <div class="sheet-actions">
-        <button class="secondary-btn" id="editorCancel" type="button">取消</button>
-        <button class="primary-btn" id="editorSave" type="button">保存</button>
       </div>
     </div>
   </div>
@@ -804,6 +846,9 @@
     const coverFieldEl = document.getElementById("coverField");
     const titleCountEl = document.getElementById("wishTitleCount");
     const descCountEl = document.getElementById("wishDescCount");
+    const titleCounterEl = document.getElementById("wishTitleCounter");
+    const descCounterEl = document.getElementById("wishDescCounter");
+    const editorSaveEl = document.getElementById("editorSave");
 
     const heroImage = "../app/src/main/res/drawable-nodpi/home_couple_hero.webp?v=20260710-new-hero";
     const fixedNow = new Date("2026-06-27T12:00:00+08:00").getTime();
@@ -830,7 +875,7 @@
       editorOpen: false,
       editor: emptyEditor(),
       completionDraft: emptyCompletion(),
-      menuWishId: null
+      completionReturnScreen: "list"
     };
 
     let wishes = loadWishes();
@@ -1016,24 +1061,16 @@
         : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6c-1.7-1.6-4.4-1.4-5.9.4L12 8.1 9.1 5C7.6 3.2 4.9 3 3.2 4.6c-1.9 1.8-2 4.9-.2 6.8L12 20l9-8.6c1.8-1.9 1.7-5-.2-6.8Z"/></svg>`;
       return `
         <article class="wish-card" data-open-wish="${wish.id}">
-          <div class="wish-icon ${isRealized ? "realized" : ""}">${icon}</div>
+          <button class="wish-icon ${isRealized ? "realized" : ""}" type="button" ${isRealized ? "disabled" : `data-action="complete-wish" data-id="${wish.id}"`} aria-label="${isRealized ? "已实现" : "记录愿望完成"}">${icon}</button>
           <div class="wish-main">
             <div class="wish-title">${escapeHtml(wish.title)}</div>
             <p class="wish-desc">${escapeHtml(isRealized ? (wish.completion?.text || wish.description) : wish.description || "慢慢来，想做的事情都会实现。")}</p>
             <div class="wish-meta">
-              <span class="pill">${formatDate(metaDate)}</span>
-              ${isRealized ? `<span class="pill done">已实现</span>` : `<span class="pill blue">待实现</span>`}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${isRealized ? `<path d="M9 12.4l2.1 2.1L15.8 9.8"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>` : `<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/>`}</svg>
+              <span>${isRealized ? `完成于 ${formatDate(metaDate)}` : `计划 ${formatDate(metaDate)}`}</span>
             </div>
           </div>
-          <div class="wish-side">
-            <div class="menu-wrap">
-              <button class="text-icon" type="button" data-action="toggle-menu" data-id="${wish.id}">…</button>
-              <div class="menu ${appState.menuWishId === wish.id ? "show" : ""}">
-                <button type="button" data-action="edit-wish" data-id="${wish.id}">编辑</button>
-                <button class="danger" type="button" data-action="delete-wish" data-id="${wish.id}">删除</button>
-              </div>
-            </div>
-          </div>
+          ${wish.coverImagePath ? `<div class="wish-thumb">${renderMedia(wish.coverImagePath)}</div>` : ""}
         </article>
       `;
     }
@@ -1041,30 +1078,25 @@
     function renderListScreen() {
       const { unrealized, realized } = counts();
       const items = visibleWishes();
+      const completion = unrealized + realized ? (realized / (unrealized + realized)) * 100 : 0;
+      const markerPosition = Math.max(6, Math.min(94, completion));
       return `
         ${renderTopbar("愿望清单", "", "add")}
         <section class="hero">
           <div class="hero-left">
             <div class="hero-copy">
-              <p class="eyebrow">有你在身边</p>
-              <h2>愿望都会<br>慢慢实现</h2>
+              <h2>一起实现的愿望</h2>
             </div>
-            <div class="stat-grid">
-              <div class="stat">
-                <div class="stat-label">未实现</div>
-                <div class="stat-num">${unrealized}</div>
-              </div>
-              <div class="stat">
-                <div class="stat-label">已实现</div>
-                <div class="stat-num">${realized}</div>
-              </div>
+            <div class="summary-line">${realized} 个已实现 · ${unrealized} 个待完成</div>
+            <div class="summary-progress" aria-label="愿望完成进度 ${Math.round(completion)}%">
+              <i style="width:${completion}%"></i>
+              <img class="progress-marker" src="../app/src/main/res/drawable-nodpi/wish_progress_marker_portrait.png" alt="" style="left:${markerPosition}%">
             </div>
           </div>
-          <div class="hero-ill"><img src="${heroImage}" alt="插画"></div>
         </section>
         <div class="tabs">
-          <button class="tab ${appState.selectedStatus === "UNREALIZED" ? "active" : ""}" type="button" data-action="tab" data-status="UNREALIZED">未实现</button>
-          <button class="tab ${appState.selectedStatus === "REALIZED" ? "active" : ""}" type="button" data-action="tab" data-status="REALIZED">已实现</button>
+          <button class="tab ${appState.selectedStatus === "UNREALIZED" ? "active" : ""}" type="button" data-action="tab" data-status="UNREALIZED">想实现&nbsp;&nbsp;${unrealized}</button>
+          <button class="tab ${appState.selectedStatus === "REALIZED" ? "active" : ""}" type="button" data-action="tab" data-status="REALIZED">已实现&nbsp;&nbsp;${realized}</button>
         </div>
         ${items.length ? `<section class="list">${items.map(renderWishCard).join("")}</section>` : `
           <section class="empty-card">
@@ -1081,9 +1113,9 @@
       return `
         ${renderTopbar("愿望详情")}
         <section class="detail-card">
-          <div class="cover-preview">${renderMedia(wish.coverImagePath)}</div>
+          ${wish.coverImagePath ? `<div class="cover-preview">${renderMedia(wish.coverImagePath)}</div>` : ""}
           <h2>${escapeHtml(wish.title)}</h2>
-          <p>${escapeHtml(wish.description || "这条愿望还没有写下更多说明，但已经很值得期待。")}</p>
+          ${wish.description ? `<p>${escapeHtml(wish.description)}</p>` : ""}
           <div class="info-row"><span class="info-label">计划日期</span><span class="info-value">${formatDate(wish.plannedDate)}</span></div>
           <div class="info-row"><span class="info-label">创建时间</span><span class="info-value">${formatDate(wish.createdAt)}</span></div>
         </section>
@@ -1098,19 +1130,17 @@
       const draft = appState.completionDraft;
       return `
         ${renderTopbar("完成记录")}
-        <section class="celebrate-card">
-          <div class="hero-ill"><img src="${heroImage}" alt="庆祝插画"></div>
-          <h3>太棒了！</h3>
-          <p>把这次愿望成真的时刻，好好记下来吧。</p>
-          <div class="pill blue" style="margin:12px auto 0;width:max-content">${escapeHtml(wish.title)}</div>
+        <section class="completion-summary">
+          <span class="completion-check">✓</span>
+          <span><small>记录愿望完成</small><strong>${escapeHtml(wish.title)}</strong></span>
         </section>
         <div class="field">
           <div class="field-label">完成感想</div>
           <textarea id="completionText" maxlength="500" placeholder="写下完成这个愿望时的感受吧……">${escapeHtml(draft.text)}</textarea>
-          <div class="counter">${draft.text.length}/500</div>
+          ${draft.text.length >= 450 ? `<div class="counter">${draft.text.length}/500</div>` : ""}
         </div>
         <div class="field">
-          <div class="field-label">完成照片（最多9张）</div>
+          <div class="field-label">照片</div>
           ${draft.imagePaths.length ? `<div class="gallery">${draft.imagePaths.map((path, index) => `
             <div class="gallery-item">
               ${renderMedia(path)}
@@ -1123,7 +1153,7 @@
           <div class="field-label">完成日期</div>
           <input id="completionDate" type="date" value="${draft.completedAt}" />
         </div>
-        <button class="primary-btn" type="button" data-action="save-completion" style="width:100%">保存完成记录</button>
+        <button class="primary-btn" type="button" data-action="save-completion" style="width:100%" ${draft.text.trim() || draft.imagePaths.length ? "" : "disabled"}>保存完成记录</button>
       `;
     }
 
@@ -1131,21 +1161,17 @@
       const completion = wish.completion;
       return `
         ${renderTopbar("完成记录详情")}
-        <section class="celebrate-card" style="margin-bottom:16px">
-          <div class="hero-ill"><img src="${heroImage}" alt="庆祝插画"></div>
-          <h3>${escapeHtml(wish.title)}</h3>
-          <p>原始愿望与完成时刻，都被好好存下来了。</p>
-        </section>
         <section class="detail-card">
-          <div class="info-row"><span class="info-label">原始愿望</span><span class="info-value">${escapeHtml(wish.title)}</span></div>
-          <div class="info-row"><span class="info-label">想法说明</span><span class="info-value">${escapeHtml(wish.description || "未填写")}</span></div>
+          <div class="completion-status">✓&nbsp;&nbsp;已实现</div>
+          <h2>${escapeHtml(wish.title)}</h2>
+          ${wish.description ? `<p>${escapeHtml(wish.description)}</p>` : ""}
           <div class="info-row"><span class="info-label">创建时间</span><span class="info-value">${formatDate(wish.createdAt)}</span></div>
           <div class="info-row"><span class="info-label">计划日期</span><span class="info-value">${formatDate(wish.plannedDate)}</span></div>
           <div class="info-row"><span class="info-label">完成日期</span><span class="info-value">${formatDate(completion?.completedAt)}</span></div>
         </section>
         <section class="detail-card">
           <h2 style="font-size:22px">完成记录</h2>
-          <p>${escapeHtml(completion?.text || "这次是用照片记录下来的，没有额外文字。")}</p>
+          ${completion?.text ? `<p>${escapeHtml(completion.text)}</p>` : ""}
           ${completion?.imagePaths?.length ? `<div class="gallery">${completion.imagePaths.map(path => `<div class="gallery-item">${renderMedia(path)}</div>`).join("")}</div>` : ""}
         </section>
       `;
@@ -1156,7 +1182,6 @@
       if (!wish) return;
       appState.activeWishId = id;
       appState.screen = wish.status === "REALIZED" ? "completion-detail" : "detail";
-      appState.menuWishId = null;
       render();
     }
 
@@ -1186,6 +1211,9 @@
       dateInputEl.value = appState.editor.plannedDate;
       titleCountEl.textContent = appState.editor.title.length;
       descCountEl.textContent = appState.editor.description.length;
+      titleCounterEl.classList.toggle("hidden", appState.editor.title.length < 40);
+      descCounterEl.classList.toggle("hidden", appState.editor.description.length < 450);
+      editorSaveEl.disabled = !appState.editor.title.trim();
       coverFieldEl.innerHTML = appState.editor.coverImagePath
         ? `<div class="cover-preview" style="height:150px;margin-bottom:0">${renderMedia(appState.editor.coverImagePath)}</div>
            <div style="height:10px"></div>
@@ -1240,6 +1268,7 @@
     function startCompletion(wishId) {
       const wish = getWish(wishId);
       if (!wish) return;
+      appState.completionReturnScreen = appState.screen === "detail" ? "detail" : "list";
       appState.activeWishId = wishId;
       appState.completionDraft = {
         text: "",
@@ -1325,20 +1354,14 @@
         return;
       }
 
-      if (!actionEl) {
-        if (!event.target.closest(".menu-wrap")) {
-          appState.menuWishId = null;
-          render();
-        }
-        return;
-      }
+      if (!actionEl) return;
 
       const { action, id, status, index } = actionEl.dataset;
       if (action === "back" || action === "back-home") {
         if (appState.screen === "list") {
           openMainTab("./homepage_preview.html");
         } else if (appState.screen === "completion") {
-          appState.screen = "detail";
+          appState.screen = appState.completionReturnScreen;
           render();
         } else {
           appState.screen = "list";
@@ -1352,24 +1375,11 @@
       }
       if (action === "tab") {
         appState.selectedStatus = status;
-        appState.menuWishId = null;
         render();
         return;
       }
-      if (action === "toggle-menu") {
-        appState.menuWishId = appState.menuWishId === id ? null : id;
-        render();
-        return;
-      }
-      if (action === "edit-wish") {
-        openEditor(getWish(id));
-        return;
-      }
-      if (action === "delete-wish") {
-        openConfirm("删除这个愿望？", "删除后，原始愿望和完成记录都会一起移除。", () => {
-          removeWish(id);
-          closeConfirm();
-        });
+      if (action === "complete-wish") {
+        startCompletion(id);
         return;
       }
       if (action === "open-detail") {
@@ -1410,14 +1420,28 @@
       }
     });
 
+    screenEl.addEventListener("input", event => {
+      if (event.target.id === "completionText") {
+        appState.completionDraft.text = event.target.value.slice(0, 500);
+        const saveButton = screenEl.querySelector('[data-action="save-completion"]');
+        if (saveButton) saveButton.disabled = !appState.completionDraft.text.trim() && !appState.completionDraft.imagePaths.length;
+      }
+      if (event.target.id === "completionDate") {
+        appState.completionDraft.completedAt = event.target.value;
+      }
+    });
+
     titleInputEl.addEventListener("input", () => {
       appState.editor.title = titleInputEl.value.slice(0, 50);
       titleCountEl.textContent = appState.editor.title.length;
+      titleCounterEl.classList.toggle("hidden", appState.editor.title.length < 40);
+      editorSaveEl.disabled = !appState.editor.title.trim();
     });
 
     descInputEl.addEventListener("input", () => {
       appState.editor.description = descInputEl.value.slice(0, 500);
       descCountEl.textContent = appState.editor.description.length;
+      descCounterEl.classList.toggle("hidden", appState.editor.description.length < 450);
     });
 
     dateInputEl.addEventListener("input", () => {
@@ -1425,7 +1449,7 @@
     });
 
     document.getElementById("editorCancel").addEventListener("click", closeEditor);
-    document.getElementById("editorSave").addEventListener("click", saveEditor);
+    editorSaveEl.addEventListener("click", saveEditor);
     document.getElementById("confirmCancel").addEventListener("click", closeConfirm);
     document.getElementById("confirmOk").addEventListener("click", () => {
       if (confirmHandler) confirmHandler();
@@ -1457,16 +1481,6 @@
       appState.completionDraft.imagePaths.push(...dataUrls);
       completionPickerEl.value = "";
       render();
-    });
-
-    document.addEventListener("click", event => {
-      if (!event.target.closest(".menu-wrap")) {
-        const hasMenu = document.querySelector(".menu.show");
-        if (hasMenu) {
-          appState.menuWishId = null;
-          render();
-        }
-      }
     });
 
     const mainTabPageMap = {

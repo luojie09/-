@@ -18,12 +18,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -56,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.secretbase.app.R
 import com.secretbase.app.data.HeroVisualConfig
 import com.secretbase.app.data.MoodOption
@@ -163,44 +166,503 @@ private fun HomeContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFFFFF8F5))
             .padding(innerPadding),
-        contentPadding = PaddingValues(bottom = 28.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+        contentPadding = PaddingValues(bottom = 24.dp),
     ) {
         item {
-            HomeHeroSection(
+            ImmersiveHomeHero(
                 payload = payload,
-                onSettingsClick = { onAction(com.secretbase.app.AppActions.OpenIdentitySettings) },
+                onAnniversaryClick = { onAction(payload.bottomNavMessages.anniversary) },
             )
         }
 
         item {
-            PaddedSection {
-                SectionTitle(
-                    title = "\u6700\u8fd1\u52a8\u6001",
-                    trailing = null,
+            ImmersiveRecentActivity(
+                activities = payload.allActivities.take(3),
+                emptyText = payload.recentActivityEmptyText,
+                onViewAll = { onAction(payload.recentActivityListMessage) },
+                onAction = onAction,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ImmersiveHomeHero(
+    payload: HomePayload,
+    onAnniversaryClick: () -> Unit,
+) {
+    val liftedBackgrounds = setOf(
+        R.drawable.home_carousel_autumn_bench,
+        R.drawable.home_carousel_lakeside_picnic,
+        R.drawable.home_carousel_stargazing,
+    )
+    val configuredBackgrounds = payload.visuals.immersiveBackgroundCarouselRes
+        .ifEmpty { listOfNotNull(payload.visuals.immersiveBackgroundRes) }
+        .ifEmpty { listOf(R.drawable.home_plan_b_living_room) }
+    val carouselBackgrounds = remember(configuredBackgrounds) { configuredBackgrounds.shuffled() }
+    var activeBackgroundIndex by remember(carouselBackgrounds) { mutableIntStateOf(0) }
+
+    LaunchedEffect(carouselBackgrounds) {
+        if (carouselBackgrounds.size < 2) return@LaunchedEffect
+        while (true) {
+            delay(3_500)
+            activeBackgroundIndex = (activeBackgroundIndex + 1) % carouselBackgrounds.size
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(616.dp),
+    ) {
+        Crossfade(
+            targetState = carouselBackgrounds[activeBackgroundIndex],
+            label = "home-hero-background",
+        ) { backgroundRes ->
+            val isLifted = backgroundRes in liftedBackgrounds
+            Image(
+                painter = painterResource(id = backgroundRes),
+                contentDescription = "小羊和小耶的日常插画",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = if (isLifted) 1.12f else 1f
+                        scaleY = if (isLifted) 1.12f else 1f
+                    }
+                    .offset(y = if (isLifted) (-28).dp else 0.dp),
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.BottomCenter,
+            )
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0f to Color(0x52FFF9F5),
+                            0.24f to Color(0x12FFF9F5),
+                            0.58f to Color.Transparent,
+                            0.82f to Color(0x5CFFF8F5),
+                            1f to Color(0xFFFFF8F5),
+                        ),
+                    ),
+                ),
+        )
+
+        CarouselDots(
+            activeIndex = activeBackgroundIndex,
+            count = carouselBackgrounds.size,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 280.dp),
+        )
+
+        ImmersiveRelationshipCard(
+            relationship = payload.relationship,
+            sheepAvatarRes = payload.visuals.avatar("sheep"),
+            chickAvatarRes = payload.visuals.avatar("chick"),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(start = 20.dp, top = 304.dp, end = 20.dp),
+        )
+
+        NextAnniversaryCard(
+            relationship = payload.relationship,
+            iconRes = payload.visuals.icon("anniversaryFeature"),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(start = 20.dp, top = 466.dp, end = 20.dp),
+            onClick = onAnniversaryClick,
+        )
+
+        VisitHistoryCard(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(start = 20.dp, top = 554.dp, end = 20.dp),
+        )
+    }
+}
+
+@Composable
+private fun CarouselDots(
+    activeIndex: Int,
+    count: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        repeat(count) { index ->
+            Box(
+                modifier = Modifier
+                    .size(if (index == activeIndex) 9.dp else 7.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = if (index == activeIndex) 0.96f else 0.58f)),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ImmersiveRelationshipCard(
+    relationship: RelationshipUiModel,
+    sheepAvatarRes: Int?,
+    chickAvatarRes: Int?,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.heightIn(min = 148.dp),
+        shape = RoundedCornerShape(30.dp),
+        color = Color.White.copy(alpha = 0.76f),
+        shadowElevation = 1.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 15.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CoupleAvatar(
+                resId = sheepAvatarRes,
+                contentDescription = "小羊头像",
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = "小羊  ♥  小耶",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = Color(0xFF302625),
+                )
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = relationship.daysTogether.toString(),
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontSize = 54.sp,
+                            lineHeight = 58.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-1).sp,
+                        ),
+                        color = Color(0xFF201918),
+                    )
+                    Text(
+                        text = "天",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = Color(0xFF3F322F),
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
+                Text(
+                    text = "我们在一起已经",
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                    color = Color(0xFF806963),
+                )
+            }
+            CoupleAvatar(
+                resId = chickAvatarRes,
+                contentDescription = "小耶头像",
+            )
+        }
+    }
+}
+
+@Composable
+private fun CoupleAvatar(
+    resId: Int?,
+    contentDescription: String,
+) {
+    Surface(
+        modifier = Modifier.size(66.dp),
+        shape = CircleShape,
+        color = Color.White.copy(alpha = 0.94f),
+        shadowElevation = 1.dp,
+    ) {
+        if (resId != null) {
+            Image(
+                painter = painterResource(resId),
+                contentDescription = contentDescription,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NextAnniversaryCard(
+    relationship: RelationshipUiModel,
+    iconRes: Int?,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 76.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White.copy(alpha = 0.86f),
+        shadowElevation = 1.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(13.dp),
+        ) {
+            Surface(
+                modifier = Modifier.size(38.dp),
+                shape = RoundedCornerShape(13.dp),
+                color = Color(0xFFFFE5E8),
+            ) {
+                DrawableOrFallback(
+                    resId = iconRes,
+                    modifier = Modifier.padding(8.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "下一个纪念日",
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                    color = Color(0xFF8A726D),
+                )
+                Text(
+                    text = relationship.anniversaryTitle,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = Color(0xFF2D2523),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Text(
+                text = relationship.anniversaryCountdownLabel,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = Color(0xFFC4777B),
+            )
+            Text(
+                text = "›",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color(0xFF9D8A86),
+            )
+        }
+    }
+}
+
+@Composable
+private fun VisitHistoryCard(
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.heightIn(min = 54.dp),
+        shape = RoundedCornerShape(22.dp),
+        color = Color.White.copy(alpha = 0.74f),
+        shadowElevation = 0.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Surface(
+                modifier = Modifier.size(34.dp),
+                shape = CircleShape,
+                color = Color(0xFFF1E9E7),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "✦",
+                        color = Color(0xFF927B77),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "来过记录",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = Color(0xFF332A28),
+                )
+                Text(
+                    text = "Ta 最近来过 3 次",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                    color = Color(0xFF97827D),
+                )
+            }
+            listOf("9月1日\n16:28", "8月20日\n21:14", "8月12日\n10:03").forEach { stamp ->
+                Text(
+                    text = stamp,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                    color = Color(0xFF7B6762),
+                    textAlign = TextAlign.Center,
                 )
             }
         }
+    }
+}
 
-        if (payload.activities.isEmpty()) {
-            item {
-                PaddedSection {
-                    EmptyActivityCard(
-                        text = payload.recentActivityEmptyText,
-                        heroRes = payload.visuals.hero.imageRes,
+@Composable
+private fun ImmersiveRecentActivity(
+    activities: List<ActivityUiModel>,
+    emptyText: String,
+    onViewAll: () -> Unit,
+    onAction: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            shadowElevation = 1.dp,
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(34.dp),
+                            shape = RoundedCornerShape(11.dp),
+                            color = Color(0xFFFFE7E9),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "▰",
+                                    color = Color(0xFFD8878F),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                        }
+                        Text(
+                            text = "最近动态",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = Color(0xFF2C2422),
+                        )
+                    }
+                    Surface(
+                        onClick = onViewAll,
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.Transparent,
+                    ) {
+                        Text(
+                            text = "查看更多  ›",
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                            color = Color(0xFF937E79),
+                        )
+                    }
+                }
+                if (activities.isEmpty()) {
+                    Text(
+                        text = emptyText,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 28.dp),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        color = WarmGray,
+                        textAlign = TextAlign.Center,
                     )
+                } else {
+                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)) {
+                        activities.forEachIndexed { index, activity ->
+                            ImmersiveActivityRow(
+                                activity = activity,
+                                showDivider = index < activities.lastIndex,
+                                onClick = { onAction(activity.clickMessage) },
+                            )
+                        }
+                    }
                 }
             }
-        } else {
-            item {
-                PaddedSection {
-                    ActivityCard(
-                        activities = payload.activities,
-                        onViewAll = { onAction(payload.recentActivityListMessage) },
-                        onAction = onAction,
+        }
+    }
+}
+
+@Composable
+private fun ImmersiveActivityRow(
+    activity: ActivityUiModel,
+    showDivider: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent,
+        shape = RoundedCornerShape(18.dp),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Surface(
+                    modifier = Modifier.size(48.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFFFFF4F1),
+                ) {
+                    DrawableOrFallback(
+                        resId = activity.iconRes,
+                        modifier = Modifier.padding(8.dp),
                     )
                 }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = activity.title,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = Color(0xFF302725),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = activity.detail.takeIf { it != activity.title } ?: "一起留下的回忆",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                        color = Color(0xFF99837E),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Text(
+                    text = activity.relativeTime,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                    color = Color(0xFF9B8782),
+                    maxLines = 1,
+                )
+            }
+            if (showDivider) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 60.dp)
+                        .height(1.dp)
+                        .background(Color(0xFFF4ECEA)),
+                )
             }
         }
     }
