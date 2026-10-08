@@ -79,8 +79,9 @@ adb shell am force-stop "$package"
 adb root
 adb wait-for-device
 test "$(adb shell id -u | tr -d '\r')" = 0
-app_uid=$(adb shell dumpsys package "$package" | sed -n 's/.*userId=\([0-9]*\).*/\1/p' | head -n 1)
+app_uid=$(adb shell stat -c %u "/data/user/0/$package" | tr -d '\r')
 [[ "$app_uid" =~ ^[0-9]+$ ]]
+(( app_uid >= 10000 ))
 for firewall in iptables ip6tables; do
   adb shell "$firewall" -I OUTPUT -m owner --uid-owner "$app_uid" -j REJECT
   adb shell "$firewall" -C OUTPUT -m owner --uid-owner "$app_uid" -j REJECT
