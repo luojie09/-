@@ -8,11 +8,13 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 capture() {
   local name=$1
-  adb logcat -d -v threadtime > "$report/$name-logcat.txt"
+  adb logcat -d -v threadtime > "$report/$name-logcat.txt" || true
   adb exec-out screencap -p > "$report/$name.png" || true
   adb shell uiautomator dump /sdcard/startup-window.xml >/dev/null 2>&1 || true
   adb pull /sdcard/startup-window.xml "$report/$name-window.xml" >/dev/null 2>&1 || true
 }
+
+trap 'status=$?; capture unexpected-error; echo "::error::Startup smoke command failed at line $LINENO (exit $status)."; exit "$status"' ERR
 
 seed_identity() {
   local role=$1
@@ -70,7 +72,19 @@ for role in chick sheep; do
 done
 
 # Reopening an already paired app without connectivity must also preserve login.
+echo 'Preparing the offline cold start'
 adb shell am force-stop "$package"
-adb shell svc wifi disable
-adb shell svc data disable
+echo 'Disabling emulator Wi-Fi'
+adb shell svc wifi disable || true
+echo 'Disabling emulator mobile data'
+adb shell svc data disable || true
+sleep 3
+# Old svc processes can be killed after applying the setting. Assert the actual
+# radio state instead of treating their exit code as an application crash.
+wifi_state=$(adb shell settings get global wifi_on | tr -d '\r')
+data_state=$(adb shell settings get global mobile_data | tr -d '\r')
+if [[ "$wifi_state" != 0 || "$data_state" != 0 ]]; then
+  echo "::error::The emulator did not go offline (Wi-Fi=$wifi_state, mobile data=$data_state)."
+  exit 1
+fi
 start_and_check sheep-offline
