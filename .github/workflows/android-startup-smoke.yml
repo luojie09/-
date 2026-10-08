@@ -1,0 +1,73 @@
+name: Android Paired Startup
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: android-startup-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  paired-startup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level: [26, 34]
+    env:
+      JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8
+      SUPABASE_URL: ${{ vars.SUPABASE_URL || secrets.SUPABASE_URL || 'https://rcdcfvlvjxkeipysxbjt.supabase.co' }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_Ky0mYIAMFOcBBAbscl6-2Q_E_J_abem' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+
+      - name: Install build SDK
+        run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
+
+      - name: Assemble the production UI with remote modules enabled
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Test paired cold starts on Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: google_apis
+          arch: x86_64
+          ram-size: 2048M
+          heap-size: 256M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash scripts/android-paired-startup-smoke.sh
+
+      - name: Upload native startup diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paired-startup-api-${{ matrix.api-level }}
+          path: app/build/reports/paired-startup/**
+          if-no-files-found: warn
