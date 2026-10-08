@@ -35,8 +35,8 @@ android {
         applicationId = "com.secretbase.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.2.0"
+        versionCode = 7
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "SUPABASE_URL", appConfig("SUPABASE_URL").toBuildConfigString())
@@ -126,14 +126,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation(platform("io.github.jan-tennert.supabase:bom:3.1.4"))
     implementation("io.github.jan-tennert.supabase:supabase-kt")
-    implementation("io.github.jan-tennert.supabase:postgrest-kt") {
-        exclude(group = "io.github.jan-tennert.supabase", module = "auth-kt")
-        exclude(group = "io.github.jan-tennert.supabase", module = "auth-kt-android")
-    }
-    implementation("io.github.jan-tennert.supabase:realtime-kt") {
-        exclude(group = "io.github.jan-tennert.supabase", module = "auth-kt")
-        exclude(group = "io.github.jan-tennert.supabase", module = "auth-kt-android")
-    }
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
+    // Realtime loads Auth types even when JWTs come from our own session manager.
+    implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.ktor:ktor-client-android:3.1.2")
     implementation("io.ktor:ktor-client-cio:3.1.2")
 

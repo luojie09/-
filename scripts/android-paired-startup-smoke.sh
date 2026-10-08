@@ -35,7 +35,8 @@ seed_identity() {
 
 start_and_check() {
   local name=$1
-  adb logcat -c
+  # Some API 26 images refuse to clear the main buffer during initial boot.
+  adb logcat -b crash -c || true
   adb shell am start -W -n "$package/.MainActivity"
   local initial_pid
   initial_pid=$(adb shell pidof "$package" | tr -d '\r') || true
@@ -46,6 +47,7 @@ start_and_check() {
     if [[ -z "$initial_pid" || "$current_pid" != "$initial_pid" ]]; then
       capture "$name"
       echo "::error::The paired app process exited or restarted ($name)."
+      grep ' E AndroidRuntime' "$report/$name-logcat.txt" || true
       tail -n 250 "$report/$name-logcat.txt"
       return 1
     fi
