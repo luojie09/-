@@ -4,6 +4,9 @@
 /build
 /captures
 /local.properties
+*.keystore
+*.jks
+*.p12
 *.iml
 .DS_Store
 /app/build

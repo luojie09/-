@@ -72,19 +72,18 @@ for role in chick sheep; do
 done
 
 # Reopening an already paired app without connectivity must also preserve login.
+# Block this app's IPv4 and IPv6 traffic on the disposable emulator. API 26's
+# Wi-Fi service can reject shell radio commands without disabling connectivity.
 echo 'Preparing the offline cold start'
 adb shell am force-stop "$package"
-echo 'Disabling emulator Wi-Fi'
-adb shell svc wifi disable || true
-echo 'Disabling emulator mobile data'
-adb shell svc data disable || true
-sleep 3
-# Old svc processes can be killed after applying the setting. Assert the actual
-# radio state instead of treating their exit code as an application crash.
-wifi_state=$(adb shell settings get global wifi_on | tr -d '\r')
-data_state=$(adb shell settings get global mobile_data | tr -d '\r')
-if [[ "$wifi_state" != 0 || "$data_state" != 0 ]]; then
-  echo "::error::The emulator did not go offline (Wi-Fi=$wifi_state, mobile data=$data_state)."
-  exit 1
-fi
+adb root
+adb wait-for-device
+test "$(adb shell id -u | tr -d '\r')" = 0
+app_uid=$(adb shell dumpsys package "$package" | sed -n 's/.*userId=\([0-9]*\).*/\1/p' | head -n 1)
+[[ "$app_uid" =~ ^[0-9]+$ ]]
+for firewall in iptables ip6tables; do
+  adb shell "$firewall" -I OUTPUT -m owner --uid-owner "$app_uid" -j REJECT
+  adb shell "$firewall" -C OUTPUT -m owner --uid-owner "$app_uid" -j REJECT
+done
+echo "Blocked network traffic for emulator app UID $app_uid"
 start_and_check sheep-offline

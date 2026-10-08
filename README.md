@@ -4,11 +4,12 @@ Jetpack Compose Android client for "我们的秘密基地".
 
 ## Current Version
 
-- Version: `1.2.0` (`versionCode` 6).
+- Version: `1.2.1` (`versionCode` 7).
 - The approved Plan B UI is now the official UI on `main`.
 - `feature/ui-plan-b` remains available as the original UI revision branch.
 - CI currently produces a debug APK; this is not a store-signed release build.
 - Mobile push notifications are deferred and are not included in this version.
+- Realtime's Auth runtime dependency is included to fix the post-pairing crash.
 
 ## Stack
 
@@ -90,6 +91,21 @@ Build configuration and secure migration checks must pass before compilation.
 The live Supabase health check reports a warning without blocking an offline APK
 build. An APK artifact does not guarantee that the backend is currently reachable;
 restore the backend before relying on cloud sync or device pairing.
+
+Native startup regression checks run in `.github/workflows/android-startup-smoke.yml`
+on Android API 26 and 34. They seed an unusable test session on a disposable emulator,
+verify both roles render the real home screen for 60 seconds, then repeat a cold
+start with the app's network blocked. These checks do not validate real pairing or
+cloud data synchronization. Logs, UI hierarchy dumps, and screenshots are uploaded
+as `paired-startup-api-*` artifacts.
+
+## APK Updates
+
+Debug APKs from separate CI runners may have different signing certificates.
+Do not uninstall an existing app or clear its data to work around an update error.
+Preserve the original signing keystore for compatible updates, and configure a
+stable private release keystore before distributing production updates. A new
+keystore cannot replace a lost original key for an in-place update.
 
 ## Notes
 
