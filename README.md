@@ -2,6 +2,14 @@
 
 Jetpack Compose Android client for "我们的秘密基地".
 
+## Current Version
+
+- Version: `1.2.0` (`versionCode` 6).
+- The approved Plan B UI is now the official UI on `main`.
+- `feature/ui-plan-b` remains available as the original UI revision branch.
+- CI currently produces a debug APK; this is not a store-signed release build.
+- Mobile push notifications are deferred and are not included in this version.
+
 ## Stack
 
 - Kotlin 2.1.20

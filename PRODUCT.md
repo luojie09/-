@@ -4,6 +4,12 @@
 
 product
 
+## Release Status
+
+The approved Plan B UI is the official product UI as of 2026-10-08.
+Version 1.2.0 (versionCode 6) is maintained on main, with the original Git history preserved.
+Mobile push notifications remain deferred and are not part of this version.
+
 ## Users
 
 “我们的秘密基地”只服务于一对固定伴侣：小羊和小耶。两人会在日常碎片时间打开应用，查看彼此留下的新内容、记录共同经历、安排愿望与纪念日，并确认数据已经可靠同步到两台设备。
