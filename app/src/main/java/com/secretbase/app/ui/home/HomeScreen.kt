@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -201,11 +202,15 @@ private fun ImmersiveHomeHero(
     val configuredBackgrounds = payload.visuals.immersiveBackgroundCarouselRes
         .ifEmpty { listOfNotNull(payload.visuals.immersiveBackgroundRes) }
         .ifEmpty { listOf(R.drawable.home_plan_b_living_room) }
-    val carouselBackgrounds = remember(configuredBackgrounds) { configuredBackgrounds.shuffled() }
+    val isPreview = LocalInspectionMode.current
+    // Keep screenshot previews deterministic without changing the app's random carousel.
+    val carouselBackgrounds = remember(configuredBackgrounds, isPreview) {
+        if (isPreview) configuredBackgrounds else configuredBackgrounds.shuffled()
+    }
     var activeBackgroundIndex by remember(carouselBackgrounds) { mutableIntStateOf(0) }
 
-    LaunchedEffect(carouselBackgrounds) {
-        if (carouselBackgrounds.size < 2) return@LaunchedEffect
+    LaunchedEffect(carouselBackgrounds, isPreview) {
+        if (isPreview || carouselBackgrounds.size < 2) return@LaunchedEffect
         while (true) {
             delay(3_500)
             activeBackgroundIndex = (activeBackgroundIndex + 1) % carouselBackgrounds.size
