@@ -86,6 +86,11 @@ Artifacts uploaded by CI:
 - `app-debug-apk`
 - `homepage-preview`
 
+Build configuration and secure migration checks must pass before compilation.
+The live Supabase health check reports a warning without blocking an offline APK
+build. An APK artifact does not guarantee that the backend is currently reachable;
+restore the backend before relying on cloud sync or device pairing.
+
 ## Notes
 
 - `local.properties` is intentionally not committed.
